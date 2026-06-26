@@ -3,8 +3,12 @@ const { ChargilyClient } = require('@chargily/chargily-pay');
 const client = new ChargilyClient({
   apiKey: process.env.CHARGILY_API_KEY,
   secretKey: process.env.CHARGILY_SECRET_KEY,
-  environment: 'sandbox', // use 'production' when live
+  environment: 'sandbox',
 });
+
+// ADD THESE TWO LINES TEMPORARILY
+console.log('client type:', typeof client);
+console.log('client keys:', Object.keys(client));
 
 async function createPayment({ amount, currency = 'dzd', success_url, failure_url, metadata }) {
   // ✅ correct method: client.createPayment (not client.payments.create)
