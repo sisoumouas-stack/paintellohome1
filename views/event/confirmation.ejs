@@ -16,27 +16,22 @@
     s.parentNode.insertBefore(t,s)}(window, document,'script',
     'https://connect.facebook.net/en_US/fbevents.js');
 
-    // Create config object dynamically
     var pixelConfig = {};
-
-    // Only add parameters that have values
     <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
     <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
     <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
     <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
     <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
 
-    // Initialize with dynamic config
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
     fbq('track', 'PageView', {}, {
-    eventID: '<%= metaEventIdPageView %>'
-  });
+      eventID: '<%= metaEventIdPageView %>'
+    });
     </script>
     <noscript>
       <img height="1" width="1" style="display:none" 
            src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/>
     </noscript>
-    <!-- End Facebook Pixel Code -->
     <% } %>
 
     <!-- Google Tag Manager -->
@@ -45,15 +40,15 @@
     j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
     })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
-    <!-- End Google Tag Manager -->
 
-<script type="text/javascript">
+    <!-- Microsoft Clarity -->
+    <script>
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
       t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
       y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "t8r0mi7k1l");
-  </script>
+    </script>
 
     <title>Confirmation de Commande | Paintello</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -166,9 +161,6 @@
             text-transform: uppercase;
         }
     </style>
-
-
-
 </head>
 
 <body class="min-h-screen bg-white">
@@ -349,40 +341,53 @@
         </div>
     </footer>
 
-    <!-- Tracking Scripts -->
-    <% if (process.env.FB_PIXEL_ID) { %>
+    <!-- DYNAMIC META PIXEL EVENT (based on payment method) -->
+    <% if (process.env.FB_PIXEL_ID && typeof eventId !== 'undefined' && eventId) { %>
     <script>
-        // Check if fbq is defined before using it
         if (typeof fbq !== 'undefined') {
-            fbq('track', 'Purchase', {
-                value: <%= totalPrice %>,
-                currency: 'DZD',
-                content_type: 'product',
-                content_ids: <%- JSON.stringify(cartItems.map(p => p.item._id.toString())) %>,
-                contents: <%- JSON.stringify(cartItems.map(p => ({
-                    id: p.item._id.toString(),
-                    quantity: p.qty,
-                    item_price: p.item.price
-                }))) %>
-            }, {
-                eventID: '<%= metaEventIdPurchase %>'
-            });
+            var method = '<%= paymentMethod %>';
+            var eventName = '<%= eventName %>';
+            var id = '<%= eventId %>';
+
+            if (method === 'chargily') {
+                // Purchase event for online payment
+                fbq('track', 'Purchase', {
+                    value: <%= value %>,
+                    currency: '<%= currency %>',
+                    content_type: 'product',
+                    content_ids: <%- JSON.stringify(content_ids) %>,
+                    contents: <%- JSON.stringify(contents) %>
+                }, {
+                    eventID: id
+                });
+                console.log('Meta Pixel: Purchase fired with eventID', id);
+            } else if (method === 'cod') {
+                // InitiateCheckout for cash on delivery
+                fbq('track', 'InitiateCheckout', {}, {
+                    eventID: id
+                });
+                console.log('Meta Pixel: InitiateCheckout fired with eventID', id);
+            }
         }
     </script>
-    
-    <!-- GA4 Purchase Event -->
+    <% } %>
+
+    <!-- GA4 Purchase Event (only for actual purchases, not COD) -->
+    <% if (typeof paymentMethod !== 'undefined' && paymentMethod === 'chargily') { %>
     <script>
         window.dataLayer = window.dataLayer || [];
         dataLayer.push({
             'event': 'purchase',
-            'value': <%= totalPrice %>,
-            'currency': 'DZD',
-            'items': <%- JSON.stringify(cartItems.map(p => ({
-                'item_id': p.item._id.toString(),
-                'item_name': p.item.title,
-                'price': p.item.price,
-                'quantity': p.qty
-            }))) %>
+            'value': <%= value %>,
+            'currency': '<%= currency %>',
+            'items': <%- JSON.stringify(contents.map(function(p) {
+                return {
+                    'item_id': p.id,
+                    'item_name': p.item_name || '', // you may pass product names from server
+                    'price': p.item_price,
+                    'quantity': p.quantity
+                };
+            })) %>
         });
     </script>
     <% } %>
@@ -390,7 +395,6 @@
     <script>
         // Newsletter popup functionality
         window.addEventListener('DOMContentLoaded', () => {
-            // Show popup after 3 seconds
             setTimeout(() => {
                 document.getElementById('newsletter-popup').style.display = 'flex';
             }, 3000);
@@ -403,21 +407,13 @@
         function handleNewsletterSubmit(event) {
             event.preventDefault();
             const email = event.target.email.value;
-
-            // You can replace this with actual server-side logic if needed
             console.log("Subscribed email:", email);
-
-            // Show success message
             document.getElementById('newsletter-success').classList.remove('hidden');
-
-            // Hide form
             event.target.style.display = 'none';
-
-            // Close after 3 seconds
             setTimeout(closePopup, 3000);
         }
 
-        // Auto-redirect to track page after 10 seconds
+        // Auto-redirect to track page after 25 seconds
         setTimeout(() => {
             window.location.href = '/track-login';
         }, 25000);
