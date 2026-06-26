@@ -506,47 +506,7 @@
 
   <!-- Footer include preserved -->
   <%- include ("../partials/footer") %>
-<!-- Meta Pixel Tracking Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Track InitiateCheckout on checkout page load
-            if (window.fbq && '<%= metaEventIdCheckout %>') {
-                
-                // Prepare cart data for pixel
-                const contents = [];
-                const content_ids = [];
-                
-                <% if (cart && cart.items) { %>
-                    <% for (let id in cart.items) { %>
-                        <% const item = cart.items[id]; %>
-                        contents.push({
-                            id: '<%= item.item._id || item.item.id %>',
-                            quantity: <%= item.qty %>,
-                            item_price: <%= item.price %>
-                        });
-                        content_ids.push('<%= item.item._id || item.item.id %>');
-                    <% } %>
-                <% } %>
 
-                window.fbq('track', 'InitiateCheckout', {
-                    content_ids: content_ids,
-                    contents: contents,
-                    content_type: 'product',
-                    value: <%= cart.totalPrice || 0 %>,
-                    currency: 'DZD',
-                    num_items: <%= cart.totalQty || 0 %>
-                }, {
-                    eventID: '<%= metaEventIdCheckout %>'
-                });
-
-                console.log('🎯 Checkout Page - InitiateCheckout Event ID:', '<%= metaEventIdCheckout %>', {
-                    value: <%= cart.totalPrice || 0 %>,
-                    num_items: <%= cart.totalQty || 0 %>,
-                    items_count: content_ids.length
-                });
-            }
-        });
-    </script>
   <!-- Shipping Logic -->
 <script>
   (function(){
