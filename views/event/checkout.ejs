@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<!-- Meta Pixel with Advanced Matching and SHA-256 hashing -->
+<!-- Meta Pixel Code -->
+<script>
+  
+
+  !function(f,b,e,v,n,t,s){
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
+    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s);
+  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+   fbq('init', '633564199312760', {
+    em: '<%= user ? user.email : "" %>',
+    fn: '<%= user ? user.firstName : "" %>',
+    ln: '<%= user ? user.lastName : "" %>',
+    ph: '<%= user ? user.numero : "" %>'
+  });
+fbq('track', 'PageView');
+</script>
+<noscript>
+  <img height="1" width="1" style="display:none"
+       src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Meta Pixel Code -->
+
+
+  <meta name="facebook-domain-verification" content="plfly5a8dktgdy17nvv2h8zsrpc9g5" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Paintello | Checkout</title> 
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+<link rel="manifest" href="/favicon/site.webmanifest">  
+  <meta name="theme-color" content="#ffffff">  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
+  <!-- Bootstrap core CSS -->
+  <link href="../../css/bootstrap.min.css" rel="stylesheet">
+  <!-- Material Design Bootstrap -->
+  <link href="../../css/mdb.min.css" rel="stylesheet">
+ <style>
+     
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #fefefe;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    .carousel {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      border-radius: 12px;
+    }
+    .carousel-images {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+    }
+    .carousel-images img {
+      width: 100%;
+      flex-shrink: 0;
+    }
+    .carousel-buttons {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+    }
+    .carousel-buttons button {
+      background-color: rgba(0, 0, 0, 0.5);
+      color: white;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+      padding: 0 12px;
+    }
+    .price {
+      color: #f4791f;
+      font-size: 1.5rem;
+      margin: 10px 0;
+    }
+    .btn {
+      display: inline-block;
+      background: #f4791f;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 30px;
+      text-decoration: none;
+      font-size: 1rem;
+      margin-top: 20px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #c85f0d;
+    }
+    .quantity {
+      margin-top: 20px;
+    }
+    .quantity label {
+      margin-right: 10px;
+      font-weight: bold;
+    }
+    .quantity input {
+      width: 60px;
+      padding: 5px;
+      font-size: 1rem;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .cart-link {
+      display: block;
+      margin-top: 30px;
+      text-align: center;
+    }
+    .cart-link a {
+      color: #f4791f;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .cart-link a:hover {
+      text-decoration: underline;
+    }
+    .checkout-form {
+      margin-top: 40px;
+      border-top: 1px solid #ddd;
+      padding-top: 20px;
+    }
+    .checkout-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .checkout-form input, .checkout-form select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+  </style>
+
+</head>
+
+
+<body>
+  <!-- Main Navigation -->
+  <header>
+<script type="text/javascript" src="javascripts/checkout.js"></script>
+<script type="text/javascript" src="https://js.stripe.com/v2/"></script>
+
+
+
+
+    
+  <!-- Your fixed logo here -->
+  <div id="checkout-logo" style="text-align: center; margin-top: 20px;">
+    <a href="/">
+      <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;">
+    </a>
+<a href="/">
+      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
+    </a>
+  </div>
+
+                 
+                  <!-- Body -->
+
+                   <div class="checkout-form">
+      <h2>Checkout (Algeria Only)</h2>
+      <form action="/checkout" method="POST">
+        <label for="fullname">Full Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="phone">Phone Number</label>
+        <input type="tel" name="numero" id="numero" pattern="0[5-7][0-9]{8}" placeholder="e.g. 0551234567" required>
+        <label for="country">Country</label>
+        <input type="text" id="country" name="country" value="Algeria" readonly>
+        <label for="city">Wilaya</label>
+        <select id="city" name="city" required>
+          <option value="">Select your wilaya</option>
+          <option value="Algiers">Algiers</option>
+          <option value="Oran">Oran</option>
+          <option value="Constantine">Constantine</option>
+          <option value="Blida">Blida</option>
+          <option value="Annaba">Annaba</option>
+          <option value="ADRAR">ADRAR</option>
+<option value="CHLEF">CHLEF</option>
+<option value="LAGHOUAT">LAGHOUAT</option>
+<option value="OUM EL BOUAGHI">OUM EL BOUAGHI</option>
+<option value="BATNA">BATNA</option>
+<option value="BEJAIA">BEJAIA</option>
+<option value="BISKRA">BISKRA</option>
+<option value="BECHAR">BECHAR</option>
+<option value="BLIDA">BLIDA</option>
+<option value="BOUIRA">BOUIRA</option>
+<option value="TAMANRASSET">TAMANRASSET</option>
+<option value="TEBESSA">TEBESSA</option>
+<option value="TLEMCAN">TLEMCAN</option>
+<option value="TIARET">TIARET</option>
+<option value="TIZI OUZOU">TIZI OUZOU</option>
+<option value="DJELFA">DJELFA</option>
+<option value="JIJEL">JIJEL</option>
+<option value="SETIF">SETIF</option>
+<option value="SAIDA">SAIDA</option>
+<option value="SKIKDA">SKIKDA</option>
+<option value="SIDI BELABBAS">SIDI BELABBAS</option>
+<option value="GEULMA">GEULMA</option>
+<option value="MEDEA">MEDEA</option>
+<option value="MOSTAGANEM">MOSTAGANEM</option>
+<option value="M'SILA">M'SILA</option>
+<option value="MASCARA">MASCARA</option>
+<option value="OUERGLA">OUERGLA</option>
+<option value="EL BAYADH">EL BAYADH</option>
+<option value="BORJ BOU ARRERIDJ">BORJ BOU ARRERIDJ</option>
+<option value="BOUMERDAS">BOUMERDAS</option>
+<option value="EL TAREF">EL TAREF</option>
+<option value="TISSEMSIL">TISSEMSIL</option>
+<option value="EL OUED">EL OUED</option>
+<option value="KHENCHLA">KHENCHLA</option>
+<option value="SOUK AHRAS">SOUK AHRAS</option>
+<option value="TIPAZA">TIPAZA</option>
+<option value="MILA">MILA</option>
+<option value="AIN DEFLA">AIN DEFLA</option>
+<option value="NAAMA">NAAMA</option>
+<option value="AIN TEMOUCHENT">AIN TEMOUCHENT</option>
+<option value="GHARDAIA">GHARDAIA</option>
+<option value="GHILEZAN">GHILEZAN</option>
+<option value="EL M'GHAIAR">EL M'GHAIAR</option>
+<option value="EL MENIA">EL MENIA</option>
+<option value="OULED DJELLAL">OULED DJELLAL</option>
+<option value="BENI ABBAS">BENI ABBAS</option>
+<option value="TIMIMOUN">TIMIMOUN</option>
+<option value="TOUGGOURT">TOUGGOURT</option>
+<option value="IN SALEH">IN SALEH</option>
+<option value="IN GUEZZAM">IN GUEZZAM</option>
+
+          <!-- Add more wilayas as needed -->
+        </select>
+
+        <label for="address">Full Address</label>
+        <input type="text" name="address" id="address" required>
+
+        <button type="submit" class="btn btn-pink btn-rounded">Place Order</button>
+      </form>
+    </div>
+  </div>
+                
+                    <hr>
+                    
+                <div class="cart-link">
+      <a href="/">Go to Shop</a>
+    </div>
+                  
+
+
+  <script>
+  const FREE_SHIPPING_THRESHOLD = 5000; // DA
+  const basePrice = <%= totalPrice %>; // coming from your server
+
+  // Full wilaya list with delivery times and estimated shipping fees (example data)
+  const shippingData = {
+    "ADRAR": { fee: 800, delay: "4–6 days" },
+    "CHLEF": { fee: 600, delay: "3–5 days" },
+    "LAGHOUAT": { fee: 750, delay: "4–6 days" },
+    "OUM EL BOUAGHI": { fee: 600, delay: "3–5 days" },
+    "BATNA": { fee: 600, delay: "3–5 days" },
+    "BEJAIA": { fee: 500, delay: "2–4 days" },
+    "BISKRA": { fee: 700, delay: "3–5 days" },
+    "BECHAR": { fee: 850, delay: "4–6 days" },
+    "BLIDA": { fee: 300, delay: "1–2 days" },
+    "BOUIRA": { fee: 500, delay: "2–3 days" },
+    "TAMANRASSET": { fee: 1000, delay: "5–8 days" },
+    "TEBESSA": { fee: 700, delay: "3–5 days" },
+    "TLEMCAN": { fee: 500, delay: "2–3 days" },
+    "TIARET": { fee: 550, delay: "3–4 days" },
+    "TIZI OUZOU": { fee: 400, delay: "2–3 days" },
+    "DJELFA": { fee: 600, delay: "3–4 days" },
+    "JIJEL": { fee: 450, delay: "2–3 days" },
+    "SETIF": { fee: 500, delay: "2–3 days" },
+    "SAIDA": { fee: 600, delay: "3–4 days" },
+    "SKIKDA": { fee: 500, delay: "2–3 days" },
+    "SIDI BELABBAS": { fee: 550, delay: "3–4 days" },
+    "GEULMA": { fee: 600, delay: "3–4 days" },
+    "MEDEA": { fee: 400, delay: "2–3 days" },
+    "MOSTAGANEM": { fee: 450, delay: "2–3 days" },
+    "M'SILA": { fee: 500, delay: "2–3 days" },
+    "MASCARA": { fee: 500, delay: "2–3 days" },
+    "OUERGLA": { fee: 700, delay: "4–6 days" },
+    "EL BAYADH": { fee: 750, delay: "4–6 days" },
+    "BORJ BOU ARRERIDJ": { fee: 500, delay: "2–3 days" },
+    "BOUMERDAS": { fee: 350, delay: "1–2 days" },
+    "EL TAREF": { fee: 700, delay: "3–5 days" },
+    "TISSEMSIL": { fee: 550, delay: "3–4 days" },
+    "EL OUED": { fee: 750, delay: "4–6 days" },
+    "KHENCHLA": { fee: 650, delay: "3–5 days" },
+    "SOUK AHRAS": { fee: 600, delay: "3–4 days" },
+    "TIPAZA": { fee: 300, delay: "1–2 days" },
+    "MILA": { fee: 500, delay: "2–3 days" },
+    "AIN DEFLA": { fee: 400, delay: "2–3 days" },
+    "NAAMA": { fee: 800, delay: "4–6 days" },
+    "AIN TEMOUCHENT": { fee: 550, delay: "3–4 days" },
+    "GHARDAIA": { fee: 700, delay: "4–6 days" },
+    "GHILEZAN": { fee: 500, delay: "2–3 days" },
+    "EL M'GHAIAR": { fee: 800, delay: "4–6 days" },
+    "EL MENIA": { fee: 900, delay: "5–7 days" },
+    "OULED DJELLAL": { fee: 700, delay: "4–6 days" },
+    "BENI ABBAS": { fee: 900, delay: "5–7 days" },
+    "TIMIMOUN": { fee: 950, delay: "5–7 days" },
+    "TOUGGOURT": { fee: 850, delay: "4–6 days" },
+    "IN SALEH": { fee: 1000, delay: "6–8 days" },
+    "IN GUEZZAM": { fee: 1200, delay: "6–9 days" },
+    "ALGIERS": { fee: 300, delay: "1–2 days" },
+    "ORAN": { fee: 400, delay: "2–3 days" },
+    "CONSTANTINE": { fee: 500, delay: "2–3 days" },
+    "ANNABA": { fee: 500, delay: "2–3 days" }
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const citySelect = document.getElementById('city');
+    const infoBox = document.createElement('div');
+    infoBox.style.marginTop = '15px';
+    infoBox.style.fontWeight = 'bold';
+    citySelect.parentNode.insertBefore(infoBox, citySelect.nextSibling);
+
+    citySelect.addEventListener('change', () => {
+      const selected = citySelect.value.toUpperCase();
+      const data = shippingData[selected] || { fee: 700, delay: "3–5 days" };
+      let shippingFee = data.fee;
+      const deliveryTime = data.delay;
+
+      let shippingText = `${shippingFee} DA`;
+      let finalPrice = basePrice + shippingFee;
+
+      if (basePrice >= FREE_SHIPPING_THRESHOLD) {
+        shippingFee = 0;
+        shippingText = `Free (over ${FREE_SHIPPING_THRESHOLD} DA)`;
+        finalPrice = basePrice;
+      }
+
+      infoBox.innerHTML = `
+        🚚 <strong>Shipping Fee:</strong> ${shippingText}<br>
+        ⏱ <strong>Estimated Delivery:</strong> ${deliveryTime}<br>
+        💰 <strong>Total Including Shipping:</strong> ${finalPrice} DA
+      `;
+    });
+  });
+</script>
+
+
+
+
+
+  <!-- Main Navigation -->
+  <%- include ("../partials/footer") %>.
+ 

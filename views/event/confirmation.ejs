@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Meta Pixel Code -->
+<!-- Meta Pixel Code -->
+<script>
+  
+
+  !function(f,b,e,v,n,t,s){
+    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
+    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s);
+  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+   fbq('init', '633564199312760', {
+    em: '<%= user ? user.email : "" %>',
+    fn: '<%= user ? user.firstName : "" %>',
+    ln: '<%= user ? user.lastName : "" %>',
+    ph: '<%= user ? user.numero : "" %>'
+  });
+fbq('track', 'PageView');
+</script>
+<noscript>
+  <img height="1" width="1" style="display:none"
+       src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Meta Pixel Code -->
+<!-- End Meta Pixel Code -->
+  <meta charset="UTF-8">
+  <title>Order Confirmation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Meta Pixel Code -->
+
+ 
+  <!-- End Meta Pixel Code -->
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #fdfdfd;
+      padding: 20px;
+      color: #333;
+    }
+    .confirmation-box {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #4CAF50;
+    }
+    p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    .btn-home {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #f4791f;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    .btn-home:hover {
+      background: #d26312;
+    }
+
+.popup-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 9999;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    font-size: 16px;
+    display: none;
+  }
+
+  .popup-container h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .popup-container p {
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .popup-container input {
+    width: 80%;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+
+  .popup-container .logo-popup {
+    width: 100px;
+    margin-bottom: 15px;
+  }
+.popup-logo {
+  width: 120px;
+  margin-bottom: 15px;
+}
+.popup-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+  position: relative;
+  font-family: 'Arial', sans-serif;
+}
+
+.popup-content h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.popup-content p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.popup-content input[type="email"] {
+  padding: 10px;
+  width: 90%;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+  .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+  }
+
+  .animated-popup {
+    animation: zoomIn 0.4s ease-out;
+  }
+
+  @keyframes zoomIn {
+    0% {
+      transform: translate(-50%, -50%) scale(0.7);
+      opacity: 0;
+    }
+    100% {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+  }
+.btn-newsletter {
+  background-color: #f4791f;
+  color: white;
+  font-size: 18px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.btn-newsletter:hover {
+  background-color: #c85f0d;
+}
+
+  </style>
+
+
+
+
+</head>
+<body>
+
+<!-- Your fixed logo here -->
+  <div id="checkout-logo" style="text-align: center; margin-top: 20px;">
+    <a href="/">
+      <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;">
+    </a>
+<a href="/">
+      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
+    </a>
+  </div>
+
+  <div class="confirmation-box">
+    <h1>✅ Thank you for your order!</h1>
+    <p><strong>Name:</strong> <%= name %></p>
+    <p><strong>Phone:</strong> <%= numero %></p>
+    <p><strong>Wilaya:</strong> <%= city %></p>
+    <p><strong>Address:</strong> <%= address %></p>
+    <p><strong>Delivery Estimate:</strong> <%= deliveryDelay %></p>
+    <p><strong>Cart Total:</strong> <%= cartTotal %> DZD</p>
+    <p><strong>Shipping Fee:</strong> <%= shippingFee %> DZD</p>
+    <p><strong>Total (incl. shipping):</strong> <%= totalPrice %> DZD</p>
+
+    <a href="/" class="btn-home">Back to Home</a>
+  </div>
+<!-- Newsletter Popup -->
+
+<div id="newsletter-popup" class="popup-overlay">
+  <div class="popup-content animate__animated animate__fadeInDown">
+    <button class="close-btn" onclick="closePopup()">×</button>
+    <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" class="popup-logo">
+    <h3>📩 Stay Updated with Paintello!</h3>
+    <p>احصل على آخر العروض والمنتجات الجديدة مباشرة في بريدك الإلكتروني.</p>
+    <form action="/subscribe" method="POST">
+  <input type="email" name="email" placeholder="أدخل بريدك الإلكتروني" required class="form-control mb-2">
+  <button type="submit" class="btn btn-primary btn-md">اشترك الآن</button>
+</form>
+
+    <div id="newsletter-success" style="display:none; color: green; margin-top: 10px;">
+      ✅ تم الاشتراك بنجاح!
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const popup = document.getElementById('newsletter-popup');
+    const closeBtn = document.getElementById('close-popup');
+
+    // Show popup after 2 seconds
+    setTimeout(() => {
+      popup.style.display = 'block';
+    }, 7000);
+
+    // Close button logic
+    closeBtn.addEventListener('click', () => {
+      popup.style.display = 'none';
+    });
+
+    // Optional: Hide on ESC key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        popup.style.display = 'none';
+      }
+    });
+  });
+</script>
+<script>
+  // Automatically show popup after delay
+  window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+      document.getElementById('newsletter-popup').style.display = 'flex';
+    }, 7000); // 2-second delay
+  });
+
+  function closePopup() {
+    document.getElementById('newsletter-popup').style.display = 'none';
+  }
+
+  function handleNewsletterSubmit(event) {
+    event.preventDefault();
+    const email = event.target.email.value;
+
+    // You can replace this with actual server-side logic if needed
+    console.log("Subscribed email:", email);
+
+    // Show success message
+    document.getElementById('newsletter-success').style.display = 'block';
+
+    // Optionally hide form
+    event.target.style.display = 'none';
+
+    // Optionally close after few seconds
+    setTimeout(closePopup, 3000);
+  }
+</script>
+
+
+</body>
+
+
+</html>
