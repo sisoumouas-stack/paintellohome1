@@ -10,6 +10,7 @@ const axios = require('axios');
 const User = require('../models/user'); // ✅ ADD THIS LINE
 const getCleanUserData = require('../utils/userData');
 const sendFacebookCAPIEvent = require('../services/facebookCapi'); // NEW: Official SDK
+const { createPayment, verifyPayment } = require('../helpers/chargily');
 
 require('dotenv').config();
 const twilio = require('twilio');
@@ -1659,27 +1660,11 @@ router.get("/checkout", async function (req, res) {
       const testEventCode = req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
       
       // =============================
-      // 3. InitiateCheckout with correct value
-      // =============================
-      await sendFacebookCAPIEvent({
-        eventName: "InitiateCheckout",
-        eventId: eventIdInitiateCheckout,
-        userData,
-        customData: {
-          content_ids,
-          contents,
-          content_type: "product",
-          value: totalAfterDiscount, // Use discounted total
-          currency: "DZD",
-          num_items: cart.totalQty || 0
-        },
-        eventSourceUrl,
-        testEventCode // ✅ Facebook Test Event Code
-      });
+      
 
       console.log("✅ Checkout events sent (human user)", {
         pageView: eventIdPageView,
-        initiateCheckout: eventIdInitiateCheckout,
+        
         value: totalAfterDiscount,
         discountAmount: discountAmount,
         items: cart.totalQty
@@ -1703,7 +1688,7 @@ router.get("/checkout", async function (req, res) {
     noError: !errMsg,
     cart: cart, // Pass cart object
     metaEventIdPageView: eventIdPageView,
-    metaEventIdCheckout: eventIdInitiateCheckout,
+  
     user: req.user,
     req: req // Pass req for session access in template
   });
@@ -1711,11 +1696,9 @@ router.get("/checkout", async function (req, res) {
 
           
 router.post("/checkout", async function (req, res) {
-  if (!req.session.cart) {
-    return res.redirect("/shop");
-  }
+  if (!req.session.cart) return res.redirect("/shop");
 
-  var cart = new Cart(req.session.cart);
+  const cart = new Cart(req.session.cart);
   const freeShippingThreshold = 5000;
   const wilayaShippingInfo = {
    "adrar": { fee: 800, delay: "4–6 jours", communes: ["Adrar","Reggane","Aoulef","Timimoun","Zaouiet Kounta","Fenoughil","Bouda","Tamentit","Sali","Tsabit","In Zghmir","Ouled Ahmed Timmi", "Akabli", "Bordj Badji Mokhtar", "Charouine", "Deldoul", "Metarfa", "Ouled Aissa", "Sebaa", "Talmin", "Tamest", "Tamantit", "Tinerkouk", "Zaouiet el Arab"] },
@@ -2025,73 +2008,72 @@ router.post("/checkout", async function (req, res) {
   "TAMANRASSET": 900,
   "Default": 700
 };
+ const {
+    firstName,
+    lastName,
+    address,
+    city,
+    commune,
+    numero:  rawNumero,
+    paymentMethod,
+  } = req.body;
+   const cityNormalised = (city || "").toLowerCase().trim();
 
- const selectedcity = req.body.city;
-  const selectedCommune = req.body.commune; // Get commune from request body
   const shipping = wilayaShippingInfo[selectedcity] || { fee: 1000, delay: "3-5 days" };
   
   // Determine fee
   const shippingFee = cart.totalPrice >= freeShippingThreshold ? 0 : shipping.fee;
   const finalTotalPrice = cart.totalPrice + shippingFee;
-  const rawNumero = req.body.numero || (req.user ? req.user.numero : undefined);
-  const cleanNumero = '213' + rawNumero.replace(/^0+/, '').replace(/\D/g, '');     
-  const orderType = req.user ? 'user' : 'guest';
-  const order = new Order({
-    user: req.user || null, // null for guest orders
-    cart: cart,
-    address: req.body.address,
-     firstName: req.body.firstName,
-      lastName: req.body.lastName,
-    commune: selectedCommune, // Add commune here
-     country: "algeria",
-    city: selectedcity,
-    numero: cleanNumero,
-    shippingFee: shippingFee,
-    deliveryDelay: shipping.delay,
-    orderType: orderType, // Add order type
-    totalWithShipping: finalTotalPrice
-  });
-console.log("📝 Tentative d’enregistrement :", order);
-try {
-  const result = await order.save();
+ // ===============================
+  // 1. CASH ON DELIVERY (COD)
+  // ===============================
+  if (paymentMethod === "cod") {
+    try {
+      const order = new Order({
+        user: req.user || null,
+        cart: cart,
+        address,
+        firstName,
+        lastName,
+        commune,
+        country: "Algeria",
+        city: cityNormalised,
+        numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
+        shippingFee,
+        deliveryDelay: shipping.delay,
+        orderType: req.user ? "user" : "guest",
+        totalWithShipping: finalTotalPrice,
+      });
 
-    const cityClean =
-  (req.body.city || "").toLowerCase().replace(/[0-9\-]/g, "").trim(); // remove digits or dashes 
-   
-  
-  const userData = getCleanUserData(req);
-   const eventIdPurchase = generateEventId();
- // ✅ Get Facebook Test Event Code
-    const testEventCode = req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
-  
-   if (userData) {
-      await sendFacebookCAPIEvent({
-        eventName: "Purchase",
-        eventId: eventIdPurchase,
-        userData,
-        customData: {
-          value: finalTotalPrice,
-          currency: "DZD",
-          content_type: "product",
-          content_ids: cart.generateArray().map(p => p.item._id.toString()),
-          contents: cart.generateArray().map(p => ({
-            id: p.item._id.toString(),
-            quantity: p.qty,
-            item_price: p.item.price
-          }))
-        },
-         eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
-        testEventCode // ✅ Facebook Test Event Code
-      });
-      
-     console.log("✅ Purchase sent to Meta", {
-        eventId: eventIdPurchase,
-        value: finalTotalPrice,
-        testEventCode: testEventCode ? "Used" : "Not used"
-      });
-    } else {
-      console.log("🤖 Bot detected – Purchase skipped");
-    } 
+      await order.save();
+
+      // Generate InitiateCheckout event ID
+      const eventIdInitiateCheckout = generateEventId();
+      const userData = getCleanUserData(req);
+
+      if (userData) {
+        await sendFacebookCAPIEvent({
+          eventName: "InitiateCheckout",
+          eventId: eventIdInitiateCheckout,
+          userData,
+          customData: {
+            content_ids: cart.generateArray().map(p => p.item._id.toString()),
+            contents: cart.generateArray().map(p => ({
+              id: p.item._id.toString(),
+              quantity: p.qty,
+              item_price: p.item.price,
+            })),
+            content_type: "product",
+            value: finalTotalPrice,
+            currency: "DZD",
+            num_items: cart.totalQty || 0,
+          },
+          eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
+          testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
+        });
+        console.log("✅ CAPI InitiateCheckout sent for COD", eventIdInitiateCheckout);
+      }
+
 
  // ✅ Prepare WhatsApp message payload with shipping info
     const payload = {
@@ -2160,32 +2142,231 @@ await sendAdminOrderEmail({
   // ✅ Clear cart after saving
     req.session.cart = null;
 
-    // ✅ Store ALL confirmation data in session
-    req.session.confirmationData = {
-      metaEventIdPurchase: eventIdPurchase,
-      user: req.user || {},
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      numero: cleanNumero,
-      commune: selectedCommune, // Store commune
-      city: selectedcity,
-      address: req.body.address,
-      cartTotal: cart.totalPrice,
-      subtotal: cart.totalPrice,
-      shippingFee,
-      deliveryDelay: shipping.delay,
-      totalPrice: finalTotalPrice,
-      cartItems: cart.generateArray(),
-      isFreeShipping: cart.totalPrice >= freeShippingThreshold,
-      testEventCode // ✅ Store test event code for confirmation page
-    };
-  // ✅ Redirect to confirmation page
-  res.redirect("/confirmation");
+   // Store confirmation data
+      req.session.confirmationData = {
+        paymentMethod: "cod",
+        eventId: eventIdInitiateCheckout,
+        eventName: "InitiateCheckout",
+        firstName,
+        lastName,
+        address,
+        city: cityNormalised,
+        commune,
+        cartTotal: cart.totalPrice,
+        shippingFee,
+        deliveryDelay: shipping.delay,
+        totalPrice: finalTotalPrice,
+        cartItems: cart.generateArray(),
+        isFreeShipping: cart.totalPrice >= freeShippingThreshold,
+        // optional: pass content_ids for Pixel
+      };
 
-  } catch (err) {
-    console.error("❌ Checkout error:", err);
-    req.flash("error", "Erreur lors de la commande.");
-    res.redirect("/checkout");
+      return res.redirect("/confirmation");
+    } catch (err) {
+      console.error("COD order error:", err);
+      req.flash("error", "Erreur lors de la commande.");
+      return res.redirect("/checkout");
+    }
+  }
+ // 2. ONLINE PAYMENT (Chargily)
+  // ===============================
+  req.session.pendingOrder = {
+    cart: req.session.cart,
+    firstName,
+    lastName,
+    address,
+    city: cityNormalised,
+    commune,
+    shippingFee,
+    shippingDelay: shipping.delay,
+    finalTotalPrice,
+    rawNumero,
+    user: req.user || null,
+  };
+
+  const baseUrl = `${req.protocol}://${req.get("host")}`;
+  const successUrl = `${baseUrl}/payment/success`;
+  const failureUrl = `${baseUrl}/checkout?payment=failed`;
+
+  try {
+    const amountInCents = Math.round(finalTotalPrice * 100);
+    const payment = await createPayment({
+      amount: amountInCents,
+      currency: "dzd",
+      success_url: successUrl,
+      failure_url: failureUrl,
+      metadata: { session_id: req.sessionID },
+    });
+    return res.redirect(payment.checkout_url);
+  } catch (error) {
+    console.error("❌ Chargily payment creation error:", error);
+    req.flash("error", "Erreur lors de la création du paiement.");
+    return res.redirect("/checkout");
+  }
+});
+
+router.get("/payment/success", async (req, res) => {
+  const paymentId = req.query.payment;
+  if (!paymentId || !req.session.pendingOrder) return res.redirect("/checkout");
+
+  try {
+    const payment = await verifyPayment(paymentId);
+
+    if (payment.status !== "paid") {
+      req.flash("error", "Le paiement n'a pas abouti.");
+      return res.redirect("/checkout");
+    }
+
+    const pending = req.session.pendingOrder;
+    const cart = new Cart(pending.cart);
+    const cleanNumero = "213" + pending.rawNumero.replace(/^0+/, "").replace(/\D/g, "");
+
+    const order = new Order({
+      user: pending.user,
+      cart: cart,
+      address: pending.address,
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      commune: pending.commune,
+      country: "Algeria",
+      city: pending.city,
+      numero: cleanNumero,
+      shippingFee: pending.shippingFee,
+      deliveryDelay: pending.shippingDelay,
+      orderType: pending.user ? "user" : "guest",
+      totalWithShipping: pending.finalTotalPrice,
+    });
+
+    await order.save();
+
+    // Generate Purchase event ID
+    const eventIdPurchase = generateEventId();
+    const userData = getCleanUserData(req);
+
+    if (userData) {
+      await sendFacebookCAPIEvent({
+        eventName: "Purchase",
+        eventId: eventIdPurchase,
+        userData,
+        customData: {
+          value: pending.finalTotalPrice,
+          currency: "DZD",
+          content_type: "product",
+          content_ids: cart.generateArray().map(p => p.item._id.toString()),
+          contents: cart.generateArray().map(p => ({
+            id: p.item._id.toString(),
+            quantity: p.qty,
+            item_price: p.item.price,
+          })),
+        },
+        eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
+        testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
+      });
+      console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
+    }
+
+    // WhatsApp / Email (same as before)
+    
+ // ✅ Prepare WhatsApp message payload with shipping info
+    const payload = {
+      messaging_product: "whatsapp",
+      to: cleanNumero,
+      type: "template",
+      template: {
+        name: "commande_confirmee", // your actual template name
+        language: { code: "fr" },
+        components: [
+          {
+            type: "header",
+            parameters: [
+              {
+                type: "image",
+                image: {
+                  link: "https://www.paintello.uk/img/logo.png" // your logo URL
+                }
+              }
+            ]
+          },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: req.body.firstName || "Client" },
+              { type: "text", text: cart.totalPrice.toString() + " DZD" }, // Subtotal
+              { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" }, // Shipping fee
+              { type: "text", text: finalTotalPrice.toString() + " DZD" }, // Total with shipping
+              { type: "text", text: shipping.delay }, // Delivery delay
+              { type: "text", text: `${req.body.address}, ${selectedcity}` }
+            ]
+          }
+        ]
+      }
+    };
+
+    try {
+      // ✅ Send WhatsApp message
+      const response = await axios.post(
+        `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log("✅ WhatsApp message sent:", response.data);
+    } catch (err) {
+      console.error("❌ WhatsApp error:", err.response?.data || err.message);
+    }
+
+    // ✅ OPTIONAL: Send email notification to admin
+    // ✅ Update admin email with shipping info
+await sendAdminOrderEmail({
+  name: req.body.firstName,
+  numero: cleanNumero,
+  subtotal: cart.totalPrice.toString(),
+  shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
+  total: finalTotalPrice.toString(),
+  deliveryDelay: shipping.delay,
+  address: `${req.body.address}, ${selectedCommune}, ${selectedcity}`
+});
+    
+
+    // Clear cart and pending order
+    req.session.cart = null;
+    req.session.pendingOrder = null;
+
+    // Store confirmation data
+    req.session.confirmationData = {
+      paymentMethod: "chargily",
+      eventId: eventIdPurchase,
+      eventName: "Purchase",
+      value: pending.finalTotalPrice,
+      currency: "DZD",
+      content_ids: cart.generateArray().map(p => p.item._id.toString()),
+      contents: cart.generateArray().map(p => ({
+        id: p.item._id.toString(),
+        quantity: p.qty,
+        item_price: p.item.price,
+      })),
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      address: pending.address,
+      city: pending.city,
+      commune: pending.commune,
+      cartTotal: cart.totalPrice,
+      shippingFee: pending.shippingFee,
+      deliveryDelay: pending.shippingDelay,
+      totalPrice: pending.finalTotalPrice,
+      cartItems: cart.generateArray(),
+      isFreeShipping: cart.totalPrice >= 5000,
+    };
+
+    return res.redirect("/confirmation");
+  } catch (error) {
+    console.error("❌ Payment verification error:", error);
+    req.flash("error", "Erreur lors de la vérification du paiement.");
+    return res.redirect("/checkout");
   }
 });
 
@@ -2200,27 +2381,43 @@ router.get("/confirmation", async (req, res) => {
 
   try {
     if (userData) {
-       // ✅ Get Facebook Test Event Code (from session or query parameter)
       const testEventCode = data.testEventCode || req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
       await sendFacebookCAPIEvent({
         eventName: "PageView",
         eventId: eventIdPageView,
         userData,
         eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
-        testEventCode // ✅ Facebook Test Event Code
+        testEventCode,
       });
-
       console.log("✅ Confirmation PageView sent");
     } else {
       console.log("🤖 Bot detected – confirmation PageView skipped");
     }
-const renderData = { ...data, req, metaEventIdPageView: eventIdPageView, user: req.user };
-    res.render('event/confirmation', renderData); // Clear session data after rendering req.session.confirmationData = null;
 
+    // Build the full data object to send to the template
+    const renderData = {
+      ...data,
+      metaEventIdPageView: eventIdPageView,
+      user: req.user,
+      req,
+    };
+
+    // Render the template, then clear the session AFTER the response is sent
+    res.render("event/confirmation", renderData, (err, html) => {
+      // Clear sensitive session data regardless of render success
+      req.session.confirmationData = null;
+
+      if (err) {
+        console.error("❌ Confirmation render error:", err);
+        return res.status(500).send("Erreur d'affichage de la confirmation.");
+      }
+      res.send(html);
+    });
   } catch (err) {
-    console.error("❌ Confirmation error:", err);
-    res.render("event/confirmation", data);
+    console.error("❌ Confirmation route error:", err);
+    // Even on error, clear session so user can restart
     req.session.confirmationData = null;
+    return res.redirect("/checkout");
   }
 });
 
@@ -3010,7 +3207,7 @@ router.get("/producthome/:id", async (req, res) => {
     const eventIdPageView = generateEventId();
     const eventIdView = generateEventId();
     const eventIdCart = generateEventId();
-    const eventIdCheckout = generateEventId();
+    
     
     const userData = getCleanUserData(req);
     
@@ -3054,7 +3251,7 @@ router.get("/producthome/:id", async (req, res) => {
     
     req.session.preGeneratedEventIds = {
       cart: eventIdCart,
-      checkout: eventIdCheckout
+     
     };
     
     const has3DModel = !!producthome.stlFile;
@@ -3070,7 +3267,7 @@ router.get("/producthome/:id", async (req, res) => {
       req,
       metaEventIdView: eventIdView,
       metaEventIdCart: eventIdCart,
-      metaEventIdCheckout: eventIdCheckout,
+  
       metaEventIdPageView: eventIdPageView,
       has3DModel,
       model3DSettings: {
