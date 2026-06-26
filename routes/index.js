@@ -2075,68 +2075,66 @@ router.post("/checkout", async function (req, res) {
       }
 
 
- // ✅ Prepare WhatsApp message payload with shipping info
-    const payload = {
-      messaging_product: "whatsapp",
-      to: cleanNumero,
-      type: "template",
-      template: {
-        name: "commande_confirmee", // your actual template name
-        language: { code: "fr" },
-        components: [
+ // ✅ Prepare WhatsApp message payload (using cityNormalised)
+const payload = {
+  messaging_product: "whatsapp",
+  to: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
+  type: "template",
+  template: {
+    name: "commande_confirmee",
+    language: { code: "fr" },
+    components: [
+      {
+        type: "header",
+        parameters: [
           {
-            type: "header",
-            parameters: [
-              {
-                type: "image",
-                image: {
-                  link: "https://www.paintello.uk/img/logo.png" // your logo URL
-                }
-              }
-            ]
-          },
-          {
-            type: "body",
-            parameters: [
-              { type: "text", text: req.body.firstName || "Client" },
-              { type: "text", text: cart.totalPrice.toString() + " DZD" }, // Subtotal
-              { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" }, // Shipping fee
-              { type: "text", text: finalTotalPrice.toString() + " DZD" }, // Total with shipping
-              { type: "text", text: shipping.delay }, // Delivery delay
-              { type: "text", text: `${req.body.address}, ${selectedcity}` }
-            ]
+            type: "image",
+            image: {
+              link: "https://www.paintello.uk/img/logo.png"
+            }
           }
         ]
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: firstName || "Client" },
+          { type: "text", text: cart.totalPrice.toString() + " DZD" },
+          { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
+          { type: "text", text: finalTotalPrice.toString() + " DZD" },
+          { type: "text", text: shipping.delay },
+          { type: "text", text: `${address}, ${cityNormalised}` }   // ✅ fixed
+        ]
       }
-    };
+    ]
+  }
+};
 
-    try {
-      // ✅ Send WhatsApp message
-      const response = await axios.post(
-        `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      console.log("✅ WhatsApp message sent:", response.data);
-    } catch (err) {
-      console.error("❌ WhatsApp error:", err.response?.data || err.message);
+try {
+  const response = await axios.post(
+    `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
     }
+  );
+  console.log("✅ WhatsApp message sent:", response.data);
+} catch (err) {
+  console.error("❌ WhatsApp error:", err.response?.data || err.message);
+}
 
-    // ✅ OPTIONAL: Send email notification to admin
-    // ✅ Update admin email with shipping info
+// ✅ Send admin email (using cityNormalised)
 await sendAdminOrderEmail({
-  name: req.body.firstName,
-  numero: cleanNumero,
+  name: firstName,
+  numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
   subtotal: cart.totalPrice.toString(),
   shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
   total: finalTotalPrice.toString(),
   deliveryDelay: shipping.delay,
-  address: `${req.body.address}, ${selectedCommune}, ${selectedcity}`
+  address: `${address}, ${commune}, ${cityNormalised}`   // ✅ fixed
 });
     
   // ✅ Clear cart after saving
@@ -2267,70 +2265,67 @@ router.get("/payment/success", async (req, res) => {
 
     // WhatsApp / Email (same as before)
     
- // ✅ Prepare WhatsApp message payload with shipping info
-    const payload = {
-      messaging_product: "whatsapp",
-      to: cleanNumero,
-      type: "template",
-      template: {
-        name: "commande_confirmee", // your actual template name
-        language: { code: "fr" },
-        components: [
+// ✅ Prepare WhatsApp message payload (using cityNormalised)
+const payload = {
+  messaging_product: "whatsapp",
+  to: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
+  type: "template",
+  template: {
+    name: "commande_confirmee",
+    language: { code: "fr" },
+    components: [
+      {
+        type: "header",
+        parameters: [
           {
-            type: "header",
-            parameters: [
-              {
-                type: "image",
-                image: {
-                  link: "https://www.paintello.uk/img/logo.png" // your logo URL
-                }
-              }
-            ]
-          },
-          {
-            type: "body",
-            parameters: [
-              { type: "text", text: req.body.firstName || "Client" },
-              { type: "text", text: cart.totalPrice.toString() + " DZD" }, // Subtotal
-              { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" }, // Shipping fee
-              { type: "text", text: finalTotalPrice.toString() + " DZD" }, // Total with shipping
-              { type: "text", text: shipping.delay }, // Delivery delay
-              { type: "text", text: `${req.body.address}, ${selectedcity}` }
-            ]
+            type: "image",
+            image: {
+              link: "https://www.paintello.uk/img/logo.png"
+            }
           }
         ]
+      },
+      {
+        type: "body",
+        parameters: [
+          { type: "text", text: firstName || "Client" },
+          { type: "text", text: cart.totalPrice.toString() + " DZD" },
+          { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
+          { type: "text", text: finalTotalPrice.toString() + " DZD" },
+          { type: "text", text: shipping.delay },
+          { type: "text", text: `${address}, ${cityNormalised}` }   // ✅ fixed
+        ]
       }
-    };
+    ]
+  }
+};
 
-    try {
-      // ✅ Send WhatsApp message
-      const response = await axios.post(
-        `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      console.log("✅ WhatsApp message sent:", response.data);
-    } catch (err) {
-      console.error("❌ WhatsApp error:", err.response?.data || err.message);
+try {
+  const response = await axios.post(
+    `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
+    payload,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
+        'Content-Type': 'application/json'
+      }
     }
+  );
+  console.log("✅ WhatsApp message sent:", response.data);
+} catch (err) {
+  console.error("❌ WhatsApp error:", err.response?.data || err.message);
+}
 
-    // ✅ OPTIONAL: Send email notification to admin
-    // ✅ Update admin email with shipping info
+// ✅ Send admin email (using cityNormalised)
 await sendAdminOrderEmail({
-  name: req.body.firstName,
-  numero: cleanNumero,
+  name: firstName,
+  numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
   subtotal: cart.totalPrice.toString(),
   shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
   total: finalTotalPrice.toString(),
   deliveryDelay: shipping.delay,
-  address: `${req.body.address}, ${selectedCommune}, ${selectedcity}`
+  address: `${address}, ${commune}, ${cityNormalised}`   // ✅ fixed
 });
-    
 
     // Clear cart and pending order
     req.session.cart = null;
