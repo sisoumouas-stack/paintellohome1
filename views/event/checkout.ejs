@@ -101,12 +101,18 @@
     .label {
       @apply text-xs font-medium text-gray-700 mb-2 uppercase tracking-wide;
     }
+
+    /* Payment option selected state */
+    .payment-option input:checked + div .check-icon {
+      display: block !important;
+    }
+    .payment-option input:checked + div {
+      background-color: #fafafa;
+    }
   </style>
 
   <!-- Crypto lib (used elsewhere) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" defer></script>
-
- 
 
 </head>
 <body class="min-h-screen bg-white">
@@ -171,7 +177,7 @@
   <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2">Informations personnelles</h3>
   
   <!-- Hidden fields for backend compatibility -->
-<input type="hidden" id="fullName" name="name" value="">
+  <input type="hidden" id="fullName" name="name" value="">
   <input type="hidden" name="country" value="Algeria">
   
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -222,7 +228,7 @@
   <option value="bejaia">Bejaia</option>
   <option value="biskra">Biskra</option>
   <option value="bechar">Bechar</option>
-  <option value="bordj badji mokhtar">Bordj Badji Mokhtar</option> <!-- AJOUTÉ -->
+  <option value="bordj badji mokhtar">Bordj Badji Mokhtar</option>
   <option value="blida">Blida</option>
   <option value="bouira">Bouira</option>
   <option value="tamanrasset">Tamanrasset</option>
@@ -237,17 +243,17 @@
   <option value="saida">Saida</option>
   <option value="skikda">Skikda</option>
   <option value="sidi belabbes">Sidi Belabbes</option>
-  <option value="annaba">Annaba</option> <!-- AJOUTÉ -->
+  <option value="annaba">Annaba</option>
   <option value="guelma">Guelma</option>
   <option value="constantine">Constantine</option>
-  <option value="medea">Médéa</option> <!-- AJOUTÉ -->
+  <option value="medea">Médéa</option>
   <option value="mostaganem">Mostaganem</option>
   <option value="msila">M'sila</option>
   <option value="mascara">Mascara</option>
   <option value="ouargla">Ouargla</option>
   <option value="oran">Oran</option>
   <option value="el bayadh">El Bayadh</option>
-  <option value="illizi">Illizi</option> <!-- AJOUTÉ -->
+  <option value="illizi">Illizi</option>
   <option value="bordj bou arreridj">Bordj Bou Arreridj</option>
   <option value="boumerdes">Boumerdes</option>
   <option value="el taref">El Taref</option>
@@ -283,6 +289,71 @@
                   </div>
                 </div>
               </div>
+
+              <!-- === NEW: Payment Method Selection === -->
+              <div>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2">Mode de paiement</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  
+                  <!-- CIB Card -->
+                  <label class="payment-option zara-card p-4 cursor-pointer border border-gray-300 hover:border-black transition-all relative" for="payCIB">
+                    <input type="radio" id="payCIB" name="paymentMethod" value="chargily" data-card="cib" class="hidden peer" checked>
+                    <div class="flex items-start gap-3">
+                      <!-- CIB Logo SVG -->
+                      <svg viewBox="0 0 48 32" width="28" height="20" class="mt-1 flex-shrink-0">
+                        <rect width="48" height="32" fill="#003d7c" rx="4"/>
+                        <text x="24" y="22" text-anchor="middle" fill="white" font-weight="bold" font-size="11" font-family="Arial">CIB</text>
+                      </svg>
+                      <div class="flex-1">
+                        <span class="text-sm font-medium block">Carte CIB</span>
+                        <p class="text-xs text-gray-500 mt-1">Paiement sécurisé</p>
+                      </div>
+                      <div class="check-icon hidden absolute top-3 right-3 text-black">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                      </div>
+                    </div>
+                  </label>
+
+                  <!-- Edahabia Card -->
+                  <label class="payment-option zara-card p-4 cursor-pointer border border-gray-300 hover:border-black transition-all relative" for="payEdahabia">
+                    <input type="radio" id="payEdahabia" name="paymentMethod" value="chargily" data-card="edahabia" class="hidden peer">
+                    <div class="flex items-start gap-3">
+                      <!-- Edahabia Logo SVG -->
+                      <svg viewBox="0 0 48 32" width="28" height="20" class="mt-1 flex-shrink-0">
+                        <rect width="48" height="32" fill="#e6007e" rx="4"/>
+                        <text x="24" y="22" text-anchor="middle" fill="white" font-weight="bold" font-size="9" font-family="Arial">Edahabia</text>
+                      </svg>
+                      <div class="flex-1">
+                        <span class="text-sm font-medium block">Carte Edahabia</span>
+                        <p class="text-xs text-gray-500 mt-1">Paiement sécurisé</p>
+                      </div>
+                      <div class="check-icon hidden absolute top-3 right-3 text-black">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                      </div>
+                    </div>
+                  </label>
+
+                  <!-- COD Card -->
+                  <label class="payment-option zara-card p-4 cursor-pointer border border-gray-300 hover:border-black transition-all relative" for="payCOD">
+                    <input type="radio" id="payCOD" name="paymentMethod" value="cod" class="hidden peer">
+                    <div class="flex items-start gap-3">
+                      <div class="text-2xl text-gray-700 mt-1 flex-shrink-0">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                      </div>
+                      <div class="flex-1">
+                        <span class="text-sm font-medium block">Paiement à la livraison</span>
+                        <p class="text-xs text-gray-500 mt-1">Payez en espèces</p>
+                      </div>
+                      <div class="check-icon hidden absolute top-3 right-3 text-black">
+                        <i class="fa-solid fa-circle-check text-lg"></i>
+                      </div>
+                    </div>
+                  </label>
+
+                </div>
+              </div>
+              <!-- === END Payment Method === -->
 
               <!-- Hidden fields for shipping -->
               <input type="hidden" id="shippingFee" name="shippingFee" value="0">
@@ -885,6 +956,37 @@ const shippingData = {
           }
         <% } %>
       } catch(e) {}
+    })();
+
+    // ========== PAYMENT METHOD BUTTON UPDATE ==========
+    (function() {
+      const paymentRadios = document.querySelectorAll('input[name="paymentMethod"]');
+      const placeOrderBtn = document.getElementById('placeOrderBtn');
+      const btnTotalSpan = document.getElementById('btn-total');
+
+      function updateButton() {
+        const selected = document.querySelector('input[name="paymentMethod"]:checked');
+        const method = selected.value;
+        const card = selected.dataset.card || '';
+
+        // hide all check icons first
+        document.querySelectorAll('.payment-option .check-icon').forEach(el => el.style.display = 'none');
+        // show check icon on the selected card
+        const activeLabel = document.querySelector(`label[for="${selected.id}"]`);
+        if (activeLabel) {
+          activeLabel.querySelector('.check-icon').style.display = 'block';
+        }
+
+        if (method === 'chargily') {
+          const cardName = card === 'cib' ? 'CIB' : 'Edahabia';
+          placeOrderBtn.innerHTML = `<i class="fas fa-lock mr-2"></i>Payer avec ${cardName} — ${btnTotalSpan.innerText}`;
+        } else {
+          placeOrderBtn.innerHTML = `<i class="fas fa-box mr-2"></i>Commander (paiement à la livraison) — ${btnTotalSpan.innerText}`;
+        }
+      }
+
+      paymentRadios.forEach(radio => radio.addEventListener('change', updateButton));
+      updateButton();
     })();
 
   })();
