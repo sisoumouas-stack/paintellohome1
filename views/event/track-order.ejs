@@ -1,107 +1,604 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-
   <meta charset="UTF-8">
-  <title>Track Your Order</title>
+  <title>Suivi de Commande | Paintello</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">  
+  <meta name="theme-color" content="#ffffff">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    /* Fixed Logo Header */
-    #fixed-logo-header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: white;
-      padding: 10px 0;
-      text-align: center;
-      z-index: 9999;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
     }
-
-    #fixed-logo-header img {
-      max-height: 60px;
+    
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
     }
-
-    /* Page content */
-    .content-with-logo {
-      margin-top: 100px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input[type="tel"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      background-color: #f4791f;
+    
+    .zara-btn {
+      background: #000;
       color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
     }
-
-    button:hover {
-      background-color: #c86000;
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
+    
+    .status-badge {
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      border-radius: 1px;
+      text-transform: uppercase;
+    }
+    
+    /* Status Colors */
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #cce7ff; color: #004085; }
+    .status-processing { background: #d1ecf1; color: #0c5460; }
+    .status-ready_for_pickup { background: #d1f7c4; color: #155724; }
+    .status-shipped { background: #e2e3ff; color: #383d41; }
+    .status-out_for_delivery { background: #fff3cd; color: #856404; }
+    .status-delivered { background: #d4edda; color: #155724; }
+    .status-cancelled { background: #f8d7da; color: #721c24; }
+    .status-refunded { background: #e2e3e5; color: #383d41; }
+    .status-on_hold { background: #fff3cd; color: #856404; }
+    
+    .return-status-requested { background: #fff3cd; color: #856404; }
+    .return-status-approved { background: #d4edda; color: #155724; }
+    .return-status-rejected { background: #f8d7da; color: #721c24; }
+    .return-status-processing { background: #cce7ff; color: #004085; }
+    .return-status-completed { background: #e2e3e5; color: #383d41; }
+    
+    .payment-status-paid { background: #d4edda; color: #155724; }
+    .payment-status-pending { background: #fff3cd; color: #856404; }
+    .payment-status-failed { background: #f8d7da; color: #721c24; }
+    
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 12px;
+      border-radius: 2px;
+      margin-bottom: 16px;
+      border-left: 4px solid #e74c3c;
+    }
+    
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 12px;
+      border-radius: 2px;
+      margin-bottom: 16px;
+      border-left: 4px solid #28a745;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+      background: #f8f9fa;
+      border-radius: 10px;
+      height: 6px;
+      margin: 15px 0;
+    }
+    
+    .progress-bar {
+      height: 100%;
+      border-radius: 10px;
+      background: #000;
+      transition: width 0.3s ease;
+    }
+    
+    /* Timeline */
+    .timeline {
+      position: relative;
+      padding-left: 20px;
+    }
+    
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #e5e5e5;
+    }
+    
+    .timeline-item {
+      position: relative;
+      margin-bottom: 15px;
+    }
+    
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -20px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #e5e5e5;
+    }
+    
+    .timeline-item.active::before {
+      background: #000;
+    }
+    
+    .timeline-item.completed::before {
+      background: #28a745;
     }
   </style>
+<!-- Pixel, GTM, Clarity -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+   // Initialize pixel
+  fbq('init', '<%= process.env.FB_PIXEL_ID %>', {
+    <% if (user && user.email) { %>em: '<%= user.email %>',<% } %>
+    <% if (user && user.firstName) { %>fn: '<%= user.firstName %>',<% } %>
+    <% if (user && user.lastName) { %>ln: '<%= user.lastName %>',<% } %>
+    <% if (user && user.numero) { %>ph: '<%= user.numero %>',<% } %>
+  });
+   fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+  </script>
+  <% } %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
 </head>
-<body>
 
- <!-- Fixed Logo -->
-  <div id="fixed-logo-header">
- <a href="/">
-    <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo">
- </a>
-<a href="/">
-      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-  </div>
+<body class="min-h-screen bg-white">
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+          <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+        </a>
 
-  <!-- Content Area -->
-  <div class="content-with-logo">
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-900 font-medium uppercase tracking-wide border-b border-black">Suivi Commande</a>
+        </nav>
 
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+          <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <% if (session.cart && session.cart.totalQty > 0) { %>
+              <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                <%= session.cart.totalQty %>
+              </span>
+            <% } %>
+          </a>
+          
+          <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
 
-<h2>تفاصيل الطلب</h2>
-<% orders.forEach(order => { %>
-  <div>
-    <p>الاسم: <%= order.name %></p>
-    <p>رقم الهاتف: <%= order.numero %></p>
-    <p>الولاية: <%= order.city %></p>
-    <p>العنوان: <%= order.address %></p>
-    <p>المجموع: <%= order.cart.totalPrice %> دج</p>
-  
-  </div>
-<% }) %>
- <hr>
-                    
-                <div class="cart-link">
-      <a href="/">Go to Shop</a>
+  <!-- Main Content -->
+  <main class="py-12">
+    <div class="max-w-4xl mx-auto px-6">
+      
+      <!-- Flash Messages -->
+      <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-message">
+          <i class="fas fa-exclamation-circle mr-2"></i>
+          <%= error %>
+        </div>
+      <% } %>
+      
+      <% if (typeof success !== 'undefined' && success) { %>
+        <div class="success-message">
+          <i class="fas fa-check-circle mr-2"></i>
+          <%= success %>
+        </div>
+      <% } %>
+
+      <!-- Page Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-2xl font-light tracking-wide uppercase mb-4">Suivi de Commande</h1>
+        <p class="text-sm text-gray-600">Suivez l'état de vos commandes en temps réel</p>
+      </div>
+
+      <!-- Orders List -->
+      <% if (typeof orders !== 'undefined' && orders && orders.length > 0) { %>
+        <div class="text-center mb-8">
+          <h2 class="text-xl font-light tracking-wide uppercase">Vos Commandes</h2>
+          <p class="text-sm text-gray-600 mt-2"><%= orders.length %> commande(s) trouvée(s)</p>
+        </div>
+
+        <% orders.forEach(order => { %>
+          <div class="zara-card p-8 mb-8">
+            <!-- Order Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 pb-6 border-b border-gray-200">
+              <div class="flex items-center gap-4 mb-3 sm:mb-0">
+                <span class="status-badge">
+                  Commande #<%= order._id.toString().slice(-6).toUpperCase() %>
+                </span>
+                <span class="status-badge status-<%= order.status %>">
+                  <%= getStatusText(order.status) %>
+                </span>
+                <% if (order.returnStatus && order.returnStatus !== 'none') { %>
+                  <span class="status-badge return-status-<%= order.returnStatus %>">
+                    Retour: <%= getReturnStatusText(order.returnStatus) %>
+                  </span>
+                <% } %>
+                <span class="status-badge payment-status-<%= order.paymentStatus || 'pending' %>">
+                  Paiement: <%= getPaymentStatusText(order.paymentStatus) %>
+                </span>
+              </div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide">
+                Commandé le: <%= order.createdAt.toLocaleDateString('fr-FR') %>
+              </div>
+            </div>
+            <!-- In track-order.ejs, after orders list -->
+<% if (suggestAccountCreation && orderCount > 0) { %>
+<div class="zara-card p-6 mt-8 text-center">
+    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-user-plus text-blue-600"></i>
+    </div>
+    <h3 class="text-sm font-medium uppercase tracking-wide mb-3">
+        Créez un compte pour garder vos commandes
+    </h3>
+    <p class="text-xs text-gray-600 mb-4">
+        Vous avez <%= orderCount %> commande(s) avec ce numéro. Créez un compte pour:
+    </p>
+    <ul class="text-xs text-gray-600 mb-4 space-y-1">
+        <li><i class="fas fa-check text-green-500 mr-2"></i>Garder l'historique de toutes vos commandes</li>
+        <li><i class="fas fa-check text-green-500 mr-2"></i>Recevoir des offres exclusives</li>
+        <li><i class="fas fa-check text-green-500 mr-2"></i>Suivre facilement vos retours</li>
+    </ul>
+    <div class="flex flex-col sm:flex-row gap-3">
+        <a href="/user/signup?phone=<%= phoneNumber %>" 
+           class="zara-btn text-sm uppercase tracking-wide flex-1">
+            Créer un compte
+        </a>
+        <a href="/" class="zara-btn-secondary text-sm uppercase tracking-wide flex-1">
+            Continuer sans compte
+        </a>
     </div>
 </div>
-</div>
+<% } %>
+            <!-- Order Progress -->
+            <div class="mb-6">
+              <div class="flex justify-between text-xs text-gray-500 mb-2">
+                <span>Commandé</span>
+                <span>Confirmé</span>
+                <span>Expédié</span>
+                <span>Livré</span>
+              </div>
+              <div class="progress-container">
+                <div class="progress-bar" style="width: <%= getProgressWidth(order.status) %>%;"></div>
+              </div>
+            </div>
 
+            <!-- Order Timeline -->
+            <div class="mb-6">
+              <h3 class="text-sm font-medium uppercase tracking-wide mb-4">Historique du Statut</h3>
+              <div class="timeline">
+                <% const statuses = ['pending', 'confirmed', 'processing', 'shipped', 'delivered']; %>
+                <% statuses.forEach((status, index) => { %>
+                  <div class="timeline-item <%= getTimelineStatus(order.status, status) %>">
+                    <div class="text-xs <%= getTimelineStatus(order.status, status) === 'completed' ? 'text-green-600' : getTimelineStatus(order.status, status) === 'active' ? 'text-black font-medium' : 'text-gray-400' %>">
+                      <%= getStatusText(status) %>
+                      <% if (getTimelineStatus(order.status, status) === 'completed') { %>
+                        <i class="fas fa-check ml-1 text-green-500"></i>
+                      <% } %>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="grid md:grid-cols-2 gap-8 mb-6">
+              <div class="space-y-4">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Client</p>
+                  <p class="text-sm"><%= order.firstName %> <%= order.lastName %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Téléphone</p>
+                  <p class="text-sm"><%= order.numero %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Wilaya</p>
+                  <p class="text-sm"><%= order.city %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Adresse</p>
+                  <p class="text-sm"><%= order.address %></p>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total Articles</p>
+                  <p class="text-sm font-medium"><%= order.cart.totalPrice %> DZD</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Frais de Livraison</p>
+                  <p class="text-sm"><%= order.shippingFee || 0 %> DZD</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Total avec Livraison</p>
+                  <p class="text-sm font-medium"><%= order.totalWithShipping || order.cart.totalPrice %> DZD</p>
+                </div>
+                <% if (order.trackingNumber) { %>
+                  <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Numéro de Suivi</p>
+                    <p class="text-sm font-medium"><%= order.trackingNumber %></p>
+                  </div>
+                <% } %>
+                <% if (order.estimatedDelivery) { %>
+                  <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Livraison Estimée</p>
+                    <p class="text-sm"><%= new Date(order.estimatedDelivery).toLocaleDateString('fr-FR') %></p>
+                  </div>
+                <% } else if (order.deliveryDelay) { %>
+                  <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Délai de Livraison</p>
+                    <p class="text-sm"><%= order.deliveryDelay %></p>
+                  </div>
+                <% } %>
+              </div>
+            </div>
+
+            <!-- Return Status -->
+            <% if (order.returnRequest) { %>
+              <div class="border-t border-gray-200 pt-6 mb-6">
+                <div class="space-y-3">
+                  <div class="flex items-center gap-3">
+                    <span class="status-badge return-status-<%= order.returnRequest.status %> uppercase">
+                      <%= order.returnRequest.status.toUpperCase() %>
+                    </span>
+                    <p class="text-sm text-gray-600">
+                      <% if (order.returnRequest.status === 'approved') { %>
+                        Retour approuvé - Suivez les instructions envoyées par email
+                      <% } else if (order.returnRequest.status === 'rejected') { %>
+                        Demande de retour refusée - Contactez le support
+                      <% } else if (order.returnRequest.status === 'processing') { %>
+                        Retour en cours de traitement
+                      <% } else if (order.returnRequest.status === 'completed') { %>
+                        Retour traité et terminé
+                      <% } else { %>
+                        Retour en attente de traitement
+                      <% } %>
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Raison du retour</p>
+                    <p class="text-sm">
+                      <%= {
+                        'wrong_item': 'Mauvais article reçu',
+                        'defective': 'Article défectueux/endommagé',
+                        'not_as_described': 'Article non conforme à la description',
+                        'changed_mind': 'Changement d\'avis',
+                        'other': 'Autre raison'
+                      }[order.returnRequest.reason] %>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            <% } %>
+
+            <!-- Actions -->
+            <div class="border-t border-gray-200 pt-6 flex flex-col sm:flex-row gap-3">
+              <% if (!order.returnRequest && order.status === 'delivered' ) { %>
+                <a href="/start-return/<%= order._id %>" 
+                   class="zara-btn-secondary text-sm text-center flex-1">
+                  Demander un Retour
+                </a>
+              <% } else if (order.returnRequest && order.returnRequest.status === 'pending') { %>
+                <button class="zara-btn-secondary text-sm text-center flex-1 opacity-50 cursor-not-allowed">
+                  Retour en Attente
+                </button>
+              <% } %>
+              <a href="/contact?order=<%= order._id %>" 
+                 class="zara-btn-secondary text-sm text-center flex-1">
+                Support Client
+              </a>
+              <a href="/" 
+                 class="zara-btn text-sm text-center flex-1">
+                Continuer les Achats
+              </a>
+            </div>
+          </div>
+        <% }) %>
+
+        <!-- Bottom Navigation -->
+        <div class="text-center mt-8">
+          <a href="/" class="zara-btn-secondary inline-block text-sm px-8">
+            Aller à la Boutique
+          </a>
+        </div>
+
+      <% } else { %>
+        <!-- No Orders Found -->
+        <div class="zara-card p-12 text-center max-w-md mx-auto">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          
+          <% if (typeof error !== 'undefined' && error) { %>
+            <h2 class="text-lg font-light tracking-wide uppercase mb-4">Aucune commande trouvée</h2>
+            <p class="text-sm text-gray-600 mb-6"><%= error %></p>
+          <% } else { %>
+            <h2 class="text-lg font-light tracking-wide uppercase mb-4">Suivre votre commande</h2>
+            <p class="text-sm text-gray-600 mb-6">Entrez votre numéro de téléphone</p>
+          <% } %>
+
+          <!-- Tracking Form -->
+          <form action="/track-login" method="POST">
+            <div class="mb-6">
+              <input 
+                type="tel" 
+                name="numero" 
+                placeholder="Exemple: 0551234567" 
+                required 
+                pattern="0[5-7][0-9]{8}"
+                title="Veuillez entrer un numéro de téléphone algérien valide"
+                class="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-black transition-colors"
+                <% if (typeof phoneNumber !== 'undefined') { %>
+                  value="<%= phoneNumber %>"
+                <% } %>
+              />
+            </div>
+            
+            <button type="submit" class="zara-btn w-full text-sm uppercase tracking-wide mb-4">
+              Suivre la Commande
+            </button>
+          </form>
+
+          <a href="/" class="zara-btn-secondary inline-block text-sm">
+            Aller à la boutique
+          </a>
+        </div>
+
+        <!-- Support Link -->
+        <div class="text-center mt-8">
+          <p class="text-sm text-gray-600">
+            Vous n'avez pas de numéro de commande ? 
+            <a href="/contact" class="text-black underline hover:no-underline">Contactez le support</a>
+          </p>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="border-t border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+    </div>
+  </footer>
+
+  <script>
+    // Helper functions for status display
+    function getStatusText(status) {
+      const statusMap = {
+        'pending': 'En Attente',
+        'confirmed': 'Confirmée',
+        'processing': 'En Préparation',
+        'ready_for_pickup': 'Prête à Expédier',
+        'shipped': 'Expédiée',
+        'out_for_delivery': 'En Livraison',
+        'delivered': 'Livrée',
+        'cancelled': 'Annulée',
+        'refunded': 'Remboursée',
+        'on_hold': 'En Attente'
+      };
+      return statusMap[status] || status;
+    }
+
+    function getReturnStatusText(status) {
+      const statusMap = {
+        'none': 'Aucun',
+        'requested': 'Demandé',
+        'approved': 'Approuvé',
+        'rejected': 'Rejeté',
+        'processing': 'En Cours',
+        'completed': 'Terminé'
+      };
+      return statusMap[status] || status;
+    }
+
+    function getPaymentStatusText(status) {
+      const statusMap = {
+        'pending': 'En Attente',
+        'paid': 'Payé',
+        'failed': 'Échoué',
+        'refunded': 'Remboursé',
+        'partially_refunded': 'Partiellement Remboursé'
+      };
+      return statusMap[status] || 'En Attente';
+    }
+
+    function getProgressWidth(status) {
+      const progressMap = {
+        'pending': 10,
+        'confirmed': 30,
+        'processing': 50,
+        'ready_for_pickup': 60,
+        'shipped': 75,
+        'out_for_delivery': 90,
+        'delivered': 100,
+        'cancelled': 100,
+        'refunded': 100,
+        'on_hold': 10
+      };
+      return progressMap[status] || 10;
+    }
+
+    function getTimelineStatus(currentStatus, checkStatus) {
+      const statusOrder = ['pending', 'confirmed', 'processing', 'shipped', 'delivered'];
+      const currentIndex = statusOrder.indexOf(currentStatus);
+      const checkIndex = statusOrder.indexOf(checkStatus);
+      
+      if (checkIndex < currentIndex) return 'completed';
+      if (checkIndex === currentIndex) return 'active';
+      return '';
+    }
+  </script>
 </body>
 </html>
-
-
-
-
 
 

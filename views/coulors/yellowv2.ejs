@@ -1,41 +1,379 @@
-<%- include ("../partials/header") %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+  <title>Yellow Colors - Paintello Home</title>
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
+    }
+    
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
+      transition: all 0.3s ease;
+    }
+    
+    .zara-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .zara-btn {
+      background: #000;
+      color: white;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
 
+    /* Hero Video Styles */
+    .hero-video {
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      overflow: hidden;
+    }
 
- <!-- Navigation & Intro -->
-  <!-- sale content -->
-      <hr class="mt-4">
-       <div class="bm-page">
-          <div class="container">
-              <div class="row">
-              <div class="order-lg-last">
-              <div class="mb-4 mb-lg-5 bm-content">
+    .hero-video video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background-color: #000;
+    }
 
-  <h2 class="text-center text-uppercase">Yellow Colors</h2>
-  <ul class="row justify-content-center list-unstyled mb-4">
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+    }
 
-  <li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/yelloow/6856cee603d002f2019026e6">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54483123844_144752d2a2.jpg">
-  </div>
-  <h2 class="h6 mb-0">LITTELYELLOW_164--P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/yelloow/6856cf3603d002f2019026e8">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54483209243_232f00611a.jpg">
-  </div>
-  <h2 class="h6 mb-0">COOLYELLOW_174-P</h2>
-  </a>
-  </li>
+    .video-desktop { display: none; }
+    .video-mobile { display: block; }
 
+    @media (min-width: 768px) {
+      .video-desktop { display: block; }
+      .video-mobile { display: none; }
+    }
 
+    /* Fade-in animation */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease-out forwards;
+    }
 
+    .fade-in.delay-1 { animation-delay: 0.4s; }
+    .fade-in.delay-2 { animation-delay: 0.8s; }
 
-  
-</ul></div></div></div></div></div>
-  
-  <%- include ("../partials/footer") %>.
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Section spacing */
+    .section-spacing {
+      padding: 4rem 0;
+    }
+
+    /* Yellow Colors Grid */
+    .yellow-colors-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding: 2rem 0;
+    }
+
+    @media (min-width: 640px) {
+      .yellow-colors-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 768px) {
+      .yellow-colors-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+      }
+    }
+
+    .yellow-color-card {
+      transition: all 0.3s ease;
+    }
+
+    .yellow-color-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .yellow-color-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .yellow-color-card:hover img {
+      transform: scale(1.05);
+    }
+  </style>
+ <!-- Meta Pixel, GTM, Clarity Scripts -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    // ✅ Track PageView with server-side event ID
+  fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+  </script>
+  <% } %>
+
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+</head>
+
+<body class="min-h-screen bg-white">
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white fixed top-0 left-0 w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo - Made Larger -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-12 w-12">
+        </a>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi</a>
+        </nav>
+
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+          <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <% if (session.cart && session.cart.totalQty > 0) { %>
+              <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                <%= session.cart.totalQty %>
+              </span>
+            <% } %>
+          </a>
+          
+          <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Video Section -->
+  <section class="hero-video mt-20">
+    <!-- Mobile Video -->
+    <div class="video-mobile">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/8c29baaa62984b8a8836a41ecb2ca1ce/8c29baaa62984b8a8836a41ecb2ca1ce.SD-480p-1.2Mbps-48816727.mp4?v=0" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- Desktop Video -->
+    <div class="video-desktop">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/3617af9fd8254f5688fdeef051307a00/3617af9fd8254f5688fdeef051307a00.HD-720p-3.0Mbps-48816014.mp4?v=0" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="hero-overlay">
+      <div class="max-w-4xl mx-auto px-6">
+        <h1 class="text-3xl md:text-5xl font-light tracking-wide mb-6 fade-in">
+          Yellow Colors Collection
+        </h1>
+        <p class="text-lg md:text-xl text-gray-200 mb-8 fade-in delay-1 max-w-2xl mx-auto">
+          Discover our sunny yellow tones — from soft butters to vibrant sunflowers for cheerful spaces.
+        </p>
+
+       
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6">
+    <!-- Yellow Colors Section -->
+    <section class="section-spacing">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl font-light tracking-wide uppercase mb-4">Yellow Colors</h2>
+        <p class="text-sm text-gray-600 max-w-2xl mx-auto">
+          Explore our curated collection of yellow tones, perfect for creating bright and energetic spaces
+        </p>
+      </div>
+
+      <div class="yellow-colors-grid">
+        <!-- Product 1 -->
+        <a href="/yelloow/6856cee603d002f2019026e6" class="yellow-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54483123844_144752d2a2.jpg" 
+                alt="LITTELYELLOW_164--P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">LITTELYELLOW_164--P</h3>
+              <p class="text-xs text-gray-500 mt-1">Little Sunshine Yellow</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 2 -->
+        <a href="/yelloow/6856cf3603d002f2019026e8" class="yellow-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54483209243_232f00611a.jpg" 
+                alt="COOLYELLOW_174-P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">COOLYELLOW_174-P</h3>
+              <p class="text-xs text-gray-500 mt-1">Cool Lemon Yellow</p>
+            </div>
+          </div>
+        </a>
+      </div>
+
+      <!-- View More Button -->
+      <div class="text-center mt-12">
+        
+          View All Yellow Colors
+        
+      </div>
+    </section>
+
+    <!-- Inspiration Section -->
+    <section class="section-spacing">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl font-light tracking-wide uppercase mb-4">Yellow Color Inspiration</h2>
+        <p class="text-sm text-gray-600 max-w-2xl mx-auto">
+          Discover how to incorporate yellow tones into your home decor
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="text-center">
+          <div class="zara-card p-6">
+            <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-sun text-yellow-500"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Sunny Living Spaces</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Brighten up your living areas with cheerful yellow tones that bring warmth and energy to any room.
+            </p>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <div class="zara-card p-6">
+            <div class="w-16 h-16 bg-yellow-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-utensils text-yellow-500"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Kitchen Sunshine</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Create an inviting and energetic kitchen atmosphere with sunny yellow accents that stimulate appetite and joy.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="border-t border-gray-200 py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center">
+        <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        <div class="flex justify-center gap-6 mt-4">
+          <a href="/contact" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Contact</a>
+          <a href="/shipping" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Shipping</a>
+          <a href="/returns" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Returns</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

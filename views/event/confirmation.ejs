@@ -1,303 +1,426 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-<!-- Meta Pixel Code -->
-<!-- Meta Pixel Code -->
-<script>
-  
-
-  !function(f,b,e,v,n,t,s){
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
-    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
+   <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+    <meta charset="UTF-8">
+        <!-- Meta Pixel Code -->
+    <% if (process.env.FB_PIXEL_ID) { %>
+    <!-- Facebook Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
     if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
     n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s);
-  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
 
-   fbq('init', '633564199312760', {
-    em: '<%= user ? user.email : "" %>',
-    fn: '<%= user ? user.firstName : "" %>',
-    ln: '<%= user ? user.lastName : "" %>',
-    ph: '<%= user ? user.numero : "" %>'
+    // Create config object dynamically
+    var pixelConfig = {};
+
+    // Only add parameters that have values
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    // Initialize with dynamic config
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
   });
-fbq('track', 'PageView');
-</script>
-<noscript>
-  <img height="1" width="1" style="display:none"
-       src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"/>
-</noscript>
-<!-- End Meta Pixel Code -->
-<!-- End Meta Pixel Code -->
-  <meta charset="UTF-8">
-  <title>Order Confirmation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none" 
+           src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/>
+    </noscript>
+    <!-- End Facebook Pixel Code -->
+    <% } %>
 
-  <!-- Meta Pixel Code -->
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+    <!-- End Google Tag Manager -->
 
- 
-  <!-- End Meta Pixel Code -->
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #fdfdfd;
-      padding: 20px;
-      color: #333;
-    }
-    .confirmation-box {
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 20px;
-      border-radius: 8px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #4CAF50;
-    }
-    p {
-      font-size: 16px;
-      margin: 10px 0;
-    }
-    .btn-home {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 20px;
-      background: #f4791f;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 6px;
-    }
-    .btn-home:hover {
-      background: #d26312;
-    }
-
-.popup-container {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    z-index: 9999;
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
-    font-size: 16px;
-    display: none;
-  }
-
-  .popup-container h3 {
-    font-size: 20px;
-    margin-bottom: 10px;
-  }
-
-  .popup-container p {
-    font-size: 14px;
-    margin-bottom: 20px;
-  }
-
-  .popup-container input {
-    width: 80%;
-    padding: 10px;
-    margin-bottom: 10px;
-  }
-
-  .popup-container .logo-popup {
-    width: 100px;
-    margin-bottom: 15px;
-  }
-.popup-logo {
-  width: 120px;
-  margin-bottom: 15px;
-}
-.popup-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw; height: 100vh;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-.popup-content {
-  background: #fff;
-  padding: 30px;
-  border-radius: 12px;
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
-  position: relative;
-  font-family: 'Arial', sans-serif;
-}
-
-.popup-content h3 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.popup-content p {
-  font-size: 16px;
-  margin-bottom: 20px;
-}
-
-.popup-content input[type="email"] {
-  padding: 10px;
-  width: 90%;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-  .close-btn {
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    background: transparent;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-  }
-
-  .animated-popup {
-    animation: zoomIn 0.4s ease-out;
-  }
-
-  @keyframes zoomIn {
-    0% {
-      transform: translate(-50%, -50%) scale(0.7);
-      opacity: 0;
-    }
-    100% {
-      transform: translate(-50%, -50%) scale(1);
-      opacity: 1;
-    }
-  }
-.btn-newsletter {
-  background-color: #f4791f;
-  color: white;
-  font-size: 18px;
-  padding: 12px 30px;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  width: 100%;
-}
-
-.btn-newsletter:hover {
-  background-color: #c85f0d;
-}
-
-  </style>
-
+    <title>Confirmation de Commande | Paintello</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">  
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+        
+        .zara-card {
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e5e5;
+        }
+        
+        .zara-btn {
+            background: #000;
+            color: white;
+            border: 1px solid #000;
+            padding: 12px 24px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .zara-btn:hover {
+            background: #333;
+        }
+        
+        .zara-btn-secondary {
+            background: transparent;
+            color: #000;
+            border: 1px solid #000;
+        }
+        
+        .zara-btn-secondary:hover {
+            background: #000;
+            color: white;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #d4edda;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .success-icon i {
+            font-size: 36px;
+            color: #28a745;
+        }
+        
+        .popup-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .popup-content {
+            background: #fff;
+            padding: 30px;
+            border-radius: 2px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .tracking-badge {
+            background: #f8f8f8;
+            color: #666;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 1px;
+            text-transform: uppercase;
+        }
+    </style>
 
 
 
 </head>
-<body>
 
-<!-- Your fixed logo here -->
-  <div id="checkout-logo" style="text-align: center; margin-top: 20px;">
-    <a href="/">
-      <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-<a href="/">
-      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-  </div>
+<body class="min-h-screen bg-white">
+    <!-- Minimal Header -->
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-4">
+                    <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+                    <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+                </a>
 
-  <div class="confirmation-box">
-    <h1>✅ Thank you for your order!</h1>
-    <p><strong>Name:</strong> <%= name %></p>
-    <p><strong>Phone:</strong> <%= numero %></p>
-    <p><strong>Wilaya:</strong> <%= city %></p>
-    <p><strong>Address:</strong> <%= address %></p>
-    <p><strong>Delivery Estimate:</strong> <%= deliveryDelay %></p>
-    <p><strong>Cart Total:</strong> <%= cartTotal %> DZD</p>
-    <p><strong>Shipping Fee:</strong> <%= shippingFee %> DZD</p>
-    <p><strong>Total (incl. shipping):</strong> <%= totalPrice %> DZD</p>
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+                    <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+                    <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi Commande</a>
+                </nav>
 
-    <a href="/" class="btn-home">Back to Home</a>
-  </div>
-<!-- Newsletter Popup -->
+                <!-- Icons -->
+                <div class="flex items-center gap-4">
+                    <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <% if (session.cart && session.cart.totalQty > 0) { %>
+                            <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                                <%= session.cart.totalQty %>
+                            </span>
+                        <% } %>
+                    </a>
+                    
+                    <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+                        <i class="fa-regular fa-user text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<div id="newsletter-popup" class="popup-overlay">
-  <div class="popup-content animate__animated animate__fadeInDown">
-    <button class="close-btn" onclick="closePopup()">×</button>
-    <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" class="popup-logo">
-    <h3>📩 Stay Updated with Paintello!</h3>
-    <p>احصل على آخر العروض والمنتجات الجديدة مباشرة في بريدك الإلكتروني.</p>
-    <form action="/subscribe" method="POST">
-  <input type="email" name="email" placeholder="أدخل بريدك الإلكتروني" required class="form-control mb-2">
-  <button type="submit" class="btn btn-primary btn-md">اشترك الآن</button>
-</form>
+    <!-- Main Content -->
+    <main class="py-16">
+        <div class="max-w-2xl mx-auto px-6">
+            
+            <!-- Success Confirmation -->
+            <div class="zara-card p-8 text-center mb-8">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h1 class="text-2xl font-light tracking-wide uppercase mb-4">Commande Confirmée</h1>
+                <p class="text-sm text-gray-600 mb-6">
+                    Votre commande a été passée avec succès. Nous vous remercions pour votre confiance.
+                </p>
+                
+                <!-- Order Tracking Info -->
+                <div class="bg-gray-50 p-4 mb-6">
+                    <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Suivez votre commande</p>
+                    <p class="text-sm text-gray-700 mb-3">
+                        Vous pouvez suivre l'état de votre commande à tout moment en utilisant votre numéro de téléphone.
+                    </p>
+                    <a href="/track-login" class="zara-btn text-sm inline-block">
+                        <i class="fas fa-search mr-2"></i>Suivre Ma Commande
+                    </a>
+                </div>
+            </div>
 
-    <div id="newsletter-success" style="display:none; color: green; margin-top: 10px;">
-      ✅ تم الاشتراك بنجاح!
+            <!-- Order Details -->
+            <div class="zara-card p-8 mb-8">
+                <h2 class="text-sm font-medium uppercase tracking-wide mb-6 border-b border-gray-200 pb-3">
+                    Détails de la Commande
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Client</p>
+                           <p class="text-sm"><%= firstName %> <%= lastName %></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Téléphone</p>
+                            <p class="text-sm"><%= numero %></p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Wilaya</p>
+                            <p class="text-sm"><%= city %></p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Adresse</p>
+                            <p class="text-sm"><%= address %></p>
+                              <% if (commune) { %>
+                                <p class="text-sm"><%= commune %></p>
+                            <% } %>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Livraison Estimée</p>
+                            <p class="text-sm"><%= deliveryDelay %></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="text-xs text-gray-500 uppercase tracking-wide mb-4">Résumé de la Commande</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Sous-total</span>
+                            <span><%= cartTotal %> DZD</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Frais de Livraison</span>
+                            <span>
+                                <% if (shippingFee === 0) { %>
+                                    <span class="text-green-600">GRATUIT</span>
+                                <% } else { %>
+                                    <%= shippingFee %> DZD
+                                <% } %>
+                            </span>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-200 pt-2 font-medium">
+                            <span>Total</span>
+                            <span><%= totalPrice %> DZD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="/track-login" class="zara-btn text-sm text-center flex-1">
+                    <i class="fas fa-search mr-2"></i>Suivre Commande
+                </a>
+                <a href="/" class="zara-btn-secondary text-sm text-center flex-1">
+                    <i class="fas fa-home mr-2"></i>Retour à l'Accueil
+                </a>
+            </div>
+
+            <!-- Help Section -->
+            <div class="zara-card p-6 mt-8 text-center">
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Besoin d'Aide ?</h3>
+                <p class="text-xs text-gray-600 mb-4">
+                    Pour toute question concernant votre commande, n'hésitez pas à nous contacter.
+                </p>
+                <a href="/contact" class="zara-btn-secondary text-sm inline-block">
+                    <i class="fas fa-headset mr-2"></i>Contactez-Nous
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Newsletter Popup -->
+    <div id="newsletter-popup" class="popup-overlay">
+        <div class="popup-content">
+            <button class="close-btn" onclick="closePopup()">×</button>
+            <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" class="h-16 w-16 mx-auto mb-4">
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Restez Informé avec Paintello</h3>
+            <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                Recevez les dernières offres et nouveaux produits directement dans votre boîte email.
+            </p>
+            <form action="/subscribe" method="POST" onsubmit="handleNewsletterSubmit(event)">
+                <input type="email" name="email" placeholder="Votre adresse email" required 
+                       class="w-full px-3 py-2 border border-gray-300 text-sm mb-3 focus:outline-none focus:border-black">
+                <button type="submit" class="zara-btn text-sm w-full">
+                    S'abonner
+                </button>
+            </form>
+            <div id="newsletter-success" class="hidden text-green-600 text-xs mt-3">
+                ✅ Abonnement réussi !
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const popup = document.getElementById('newsletter-popup');
-    const closeBtn = document.getElementById('close-popup');
+    <!-- Minimal Footer -->
+    <footer class="border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        </div>
+    </footer>
 
-    // Show popup after 2 seconds
-    setTimeout(() => {
-      popup.style.display = 'block';
-    }, 7000);
+    <!-- Tracking Scripts -->
+    <% if (process.env.FB_PIXEL_ID) { %>
+    <script>
+        // Check if fbq is defined before using it
+        if (typeof fbq !== 'undefined') {
+            fbq('track', 'Purchase', {
+                value: <%= totalPrice %>,
+                currency: 'DZD',
+                content_type: 'product',
+                content_ids: <%- JSON.stringify(cartItems.map(p => p.item._id.toString())) %>,
+                contents: <%- JSON.stringify(cartItems.map(p => ({
+                    id: p.item._id.toString(),
+                    quantity: p.qty,
+                    item_price: p.item.price
+                }))) %>
+            }, {
+                eventID: '<%= metaEventIdPurchase %>'
+            });
+        }
+    </script>
+    
+    <!-- GA4 Purchase Event -->
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        dataLayer.push({
+            'event': 'purchase',
+            'value': <%= totalPrice %>,
+            'currency': 'DZD',
+            'items': <%- JSON.stringify(cartItems.map(p => ({
+                'item_id': p.item._id.toString(),
+                'item_name': p.item.title,
+                'price': p.item.price,
+                'quantity': p.qty
+            }))) %>
+        });
+    </script>
+    <% } %>
 
-    // Close button logic
-    closeBtn.addEventListener('click', () => {
-      popup.style.display = 'none';
-    });
+    <script>
+        // Newsletter popup functionality
+        window.addEventListener('DOMContentLoaded', () => {
+            // Show popup after 3 seconds
+            setTimeout(() => {
+                document.getElementById('newsletter-popup').style.display = 'flex';
+            }, 3000);
+        });
 
-    // Optional: Hide on ESC key
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        popup.style.display = 'none';
-      }
-    });
-  });
-</script>
-<script>
-  // Automatically show popup after delay
-  window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-      document.getElementById('newsletter-popup').style.display = 'flex';
-    }, 7000); // 2-second delay
-  });
+        function closePopup() {
+            document.getElementById('newsletter-popup').style.display = 'none';
+        }
 
-  function closePopup() {
-    document.getElementById('newsletter-popup').style.display = 'none';
-  }
+        function handleNewsletterSubmit(event) {
+            event.preventDefault();
+            const email = event.target.email.value;
 
-  function handleNewsletterSubmit(event) {
-    event.preventDefault();
-    const email = event.target.email.value;
+            // You can replace this with actual server-side logic if needed
+            console.log("Subscribed email:", email);
 
-    // You can replace this with actual server-side logic if needed
-    console.log("Subscribed email:", email);
+            // Show success message
+            document.getElementById('newsletter-success').classList.remove('hidden');
 
-    // Show success message
-    document.getElementById('newsletter-success').style.display = 'block';
+            // Hide form
+            event.target.style.display = 'none';
 
-    // Optionally hide form
-    event.target.style.display = 'none';
+            // Close after 3 seconds
+            setTimeout(closePopup, 3000);
+        }
 
-    // Optionally close after few seconds
-    setTimeout(closePopup, 3000);
-  }
-</script>
-
-
+        // Auto-redirect to track page after 10 seconds
+        setTimeout(() => {
+            window.location.href = '/track-login';
+        }, 25000);
+    </script>
 </body>
-
-
 </html>

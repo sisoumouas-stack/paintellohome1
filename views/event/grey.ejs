@@ -1,394 +1,1175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="referrer" content="strict-origin-when-cross-origin">
-<!-- Meta Pixel Code -->
- <%- include('../partials/facebook-pixel') %>.
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+  <title><%= grey.title %> - Paintello Home</title>
 
-
-
-
-  <title>Paintello Home</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-<link rel="manifest" href="/favicon/site.webmanifest">  
-  <meta name="theme-color" content="#ffffff">  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-  <link rel="stylesheet" href="/assets/vendor/font-awesome/css/fontawesome-all.min.css">
-  <link rel="stylesheet" href="/assets/vendor/animate.css/animate.min.css">
-  <link rel="stylesheet" href="/assets/vendor/hs-megamenu/src/hs.megamenu.css">
-<!-- Bootstrap 4 CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<!-- Font Awesome (optional for icons) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
-  <!-- Bootstrap core CSS -->
-   <!-- Bootstrap core CSS -->
-  <link href="../../css/bootstrap.min.css" rel="stylesheet">
-  <!-- Material Design Bootstrap -->
-  <link href="../../css/mdb.min.css" rel="stylesheet">
-<!-- Add the slick-theme.css if you want default styling -->
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
-<!-- Add the slick-theme.css if you want default styling -->
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-  <!-- Material Design Bootstrap -->
-  <link href="/css/mdb.min.css" rel="stylesheet">
-  <link href="/css/magiczoomplus.css" rel="stylesheet">
-  <link href="/css/zoomm.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Meta Pixel Code -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    // ✅ Track PageView with server-side event ID
+    fbq('track', 'PageView', {}, {
+      eventID: '<%= metaEventIdPageView %>'
+    });
+
+    setTimeout(function() {
+      fbq('track', 'ViewContent', {
+        content_name: '<%= grey.title %>',
+        content_ids: ['<%= grey._id %>'],
+        content_type: 'product',
+        value: <%= grey.price %>,
+        currency: 'DZD',
+        contents: [{
+          id: '<%= grey._id %>',
+          quantity: 1,
+          item_price: <%= grey.price %>
+        }]
+      }, {
+        eventID: '<%= metaEventIdView %>'
+      });
+    }, 2000);
+  </script>
+  <noscript>
+    <img height="1" width="1" style="display:none" 
+         src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/>
+  </noscript>
+  <% } %>
+
+  <!-- Clarity Script -->
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="product" />
+  <meta property="og:title" content="<%= grey.title %>" />
+  <meta property="og:description" content="<%= grey.description %>" />
+  <meta property="og:image" content="<%= grey.image[0] %>" />
+  <meta property="og:url" content="https://<%= req.get('host') + req.originalUrl %>" />
+  <meta property="og:site_name" content="Paintello" />
+  <meta property="product:price:amount" content="<%= grey.price %>" />
+  <meta property="product:price:currency" content="DZD" />
+
+  <!-- Favicon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">  
+  <meta name="theme-color" content="#ffffff">
 
   <style>
-
- /* public/css/home.css */
-body {
-  font-family: 'Helvetica Neue', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #fdfdfd;
-  color: #333;
-}
-
-header, footer {
-  background: white;
-  padding: 20px 40px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-.logo {
-  font-size: 2.5rem;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.banner {
-  width: 100%;
-  height: 80vh;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.banner-text {
-  background: rgba(255, 255, 255, 0.85);
-  padding: 40px;
-  font-size: 2rem;
-  text-transform: uppercase;
-}
-
-.section {
-  padding: 60px 20px;
-  max-width: 1200px;
-  margin: auto;
-}
-
-
-.section-title {
-  font-size: 2rem;
-  margin-bottom: 40px;
-  text-align: center;
-}
-
-.products {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
-}
-
-.product {
-  text-align: center;
-}
-
-.product img {
-  width: 100%;
-  border: 1px solid #eee;
-  transition: transform 0.3s ease;
-}
-
-.product img:hover {
-  transform: scale(1.05);
-}
-
-footer {
-  margin-top: 60px;
-  font-size: 0.9rem;
-}
-
-.logo-img {
-  height: 60px;
-
-}
-
-
-
-.badge-danger {
-  position: absolute;
-  top: -5px;
-  right: -10px;
-  font-size: 0.75rem;
-}
-.logo {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #222;
-}
-
-
-
-
-
-.cart-btn {
-  padding: 8px 16px;
-  background-color: #f0f0f0;
-  border-radius: 20px;
-  color: #222;
-  font-weight: 500;
-  transition: background-color 0.3s;
-}
-
-.cart-btn:hover {
-  background-color: #ddd;
-}
-.add-to-cart-button {
-  display: inline-block;
-  background-color: #f8f8f8;
-  color: #222;
-  padding: 8px 16px;
-  border: 1px solid #ccc;
-  border-radius: 25px;
-  text-decoration: none;
-  font-size: 0.9rem;
-  transition: background-color 0.3s;
-}
-
-.add-to-cart-button:hover {
-  background-color: #e0e0e0;
-}
-
-
-
-
-
-.product-title {
-  font-size: 2rem;
-  margin-bottom: .5rem;
-}
-
-.product-price {
-  font-size: 1.5rem;
-  color: #f4791f;
-  margin-bottom: 1rem;
-}
-
-/* Zoom-on-hover for carousel images */
-
-.zoomable:hover {
-  transform: scale(1.1);
-}
-
-/* Tab styling override (optional) */
-#infoTab .nav-link {
-  color: #555;
-}
-#infoTab .nav-link.active {
-  color: #f4791f;
-  border-color: #f4791f #f4791f #fff;
-}
-.zoomable {
-  transition: transform .2s ease;
-  cursor: zoom-in;
-}
-.zoomable:hover {
-  transform: scale(1.1);
-}
-.product-title { font-size: 2rem; margin-bottom: .5rem; }
-.product-price { font-size: 1.5rem; color: #f4791f; }
-.logo-img {
-  height: 45px;
-  width: auto;
-}
-
-.cart-badge {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-  font-size: 0.7rem;
-  padding: 2px 6px;
-  border-radius: 50%;
-}
-</style>
-
-</head>
-<body>
-
-<header>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top scrolling-navbar white">
-      <div class="container">
-        <a class="navbar-brand font-weight-bold title" href="/">Paintello</a>
-        <!--Navigation icons-->
-        <ul class="nav navbar-nav nav-flex-icons ml-auto">
-          <li class="nav-item dropdown">
-                       <a class="nav-link dropdown" id="menu1" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user  black-text"></i>
-                      </a>
-                      <div class="dropdown-menu dropdown-menu-right bootstrap-menu  white scrollbar-default" aria-labelledby="menu1">
-                        <% if (login){ %>
-                          <a class="dropdown-item" href="/user/profile">profile</a>
-                           <a class="dropdown-item" href="/user/logout">Logout</a>
-                           <% } else{ %>
-                           <a class="dropdown-item" href="/user/signup">Register</a>
-                           <a class="dropdown-item" href="/user/signin">Sing up</a>
-                           <% } %>
-                 </div> 
-          </li>
-          <li class="nav-item ">
-                      <a class="nav-link " id="menu2" href="/shop" role="button"  aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-shopping-cart black-text"></i>
-                        <% if(session.cart){ %>
-                      <span class="mycounter"><%= session.cart.totalQty %></span>
-                      <% } %>
-                      </a>
-          </li>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
+    }
     
-        </ul>
-        
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02"
-          aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
+      transition: all 0.3s ease;
+    }
+    
+    .zara-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .zara-btn {
+      background: #000;
+      color: white;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
+
+    /* Product Image Styles */
+    .product-image {
+      width: 100%;
+      height: 500px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .product-image:hover {
+      transform: scale(1.02);
+    }
+
+    .thumbnail {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+
+    .thumbnail.active {
+      border-color: #000;
+    }
+
+    .thumbnail:hover {
+      border-color: #666;
+    }
+
+    /* Section spacing */
+    .section-spacing {
+      padding: 4rem 0;
+    }
+
+    /* Tab Styles */
+    .custom-tab {
+      border: none;
+      background: transparent;
+    }
+
+    .custom-tab .nav-link {
+      border: none;
+      color: #666;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      background: transparent;
+    }
+
+    .custom-tab .nav-link.active {
+      color: #000;
+      border-bottom: 2px solid #000;
+      background: transparent;
+    }
+
+    .custom-tab .nav-link:hover {
+      color: #000;
+      border-bottom: 2px solid #ccc;
+    }
+
+    /* Fade-in animation */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease-out forwards;
+    }
+
+    .fade-in.delay-1 { animation-delay: 0.4s; }
+    .fade-in.delay-2 { animation-delay: 0.8s; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Enhanced Lightbox Styles */
+    .lightbox-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .lightbox-backdrop.active {
+      display: flex;
+    }
+
+    .lightbox-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10000;
+    }
+
+    .lightbox-nav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10000;
+    }
+
+    .lightbox-prev {
+      left: 20px;
+    }
+
+    .lightbox-next {
+      right: 20px;
+    }
+
+    .lightbox-content {
+      max-width: 90%;
+      max-height: 90%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox-image {
+      max-width: 100%;
+      max-height: 90vh;
+      object-fit: contain;
+    }
+
+    /* Stock message styles */
+    .flex-div-wrapper {
+      margin-top: 1rem;
+      padding: 1rem;
+      background-color: #f0f9f0;
+      border-radius: 8px;
+      border: 1px solid #d1f0d1;
+    }
+
+    .flex-div {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .flex-div2 {
+      display: flex;
+      align-items: center;
+    }
+
+    .green-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #2c9814;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .devFreeShip {
+      color: #2c9814;
+      font-size: 0.875rem;
+    }
+
+    /* Guarantee section */
+    .guarantee-section {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .guarantee-section .main {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .guarantee-section .icnt {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+
+    .learn-more-link {
+      color: #007bff;
+      text-decoration: none;
+      font-size: 0.875rem;
+    }
+
+    .learn-more-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Swipe hint */
+    .swipe-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      display: none;
+    }
+
+    /* Image Slider Styles */
+    .slider-img {
+      transition: opacity 0.3s ease-in-out;
+    }
+    
+    .slider-img.active {
+      opacity: 1 !important;
+      position: relative !important;
+    }
+    
+    .slider-img:not(.active) {
+      opacity: 0 !important;
+      position: absolute !important;
+    }
+
+    @media (max-width: 768px) {
+      .swipe-hint {
+        display: block;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-white">
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K8PWQM45" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white fixed top-0 left-0 w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-12 w-12">
+        </a>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi</a>
+        </nav>
+
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+          <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <% if (session.cart && session.cart.totalQty > 0) { %>
+              <span class="absolute -top-2 -right-2 bg-black text-white text-xs w-4 h-4 flex items-center justify-center rounded-full">
+                <%= session.cart.totalQty %>
+              </span>
+            <% } %>
+          </a>
           
-        </button>
-        
-        
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-          <ul class="list-unstyled navbar-nav mr-auto">
-         
-            
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/sale/wow" data-offset="90">Nos Services</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/sale/clean" data-offset="90">interior paint</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/sale/furniteur" data-offset="90">Vinyl paint</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/sale/wow" data-offset="90">outils</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/return" data-offset="90">Returns</a>
-            </li>
-            
-          </ul>
-          
-          <!-- Social Icon  -->
-         
-              </div>
-      </div>
-  
-         
-      </div>
-      </div>
-    </nav>
-</header> 
-
-  <div class="banner" style="background-image: url('https://live.staticflickr.com/65535/54424056395_fe456898d8_k.jpg');">
-   <div class="banner-text">
-                <h1 class="h1-responsive font-weight-bold mt-sm-5 mb-4 wow fadeInLeft" data-wow-delay="0.3s">Transform Your Home with Color & Comfort</h1>
-                <hr class="hr-light wow fadeInLeft" data-wow-delay="0.3s">
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/"><img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;"></a>
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/paintello"><img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;"></a>
-              </div>
-            </div>
-          
-
-      
-
-
-
-  <div class="container my-5">
-  <div class="row">
-    <!-- IMAGE SLIDER -->
-    <div class="col-md-6">
-      <div id="productCarousel" class="carousel slide" data-ride="carousel">
-        <ol class="carousel-indicators">
-          <% grey.image.forEach((img, i) => { %>
-            <li data-target="#productCarousel" data-slide-to="<%= i %>" class="<%= i===0?'active':'' %>"></li>
-          <% }) %>
-        </ol>
-        <div class="carousel-inner">
-          <% grey.image.forEach((img, i) => { %>
-            <div class="carousel-item <%= i===0?'active':'' %>">
-              <img src="<%= img %>" class="d-block w-100 zoomable" alt="Slide <%= i+1 %>">
-            </div>
-          <% }) %>
+          <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
         </div>
-        <a class="carousel-control-prev" href="#productCarousel" role="button" data-slide="prev">
-          <span class="carousel-control-prev-icon"></span>
-        </a>
-        <a class="carousel-control-next" href="#productCarousel" role="button" data-slide="next">
-          <span class="carousel-control-next-icon"></span>
-        </a>
       </div>
     </div>
+  </header>
 
-    <!-- DETAILS -->
-    <div class="col-md-6">
-      <h1 class="product-title"><%= grey.title %></h1>
-      <p class="product-price"><%= grey.price.toFixed(2) %> DA</p>
-<form action="/add-to-cart-grey/<%= grey._id %>" method="GET" 
-      onsubmit="return handleAddToCart(event, '<%= grey.title %>', <%= grey.price %>, '<%= grey._id %>')">
-  <button type="submit" class="btn btn-primary btn-lg mb-4">
-    <i class="fas fa-cart-plus mr-2"></i>Add to Cart
-  </button>
-</form>
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6 lg:px-8 py-10 pt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
 
- 
-      <ul class="nav nav-tabs" id="infoTab" role="tablist">
-        <li class="nav-item">
-          <a class="nav-link active" id="desc-tab" data-toggle="tab" href="#desc" role="tab">Description</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" id="info-tab" data-toggle="tab" href="#info" role="tab">Information</a>
-        </li>
-      </ul>
-      <div class="tab-content p-3 border border-top-0" id="infoTabContent">
-        <div class="tab-pane fade show active" id="desc" role="tabpanel">
-          <p><%= grey.description %></p>
-        </div>
-        <div class="tab-pane fade" id="info" role="tabpanel">
-          <ul class="list-unstyled">
-            <% for (let key in grey.details) { %>
-              <li><strong><%= key %>:</strong> <%= grey.details[key] %></li>
+      <!-- Left: Images + gallery -->
+      <section class="lg:col-span-7 space-y-6">
+
+        <!-- Image + thumbnails layout -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden p-4">
+          <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Thumbnails column -->
+            <div class="lg:w-24 flex lg:flex-col gap-3 order-2 lg:order-1 overflow-auto">
+              <% if (grey && Array.isArray(grey.image)) { %>
+                <% grey.image.forEach(function(img, idx) { %>
+                  <button type="button" class="thumbnail shrink-0 rounded-lg border-2 border-transparent hover:border-black p-1 bg-white transition-all <%= idx === 0 ? 'active border-black' : '' %>" data-index="<%= idx %>" aria-label="Thumbnail <%= idx+1 %>">
+                    <img src="<%= img %>" alt="thumb <%= idx+1 %>" class="w-20 h-20 lg:w-full lg:h-20 object-cover rounded-md" />
+                  </button>
+                <% }); %>
+              <% } else { %>
+                <div class="text-sm text-gray-500">No images</div>
+              <% } %>
+            </div>
+
+            <!-- Main image slider - FIXED VERSION -->
+            <div class="flex-1 order-1 lg:order-2 relative">
+              <div id="imageSlider" class="relative bg-gray-50 rounded-xl overflow-hidden" style="height: 500px;">
+                <% if (grey && Array.isArray(grey.image)) { %>
+                  <!-- First image - visible by default -->
+                  <img src="<%= grey.image[0] %>" 
+                       class="w-full h-full object-cover slider-img active"
+                       alt="<%= grey.title %>" 
+                       data-index="0" />
+                  
+                  <!-- Other images - hidden by default -->
+                  <% grey.image.slice(1).forEach(function(img, idx){ %>
+                    <img src="<%= img %>" 
+                         class="absolute inset-0 w-full h-full object-cover slider-img"
+                         alt="<%= grey.title %> <%= idx+2 %>" 
+                         data-index="<%= idx+1 %>" />
+                  <% }); %>
+                <% } else { %>
+                  <div class="w-full h-full flex items-center justify-center text-gray-500">
+                    No image available
+                  </div>
+                <% } %>
+
+                <!-- Swipe hint -->
+                <div class="swipe-hint">
+                  <i class="fas fa-arrows-left-right mr-2"></i>Swipe to navigate
+                </div>
+
+                <!-- Zara-style transparent arrows -->
+                <button id="prevSlide" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full hidden lg:flex">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="nextSlide" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full hidden lg:flex">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+              </div>
+
+              <div class="mt-3 text-center">
+                <button id="openLightboxBtn" class="text-sm text-black font-medium hover:underline">
+                  View full image
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gallery small grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+            <% if (grey && Array.isArray(grey.image)) { %>
+              <% grey.image.slice(0,4).forEach(function(img, idx){ %>
+                <div class="rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer gallery-item" data-index="<%= idx %>">
+                  <img src="<%= img %>" class="w-full h-32 md:h-40 object-cover hover:scale-105 transition-transform duration-300" alt="gallery <%= idx+1 %>"/>
+                </div>
+              <% }); %>
             <% } %>
-          </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right: Product info -->
+      <aside class="lg:col-span-5">
+        <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
+          <div class="mb-4">
+            <h1 class="text-2xl font-semibold text-gray-900"><%= grey && grey.title ? grey.title : '' %></h1>
+            <p class="mt-2 text-sm text-gray-600"><%= grey && grey.subtitle ? grey.subtitle : '' %></p>
+          </div>
+
+          <div class="flex items-end gap-3 mt-4">
+            <% if (grey && grey.oldPrice && grey.oldPrice > grey.price) { %>
+              <div class="text-sm text-gray-400 line-through"><%= Number(grey.oldPrice).toFixed(2) %> DA</div>
+            <% } %>
+            <div class="text-2xl font-bold text-black"><%= grey && typeof grey.price !== 'undefined' ? Number(grey.price).toFixed(2) : '' %> DA</div>
+          </div>
+
+          <!-- ===== STOCK MESSAGE SECTION ===== -->
+          <div id="grey_message" class="flex-div-wrapper">
+            <div class="flex-div">
+              <span style="margin-right: 14px; margin-left: 3px;" class="green-dot"></span>
+              <span style="color:#2c9814;" class="text">En stock, expédié le jour même</span>
+            </div>
+            <div class="flex-div2">
+              <svg width="18" height="18" style="width: 18px; height: 18px; margin-right: 5px; margin-left: 2px;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                <path d="M48 0C21.5 0 0 21.5 0 48V368c0 26.5 21.5 48 48 48H64c0 53 43 96 96 96s96-43 96-96H384c0 53 43 96 96 96s96-43 96-96h32c17.7 0 32-14.3 32-32s-14.3-32-32-32V288 256 237.3c0-17-6.7-33.3-18.7-45.3L512 114.7c-12-12-28.3-18.7-45.3-18.7H416V48c0-26.5-21.5-48-48-48H48zM416 160h50.7L544 237.3V256H416V160zM112 416a48 48 0 1 1 96 0 48 48 0 1 1 -96 0zm368-48a48 48 0 1 1 0 96 48 48 0 1 1 0-96z"></path>
+              </svg>
+              <span class="devFreeShip">Livraison gratuite offerte dans toutes les WILAYAS à partir de 5000 DA d'achat</span>
+            </div>
+          </div>
+
+          <!-- Add to cart form -->
+          <form id="addToCartForm" action="/add-to-cart-grey/<%= grey._id %>" method="GET" class="mt-6">
+            <div class="flex items-center gap-3">
+              <label class="text-sm text-gray-700 font-medium">Quantity</label>
+              <div class="flex items-center border rounded-full overflow-hidden w-36">
+                <button type="button" id="qtyMinus" class="px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors">-</button>
+                <input id="qtyInput" name="qty" value="1" class="w-12 text-center py-2 outline-none bg-transparent" />
+                <button type="button" id="qtyPlus" class="px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors">+</button>
+              </div>
+            </div>
+
+            <div class="mt-6 flex flex-col gap-3">
+              <button id="addToCartBtn" type="submit" class="w-full py-3 rounded-full text-white font-semibold hover:opacity-90 transition-opacity bg-black">
+                Add to cart
+              </button>
+
+              <!-- Buy it now button - will add to cart AND go to checkout -->
+              <button id="buyNowBtn" type="button" class="w-full py-3 rounded-full border border-gray-200 hover:border-gray-300 transition-colors bg-white text-gray-800 font-semibold">
+                Buy it now
+              </button>
+            </div>
+          </form>
+
+          
+
+          <!-- Tabs -->
+          <div class="mt-8">
+            <div class="relative">
+              <!-- Scroll indicator for mobile -->
+              <div class="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none hidden md:hidden z-10" id="scrollIndicator"></div>
+              
+              <div class="flex gap-6 border-b border-gray-100 overflow-x-auto scroll-smooth" id="tabsContainer">
+                <button data-tab="desc" class="tab-btn text-sm py-4 px-1 font-semibold border-b-2 border-transparent active">
+                  <strong>Description</strong>
+                </button>
+                <button data-tab="shipping" class="tab-btn text-sm py-4 px-1 font-semibold border-b-2 border-transparent">
+                  <strong>Livraison</strong>
+                </button>
+               
+                <button data-tab="info" class="tab-btn text-sm py-4 px-1 font-semibold border-b-2 border-transparent">
+                  <strong>Information</strong>
+                </button>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <!-- Description Tab -->
+              <div id="desc" class="tab-panel text-sm text-gray-700 leading-relaxed">
+                <%= grey && grey.description ? grey.description : '' %>
+              </div>
+
+              <!-- Shipping Tab (French) -->
+              <div id="shipping" class="tab-panel hidden text-sm text-gray-700 leading-relaxed">
+                <p><strong>Options de Livraison :</strong></p>
+                <p class="mt-2">Nous proposons une livraison standard et express suivie sur toutes les commandes.</p>
+                
+                <p class="mt-4"><strong>Livraison Express Gratuite :</strong></p>
+                <p class="mt-2">La livraison express gratuite est automatiquement appliquée à la caisse lorsque votre commande est éligible.</p>
+                
+                <p class="mt-4"><strong>Délai d'Expédition :</strong></p>
+                <p class="mt-2">Toutes les commandes sont expédiées le même jour.</p>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                  <p class="font-medium text-blue-800">Délais de Livraison Estimés :</p>
+                  <ul class="mt-2 space-y-1 text-blue-700">
+                    <li>• Livraison Standard : 3-5 jours ouvrables</li>
+                    <li>• Livraison Express : 1-2 jours ouvrables</li>
+                    <li>• Livraison Internationale : 7-14 jours ouvrables</li>
+                  </ul>
+                </div>
+              </div>
+
+             
+
+              <!-- Information Tab -->
+              <div id="info" class="tab-panel hidden text-sm text-gray-700">
+                <ul class="space-y-2">
+                  <% if (grey && grey.details) { for (let key in grey.details) { %>
+                    <li class="flex border-b border-gray-100 py-2">
+                      <strong class="w-32 text-gray-900"><%= key %>:</strong>
+                      <span class="flex-1"><%= grey.details[key] %></span>
+                    </li>
+                  <% } } %>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Share -->
+          <div class="mt-8 flex gap-3 items-center text-sm text-gray-500 pt-6 border-t border-gray-100">
+            <div class="font-medium">Share:</div>
+            <a class="hover:text-gray-900" href="#">Facebook</a>
+            <a class="hover:text-gray-900" href="#">Pinterest</a>
+            <a class="hover:text-gray-900" href="#">Instagram</a>
+          </div>
+        </div>
+
+        <!-- JSON-LD -->
+        <script type="application/ld+json">
+        {
+          "@context": "https://schema.org/",
+          "@type": "Product",
+          "name": "<%= grey && grey.title ? grey.title : '' %>",
+          "image": "<%= (grey && grey.image && grey.image[0]) ? grey.image[0] : '' %>",
+          "description": "<%= grey && grey.description ? grey.description : '' %>",
+          "sku": "<%= grey && grey._id ? grey._id : '' %>",
+          "offers": { "@type": "Offer", "url": "https://<%= req.get('host') + req.originalUrl %>", "priceCurrency": "DZD", "price": "<%= grey && grey.price ? grey.price : '' %>", "availability": "https://schema.org/InStock" }
+        }
+        </script>
+      </aside>
+    </div>
+
+    <!-- Suggested products (horizontal scroll carousel) -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold mb-4">You may also like</h2>
+      <div class="relative">
+        <!-- Arrows -->
+        <button id="prevRelated" class="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow p-2 hidden md:block" aria-label="Previous">
+          <svg class="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M12.707 14.707a1 1 0 01-1.414 0L6.586 10l4.707-4.707a1 1 0 011.414 1.414L9.414 10l3.293 3.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+        <button id="nextRelated" class="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-white rounded-full shadow p-2 hidden md:block" aria-label="Next">
+          <svg class="h-5 w-5 text-gray-700" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M7.293 5.293a1 1 0 011.414 0L13.414 10l-4.707 4.707a1 1 0 01-1.414-1.414L10.586 10 7.293 6.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+
+        <!-- Scroll container -->
+        <div id="relatedScroll" class="flex gap-4 overflow-x-auto snap-x py-2 px-2">
+          <!-- Manual related products entries -->
+          <div class="snap-child flex-none w-56 bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <a href="/grey/6856cb7603d002f2019026d0" class="block group">
+              <div class="relative overflow-hidden">
+                <img src="https://live.staticflickr.com/65535/54482441609_bd43ddfea1.jpg" 
+                     alt="STONE_1186P" 
+                     class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <div class="p-3">
+                <div class="text-sm font-medium text-gray-900 truncate">STONE_1186P</div>
+                <div class="text-sm font-semibold text-black mt-1">Natural Stone Grey<</div>
+              </div>
+            </a>
+          </div>
+
+          <div class="snap-child flex-none w-56 bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <a href="/grey/6856cbcd03d002f2019026d2" class="block group">
+              <div class="relative overflow-hidden">
+                <img src="https://live.staticflickr.com/65535/54482525388_dc0abb73c8.jpg" 
+                     alt="PRINCE_1194P" 
+                     class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <div class="p-3">
+                <div class="text-sm font-medium text-gray-900 truncate">PRINCE_1194P</div>
+                <div class="text-sm font-semibold text-black mt-1">Prince Charcoal Grey</div>
+              </div>
+            </a>
+          </div>
+
+          <div class="snap-child flex-none w-56 bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <a href="/grey/6856cc1703d002f2019026d4" class="block group">
+              <div class="relative overflow-hidden">
+                <img src="https://live.staticflickr.com/65535/54481397447_9b42e4783b.jpg" 
+                     alt="LITTELGREY_148P" 
+                     class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <div class="p-3">
+                <div class="text-sm font-medium text-gray-900 truncate">LITTELGREY_148P</div>
+                <div class="text-sm font-semibold text-black mt-1">Little Silver Grey</div>
+              </div>
+            </a>
+          </div>
+
+          <div class="snap-child flex-none w-56 bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+            <a href="/grey/6856cc6903d002f2019026d6" class="block group">
+              <div class="relative overflow-hidden">
+                <img src="https://live.staticflickr.com/65535/54482441759_d9fcb960fe.jpg" 
+                     alt="FRESHOGREY_168P" 
+                     class="w-full h-36 object-cover group-hover:scale-105 transition-transform duration-300" />
+              </div>
+              <div class="p-3">
+                <div class="text-sm font-medium text-gray-900 truncate">FRESHOGREY_168P</div>
+                <div class="text-sm font-semibold text-black mt-1">Fresh Ash Grey</div>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-gray-100 bg-white mt-16">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello — All rights reserved</div>
+  </footer>
+
+  <!-- Enhanced Lightbox element -->
+  <div id="lightbox" class="lightbox-backdrop">
+    <button id="lightboxClose" class="lightbox-close">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <button id="lightboxPrev" class="lightbox-nav lightbox-prev">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+    
+    <button id="lightboxNext" class="lightbox-nav lightbox-next">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    
+    <div class="lightbox-content">
+      <img id="lightboxImage" src="" alt="Full image" class="lightbox-image" />
     </div>
   </div>
-</div>
-</body>
- <script>
-    function toggleAccordion() {
-      document.getElementById("accordionContent").classList.toggle("open");
-    }
+
+  <!-- Global error handlers (helpful for Clarity) -->
+  <script>
+    window.addEventListener('error', function(e) {
+      try { console.error('JS Error caught:', e.message, 'at', (e.filename || e.fileName) + ':' + (e.lineno || e.lineNumber), e.error); } catch (err) {}
+    });
+    window.addEventListener('unhandledrejection', function(e) { console.warn('Unhandled promise rejection', e.reason); });
   </script>
-<script>
 
+  <!-- Interaction scripts (lightbox, thumbnails, tabs, qty, addToCart tracking) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      // ---------- Image Slider Functionality - FIXED VERSION ----------
+      const slides = document.querySelectorAll('.slider-img');
+      const prev = document.getElementById('prevSlide');
+      const next = document.getElementById('nextSlide');
+      const thumbnails = document.querySelectorAll('.thumbnail');
+      const galleryItems = document.querySelectorAll('.gallery-item');
+      const imageSlider = document.getElementById('imageSlider');
+      let currentSlide = 0;
 
+      // Initialize slider - make sure first image is visible
+      function initializeSlider() {
+        if (slides.length > 0) {
+          // Reset all slides
+          slides.forEach(slide => {
+            slide.classList.remove('active');
+            slide.style.opacity = '0';
+            slide.style.position = 'absolute';
+          });
+          
+          // Activate first slide
+          slides[0].classList.add('active');
+          slides[0].style.opacity = '1';
+          slides[0].style.position = 'relative';
+          
+          currentSlide = 0;
+        }
+      }
 
-  
+      function showSlide(index) {
+        // Validate index
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+        
+        // Hide all slides
+        slides.forEach(slide => {
+          slide.classList.remove('active');
+          slide.style.opacity = '0';
+          slide.style.position = 'absolute';
+        });
+        
+        // Show selected slide
+        slides[index].classList.add('active');
+        slides[index].style.opacity = '1';
+        slides[index].style.position = 'relative';
+        
+        // Update active thumbnail
+        thumbnails.forEach(thumb => {
+          thumb.classList.remove('active', 'border-black');
+        });
+        
+        if (thumbnails[index]) {
+          thumbnails[index].classList.add('active', 'border-black');
+        }
+        
+        currentSlide = index;
+      }
 
-  
-</script>
+      function nextSlide() {
+        let nextIndex = (currentSlide + 1) % slides.length;
+        showSlide(nextIndex);
+      }
 
+      function prevSlide() {
+        let prevIndex = (currentSlide - 1 + slides.length) % slides.length;
+        showSlide(prevIndex);
+      }
 
-<%- include ("../partials/footer") %>.
+      // Initialize slider on load
+      initializeSlider();
+
+      // Event listeners for slider arrows
+      if (prev) prev.addEventListener('click', prevSlide);
+      if (next) next.addEventListener('click', nextSlide);
+
+      // Event listeners for thumbnails
+      thumbnails.forEach(thumb => {
+        thumb.addEventListener('click', function() {
+          const index = parseInt(this.getAttribute('data-index'));
+          showSlide(index);
+        });
+      });
+
+      // Event listeners for gallery items
+      galleryItems.forEach(item => {
+        item.addEventListener('click', function() {
+          const index = parseInt(this.getAttribute('data-index'));
+          showSlide(index);
+        });
+      });
+
+      // ---------- Enhanced Lightbox Functionality ----------
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightboxImage');
+      const lightboxClose = document.getElementById('lightboxClose');
+      const lightboxPrev = document.getElementById('lightboxPrev');
+      const lightboxNext = document.getElementById('lightboxNext');
+      const openLightboxBtn = document.getElementById('openLightboxBtn');
+
+      function openLightbox() {
+        const currentImageSrc = slides[currentSlide].getAttribute('src');
+        lightboxImage.setAttribute('src', currentImageSrc);
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeLightbox() {
+        lightbox.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Open lightbox when clicking main image
+      if (imageSlider) {
+        imageSlider.addEventListener('click', openLightbox);
+      }
+      
+      // Open lightbox when clicking "View full image" button
+      if (openLightboxBtn) {
+        openLightboxBtn.addEventListener('click', openLightbox);
+      }
+
+      // Lightbox navigation
+      if (lightboxClose) {
+        lightboxClose.addEventListener('click', closeLightbox);
+      }
+      
+      if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', function() {
+          prevSlide();
+          updateLightboxImage();
+        });
+      }
+      
+      if (lightboxNext) {
+        lightboxNext.addEventListener('click', function() {
+          nextSlide();
+          updateLightboxImage();
+        });
+      }
+
+      function updateLightboxImage() {
+        const currentImageSrc = slides[currentSlide].getAttribute('src');
+        lightboxImage.setAttribute('src', currentImageSrc);
+      }
+
+      // Close lightbox when clicking on backdrop
+      if (lightbox) {
+        lightbox.addEventListener('click', function(e) {
+          if (e.target === lightbox) {
+            closeLightbox();
+          }
+        });
+      }
+
+      // Close lightbox with ESC key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
+          closeLightbox();
+        } else if (lightbox.classList.contains('active')) {
+          if (e.key === 'ArrowLeft') {
+            prevSlide();
+            updateLightboxImage();
+          } else if (e.key === 'ArrowRight') {
+            nextSlide();
+            updateLightboxImage();
+          }
+        }
+      });
+
+      // ---------- Swipe Functionality for Main Image ----------
+      let startX = 0, endX = 0;
+
+      if (imageSlider) {
+        imageSlider.addEventListener('touchstart', e => { 
+          startX = e.touches[0].clientX; 
+        });
+        
+        imageSlider.addEventListener('touchmove', e => { 
+          endX = e.touches[0].clientX; 
+        });
+        
+        imageSlider.addEventListener('touchend', () => {
+          const diff = endX - startX;
+          if (Math.abs(diff) > 50) { // swipe threshold
+            if (diff > 0) prevSlide(); 
+            else nextSlide();
+          }
+          startX = endX = 0;
+        });
+        
+        // Mouse swipe for desktop
+        imageSlider.addEventListener('mousedown', function(e) {
+          startX = e.clientX;
+          document.addEventListener('mousemove', onMouseMove);
+          document.addEventListener('mouseup', onMouseUp);
+        });
+        
+        function onMouseMove(e) {
+          endX = e.clientX;
+        }
+        
+        function onMouseUp() {
+          const diff = startX - endX;
+          
+          if (Math.abs(diff) > 50) { // Minimum swipe distance
+            if (diff > 0) {
+              nextSlide();
+            } else {
+              prevSlide();
+            }
+          }
+          
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+          startX = 0;
+          endX = 0;
+        }
+      }
+
+      // ---------- Tabs ----------
+      function initializeTabs() {
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        
+        tabButtons.forEach(btn => {
+          btn.addEventListener('click', function(){
+            const target = this.dataset.tab;
+            if (!target) return;
+            
+            // Update button states
+            tabButtons.forEach(b => {
+              b.classList.remove('text-gray-900', 'active', 'border-black');
+              b.classList.add('text-gray-600', 'border-transparent');
+            });
+            
+            // Hide all panels
+            document.querySelectorAll('.tab-panel').forEach(p => {
+              p.classList.add('hidden');
+            });
+            
+            // Activate clicked button
+            this.classList.add('text-gray-900', 'active', 'border-black');
+            this.classList.remove('text-gray-600', 'border-transparent');
+            
+            // Show target panel
+            const panel = document.getElementById(target);
+            if (panel) {
+              panel.classList.remove('hidden');
+            }
+          });
+        });
+        
+        // Activate first tab by default
+        if (tabButtons.length > 0) {
+          tabButtons[0].click();
+        }
+      }
+
+      // Initialize tabs when DOM is ready
+      initializeTabs();
+
+      // ---------- Enhanced AddToCart tracking ----------
+      const addForm = document.getElementById('addToCartForm');
+      if (addForm) {
+        addForm.addEventListener('submit', function(e){
+          e.preventDefault();
+          
+          const quantity = parseInt(document.getElementById('qtyInput').value || 1);
+          
+          try {
+            if (window.fbq) {
+              const serverEventId = '<%= metaEventIdCart %>';
+              
+              window.fbq('track', 'AddToCart', {
+                content_name: '<%= grey.title.replace(/'/g, "\\'") %>',
+                content_ids: ['<%= grey._id %>'],
+                content_type: 'product',
+                value: <%= grey.price %> * quantity,
+                currency: 'DZD',
+                contents: [{
+                  id: '<%= grey._id %>',
+                  quantity: quantity,
+                  item_price: <%= grey.price %>
+                }]
+              }, { 
+                eventID: serverEventId
+              });
+
+              console.log('🎯 Pixel AddToCart Event ID:', serverEventId);
+            }
+          } catch (err) { 
+            console.warn('fbq track AddToCart failed', err); 
+          }
+          
+          // Submit the form - redirect to cart
+          const productId = '<%= grey._id %>';
+          window.location.href = `/add-to-cart-grey/${productId}?qty=${quantity}`;
+        });
+      }
+
+      // ---------- Buy Now functionality ----------
+      const buyNowBtn = document.getElementById('buyNowBtn');
+      if (buyNowBtn) {
+        buyNowBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Show loading state
+          const originalText = buyNowBtn.innerHTML;
+          buyNowBtn.innerHTML = 'Adding to cart...';
+          buyNowBtn.disabled = true;
+          
+          // Get the quantity
+          const qtyInput = document.getElementById('qtyInput');
+          const quantity = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+          
+          try {
+            if (window.fbq) {
+              const serverEventIdCart = '<%= metaEventIdCart %>';
+              
+              window.fbq('track', 'AddToCart', {
+                content_name: '<%= grey.title.replace(/'/g, "\\'") %>',
+                content_ids: ['<%= grey._id %>'],
+                content_type: 'product',
+                value: <%= grey.price %> * quantity,
+                currency: 'DZD',
+                contents: [{
+                  id: '<%= grey._id %>',
+                  quantity: quantity,
+                  item_price: <%= grey.price %>
+                }]
+              }, {
+                eventID: serverEventIdCart
+              });
+
+              console.log('🎯 Buy Now - AddToCart Event ID:', serverEventIdCart);
+            }
+            
+            // Use the SAME approach as Add to Cart - simple redirect
+            const productId = '<%= grey._id %>';
+            window.location.href = `/add-to-cart-grey/${productId}?qty=${quantity}&redirect=checkout`;
+            
+          } catch (error) {
+            console.error('Buy Now error:', error);
+            buyNowBtn.innerHTML = originalText;
+            buyNowBtn.disabled = false;
+            alert('Sorry, there was an error. Please try again.');
+          }
+        });
+      }
+
+      // ---------- Enhanced Quantity Controls ----------
+      const qtyInput = document.getElementById('qtyInput');
+      const plus = document.getElementById('qtyPlus');
+      const minus = document.getElementById('qtyMinus');
+
+      if (qtyInput) {
+        // Set initial value
+        qtyInput.value = qtyInput.value || 1;
+        
+        // Quantity plus
+        if (plus) {
+          plus.addEventListener('click', () => { 
+            qtyInput.value = parseInt(qtyInput.value || 1) + 1;
+          });
+        }
+        
+        // Quantity minus
+        if (minus) {
+          minus.addEventListener('click', () => { 
+            qtyInput.value = Math.max(1, parseInt(qtyInput.value || 1) - 1);
+          });
+        }
+      }
+
+      // ---------- Related products carousel controls ----------
+      const relatedScroll = document.getElementById('relatedScroll');
+      const prevBtn = document.getElementById('prevRelated');
+      const nextBtn = document.getElementById('nextRelated');
+
+      function scrollRelated(delta) {
+        if (!relatedScroll) return;
+        relatedScroll.scrollBy({ left: delta, behavior: 'smooth' });
+      }
+      if (prevBtn) prevBtn.addEventListener('click', () => scrollRelated(-280));
+      if (nextBtn) nextBtn.addEventListener('click', () => scrollRelated(280));
+
+      // show/hide arrows based on width
+      function updateRelatedArrows() {
+        if (!relatedScroll) return;
+        if (relatedScroll.scrollWidth > relatedScroll.clientWidth) {
+          prevBtn && prevBtn.classList.remove('hidden');
+          nextBtn && nextBtn.classList.remove('hidden');
+        } else {
+          prevBtn && prevBtn.classList.add('hidden');
+          nextBtn && nextBtn.classList.add('hidden');
+        }
+      }
+      setTimeout(updateRelatedArrows, 300);
+      window.addEventListener('resize', updateRelatedArrows);
+ 
+    }); // DOMContentLoaded end
+  </script>
+
+  <!-- FontAwesome icons -->
+  <script src="https://kit.fontawesome.com/a2d9b6b9f4.js" crossorigin="anonymous" defer></script>
+</body>
+</html>

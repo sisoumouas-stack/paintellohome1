@@ -160,6 +160,13 @@ app.use('/roboto',express.static(__dirname + '/font/roboto'))
 app.use(express.static('node_modules'))
 app.use(flash());
 
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    uptime: process.uptime()
+  });
+});
+
 //bring events routes
 var routes = require('./routes/index');
 var userRoutes = require("./routes/user");

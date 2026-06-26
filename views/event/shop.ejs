@@ -1,538 +1,558 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<!-- Meta Pixel Code -->
-<!-- Meta Pixel Code -->
-<script>
-  
-
-  !function(f,b,e,v,n,t,s){
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
-    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+  <!-- Pixel, GTM, Clarity -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f.fbq)n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s);
-  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
 
-   fbq('init', '633564199312760', {
-    em: '<%= user ? user.email : "" %>',
-    fn: '<%= user ? user.firstName : "" %>',
-    ln: '<%= user ? user.lastName : "" %>',
-    ph: '<%= user ? user.numero : "" %>'
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
   });
-fbq('track', 'PageView', {
-eventID: '<%= eventId %>'
-  }
-);
-</script>
-<noscript>
-  <img height="1" width="1" style="display:none"
-       src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"/>
-</noscript>
-<!-- End Meta Pixel Code -->
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
-<!-- End Google Tag Manager -->
-
-  <meta name="facebook-domain-verification" content="plfly5a8dktgdy17nvv2h8zsrpc9g5" />
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Paintello | Panier</title>
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-<link rel="manifest" href="/favicon/site.webmanifest">  
-  <meta name="theme-color" content="#ffffff">  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
-  <!-- Bootstrap core CSS -->
-  <link href="../../css/bootstrap.min.css" rel="stylesheet">
-  <link href="../../css/bmo.min.css" rel="stylesheet">
-
-  <!-- Material Design Bootstrap -->
-  <link href="../../css/mdb.min.css" rel="stylesheet">
-  <style>
- .checkout-form {
-      margin-top: 40px;
-      border-top: 1px solid #ddd;
-      padding-top: 20px;
-    }  
-.img{
-  display: block;
-  max-width: 230px;
-  max-height: 95px;
-  width: auto;
-  height: auto;
-}
-      .prod-listing {
-    position: relative;
-    }
-    .list-unstyled {
-    padding-left: 0;
-    list-style: none;
-}
-   
-  </style>
-
-
-</head>
-
-
-
-
-  <header>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top scrolling-navbar white">
-      <div class="container">
-        <a class="navbar-brand font-weight-bold title"href="/">Paintello</a>
-        <!--Navigation icons-->
-        <ul class="nav navbar-nav nav-flex-icons ml-auto">
-          <li class="nav-item dropdown">
-                       <a class="nav-link dropdown" id="menu1" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user  black-text"></i>
-                      </a>
-                      <div class="dropdown-menu dropdown-menu-right bootstrap-menu  white scrollbar-default" aria-labelledby="menu1">
-                        <% if (login){ %>
-                          <a class="dropdown-item" href="/user/profile">profile</a>
-                           <a class="dropdown-item" href="/user/logout">Logout</a>
-                           <% } else{ %>
-                           <a class="dropdown-item" href="/user/signup">Register</a>
-                           <a class="dropdown-item" href="/user/signin">Sing up</a>
-                           <% } %>
-                 </div> 
-          </li>
-          <li class="nav-item ">
-                      <a class="nav-link " id="menu2" href="/shop" role="button"  aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-shopping-cart black-text"></i>
-                        <% if(session.cart){ %>
-                      <span class="mycounter"><%= session.cart.totalQty %></span>
-                      <% } %>
-                      </a>
-          </li>
-    
-        </ul>
-        
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02"
-          aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-          
-        </button>
-        
-        
-       <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-          <ul class="list-unstyled navbar-nav mr-auto">
-         
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/wow" data-offset="90">Nos Services</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/interior/gliter" data-offset="90">interior paint</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/interior/kitchen" data-offset="90">Vinyl paint</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/interior/spray" data-offset="90">outils</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/return" data-offset="90">Returns</a>
-            </li>
-            
-          </ul>
-          
-          <!-- Social Icon  -->
-         
-              </div>
-      </div>
-  
-         
-      </div>
-      </div>
-    </nav>
- </header>
-
-<body>
-
-
-
-  <!-- Navigation & Intro -->
-    
-     <div class="checkout-form">
-<!--Grid row-->
-<!-- Your fixed logo here -->
-  <div id="checkout-logo" style="text-align: center; margin-top: 20px;">
-    <a href="/">
-      <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-<a href="/">
-      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-  </div>
-    <div class="row">
-      <% if (products) { %>
-  
-      <!--Grid column-->
-      <div class="col-lg-8">
-  
-        <!-- Card -->
-        <div class="card wish-list mb-3">
-          <div class="card-body">
-            <% if(session.cart){ %>
-            <h5 class="mb-4">Cart (<span><%= session.cart.totalQty %></span> items)</h5>
-            <% } %>
-            
-              <% products.forEach(function(product){ %>
-            <div class="row mb-4">
-              
- <div class="col-md-5 col-lg-3 col-xl-3">
-<div class="flex-shrink-0 mw-100 position-relative bm-product-link-img">
-                  <img id="myImg" class="myImgLightBox"  width="200" height="240"  src="<%= product.item.image %>" >	
-                  </div>
-                
-              </div>
-              <div class="flex-fill mw-100 bm-product-link-text">
-                <h3 class="d-block font-weight-normal h6 mb-0 text-body"><%= product.item.title %></h3>
-             <div class="quantity-controls d-flex align-items-center">
-  <button class="btn btn-sm btn-outline-secondary btn-decrease" data-id="<%= product.item._id %>">−</button>
-  <span class="mx-2 item-qty" data-id="<%= product.item._id %>"><%= product.qty %></span>
-  <button class="btn btn-sm btn-outline-secondary btn-increase" data-id="<%= product.item._id %>">+</button>
-</div>
-<li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
-   amount
-  <span class="product-subtotal" data-id="<%= product.item._id %>">
-  <%= product.price %> DA
-</span>
-
-</li>
-              </div>
-                </div>
-        <% }); %>
-
-              </div>
-              
-            </div>
-        
-            
-
-            <hr class="mb-4">
-            
-          </div>
-          
-        </div>
-        <!-- Card -->
-        
-        <!-- Card -->
-        <div class="card mb-3">
-          <div class="card-body">
-  
-            <h5 class="mb-4">Expected shipping delivery</h5>
-  
-            <p class="mb-0"> Entre 1 à 4 jours </p>
-          </div>
-        </div>
-        <!-- Card -->
-        <div class="col-lg-4">
-  
-          <!-- Card -->
-          <div class="card mb-3">
-            <div class="card-body">
-              
-              <h5 class="mb-3">The total amount of</h5>
-    
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0">
-                 Total Temporary amount
-                  <span id="total-price"><%= totalPrice %> DA</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                  <label for="wilaya">Wilaya</label>
-
-        <select id="wilaya" name="wilaya" required onchange="updateShipping()">
-              <option value="">Select your wilaya</option>
-
-
-
-          <option value="Algiers">Algiers</option>
-
-
-          <option value="Oran">Oran</option>
-
-
-          <option value="Constantine">Constantine</option>
-
-
-          <option value="Blida">Blida</option>
-
-
-          <option value="Annaba">Annaba</option>
-<option value="ADRAR">Adrar</option>
-<option value="CHLEF">Chlef</option>
-<option value="LAGHOUAT">Laghouat</option>
-<option value="OUM EL BOUAGHI">Oum el bouaghi</option>
-<option value="BATNA">Batna</option>
-<option value="BEJAIA">Bejaia</option>
-<option value="BISKRA">Biskra</option>
-<option value="BECHAR">Bechar</option>
-<option value="BLIDA">Blida</option>
-<option value="BOUIRA">Bouira</option>
-<option value="TAMANRASSET">Tamanrasset/option>
-<option value="TEBESSA">Tebessa</option>
-<option value="TLEMCAN">Tlemcan</option>
-<option value="TIARET">Tiaret</option>
-<option value="TIZI OUZOU">Tizi ouzou</option>
-<option value="DJELFA">Djelfa</option>
-<option value="JIJEL">Jijel</option>
-<option value="SETIF">Setif</option>
-<option value="SAIDA">Saida</option>
-<option value="SKIKDA">Skikda</option>
-<option value="SIDI BELABBAS">Sidi belabbes</option>
-<option value="GEULMA">Geulma</option>
-<option value="MEDEA">Medea</option>
-<option value="MOSTAGANEM">Mostaganem</option>
-<option value="MESILA">Msila</option>
-<option value="MASCARA">Mascara</option>
-<option value="OUERGLA">Ouergla</option>
-<option value="EL BAYADH">El bayadh</option>
-<option value="BORJ BOU ARRERIDJ">Borj bou arreridj</option>
-<option value="BOUMERDAS">Boumerdas</option>
-<option value="EL TAREF">El taref</option>
-<option value="TISSEMSIL">Tissemsilt</option>
-<option value="EL OUED">El oued</option>
-<option value="KHENCHLA">Khenchla</option>
-<option value="SOUK AHRAS">Souk ahres</option>
-<option value="TIPAZA">Tipaza</option>
-<option value="MILA">Mila</option>
-<option value="AIN DEFLA">Ain defla</option>
-<option value="NAAMA">Naama</option>
-<option value="AIN TEMOUCHENT">Ain temouchent</option>
-<option value="GHARDAIA">Ghardaia</option>
-<option value="GHILEZAN">Ghilizen</option>
-<option value="EL MEGHAIAR">El megharia</option>
-<option value="EL MENIA">El menia</option>
-<option value="OULED DJELLAL">Ouled djellal</option>
-<option value="BENI ABBAS">Beni abbas</option>
-<option value="TIMIMOUN">Timimoun</option>
-<option value="TOUGGOURT">Touggourt</option>
-<option value="IN SALEH">In saleh</option>
-<option value="IN GUEZZAM">In guezzem/option>
-
-
-          
-        </select>
-<div id="shipping-cost" ></div>
-
-                </li>
-
-               
-           
-              </ul>
-              <form method="GET" action="/checkout">
-              <button type="submit" class="btn pink-gradient btn-lg" >go to checkout</button>
-              </form>
-             
-  
-    
-  
-            </div>
-          </div>
-        
-        
-          
-     
-        <!-- Card -->
-  
-      </div>
-      <!--Grid column-->
-  
-      
-      <!--Grid column-->
-  
-    </div>
-    <!--Grid row-->
-    <% } else { %>
-    <div class="row">
-      <div class="col-10 offset-1 text-center">
-          <p class="bloded">Your shopping cart is currently empty </p>
-          <a href="/" class="btn btn-primary">Back to shopping</a>
-      </div>
-  </div>
-  </div>
-
-
+  </script>
   <% } %>
   
-  </section>
-  <!--Section: Block Content-->
-<script>
-  function trackCheckout(totalPrice) {
-    fbq('track', 'InitiateCheckout', {
-      value: totalPrice,
-      currency: 'DZD',
-      eventID: '<%= eventId %>'
-    });
-  }
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
 
-  // Bind the tracking to the button click
-  document.addEventListener('DOMContentLoaded', function () {
-    const checkoutBtn = document.querySelector('form[action="/checkout"] button');
-    if (checkoutBtn) {
-      checkoutBtn.addEventListener('click', function () {
-        trackCheckout(<%= totalPrice %>);
-      });
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+  <title>Paintello | Panier</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
     }
-  });
-</script>
-<script>
-document.querySelectorAll('.btn-increase').forEach(button => {
-  button.addEventListener('click', () => updateQty(button.dataset.id, 'increase'));
-});
-
-document.querySelectorAll('.btn-decrease').forEach(button => {
-  button.addEventListener('click', () => updateQty(button.dataset.id, 'decrease'));
-});
-
-function updateQty(productId, action) {
-  fetch(`/cart/${action}/${productId}`, {
-    method: 'POST'
-  })
-  .then(res => res.json())
-  .then(data => {
-    document.querySelector(`.item-qty[data-id="${productId}"]`).innerText = data.qty;
-    document.querySelector(`.product-subtotal[data-id="${productId}"]`).innerText = data.itemTotal + ' DA';
-    document.getElementById('total-price').innerText = data.totalPrice + ' DA';
-  })
-  .catch(err => console.error(err));
-}
-</script>
-<script>
- const basePrice = 3300 ;
-    let shippingPrice = 0;
-
-    function addToCart() {
-      const quantity = document.getElementById('qty').value;
-
-      fetch('/api/cart', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          price: product.price ,
-          quantity: parseInt(quantity)
-        })
-      })
+    
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
+    }
+    
+    .zara-btn {
+      background: #000;
+      color: white;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
+    
+    .quantity-btn {
+      width: 32px;
+      height: 32px;
+      border: 1px solid #e5e5e5;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .quantity-btn:hover {
+      background: #f8f8f8;
+    }
+    
+    .quantity-input {
+      width: 40px;
+      height: 32px;
+      border: 1px solid #e5e5e5;
+      border-left: none;
+      border-right: none;
+      text-align: center;
+      font-size: 13px;
     }
 
+    /* Discount styles */
+    .discount-badge {
+      background: #27ae60;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      margin-left: 8px;
+    }
+    
+    .original-price {
+      text-decoration: line-through;
+      color: #999;
+      font-size: 0.9rem;
+    }
+    
+    .discounted-price {
+      color: #e74c3c;
+      font-weight: bold;
+    }
+    
+    .savings-badge {
+      background: #f39c12;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-top: 5px;
+      display: inline-block;
+    }
+  </style>
 
+  
+</head>
 
-    function updateShipping() {
-      const wilaya = document.getElementById('wilaya').value;
-      const costDisplay = document.getElementById('shipping-cost');
-      const shippingPrices = {
-        "ADRAR": 800,
-  "CHLEF": 500,
-  "LAGHOUAT": 650,
-  "OUM EL BOUAGHI": 550,
-  "BATNA": 550,
-  "BEJAIA": 500,
-  "BISKRA": 600,
-  "BECHAR": 750,
-  "BLIDA": 300,
-  "BOUIRA": 450,
-  "TAMANRASSET": 900,
-  "TEBESSA": 600,
-  "TLEMCAN": 500,
-  "TIARET": 500,
-  "TIZI OUZOU": 400,
-  "DJELFA": 600,
-  "JIJEL": 500,
-  "SETIF": 550,
-  "SAIDA": 500,
-  "SKIKDA": 550,
-  "SIDI BELABBES": 500,
-  "GEULMA": 550,
-  "ANNABA": 550,
-  "CONSTANTINE": 500,
-  "MEDEA": 450,
-  "MOSTAGANEM": 450,
-  "MESILA": 500,
-  "MASCARA": 500,
-  "OUERGLA": 700,
-  "EL BAYADH": 750,
-  "BOUMERDAS": 350,
-  "EL TAREF": 600,
-  "TINDOUF": 1000,
-  "TISSEMSIL": 500,
-  "EL OUED": 700,
-  "KHENCHLA": 600,
-  "SOUK AHRAS": 600,
-  "TIPAZA": 350,
-  "MILA": 500,
-  "AIN DEFLA": 400,
-  "NAAMA": 750,
-  "AIN TEMOUCHENT": 500,
-  "GHARDAIA": 700,
-  "RELIZANE": 500,
-  "ALGIERS": 300,
-  "ORAN": 400,
-  "EL MEGHAIAR": 700,
-  "EL MENIA": 750,
-  "OULED DJELLAL": 650,
-  "BENI ABBES": 800,
-  "TIMIMOUN": 800,
-  "TOUGGOURT": 700,
-  "DJANET": 950,
-  "IN SALEH": 850,
-  "IN GUEZZAM": 1000,
-  "BORDJ BADJI MOKHTAR": 950,
-  "TARF": 600,
-  "ILLIZI": 950,
-  "TAMANRASSET": 900
-};
+<body class="min-h-screen bg-white">
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+          <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+        </a>
 
-      shippingPrice = shippingPrices[wilaya] || 0;
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi</a>
+        </nav>
 
-      if (shippingPrice > 0) {
-        costDisplay.textContent = `Shipping Cost: ${shippingPrice} DA`;
-      } else {
-        costDisplay.textContent = '';
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+         <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+  <i class="fa-solid fa-bag-shopping text-lg"></i>
+  <% if (req.session.cart && req.session.cart.totalQty > 0) { %>
+    <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+      <%= req.session.cart.totalQty %>
+    </span>
+  <% } %>
+</a>
+          
+          <a href="/user/signup" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12">
+    <div class="max-w-6xl mx-auto px-6">
+      
+      <!-- Page Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-3xl font-light tracking-wide uppercase mb-4">Votre Panier</h1>
+        <p class="text-sm text-gray-600">Révisez vos articles avant de finaliser votre commande</p>
+      </div>
+
+      <% if (cart && cart.items && Object.keys(cart.items).length > 0) { 
+           // Generate cart summary for display
+           const cartSummary = cart.getSummary ? cart.getSummary() : { 
+             items: cart.generateArray ? cart.generateArray() : Object.values(cart.items),
+             totalPrice: cart.totalPrice,
+             totalQty: cart.totalQty,
+             hasDiscount: false,
+             savings: 0
+           };
+      %>
+      <div class="grid lg:grid-cols-3 gap-12">
+        <!-- Cart Items -->
+        <div class="lg:col-span-2">
+          <div class="zara-card p-8">
+            <div class="flex items-center justify-between mb-8 pb-6 border-b border-gray-200">
+              <h2 class="text-sm font-medium uppercase tracking-wide">
+                Votre Sélection (<%= cartSummary.totalQty %> articles)
+              </h2>
+              <span class="text-xs text-gray-500 uppercase tracking-wide">
+                Total: <span id="total-price" class="font-medium"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+              </span>
+            </div>
+
+            <!-- Display Savings if any -->
+            <% if (cartSummary.hasDiscount) { %>
+            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div class="flex items-center gap-2 text-green-700">
+                <i class="fas fa-tag"></i>
+                <span class="font-medium">🎉 Promotion appliquée!</span>
+                <span>Vous économisez <%= cartSummary.savings.toFixed(2) %> DA avec l'offre -10%</span>
+              </div>
+            </div>
+            <% } %>
+
+            <div class="space-y-8">
+              <% cartSummary.items.forEach(function(product){ %>
+              <div class="flex flex-col sm:flex-row gap-6 pb-8 border-b border-gray-100 last:border-b-0">
+                <!-- Product Image -->
+                <div class="flex-shrink-0">
+                  <img src="<%= product.item.image[0] %>" alt="<%= product.item.title %>" 
+                       class="w-24 h-24 object-cover">
+                </div>
+
+                <!-- Product Details -->
+                <div class="flex-grow">
+                  <div class="flex items-start justify-between">
+                    <h3 class="text-sm font-medium mb-2"><%= product.item.title %></h3>
+                    
+                    <!-- Discount Badge -->
+                    <% if (product.isDiscounted) { %>
+                    <span class="discount-badge">-<%= product.discountPercent || 30 %>%</span>
+                    <% } %>
+                  </div>
+                  
+                  <p class="text-xs text-gray-600 mb-4 leading-relaxed">
+                    <%= product.item.description?.slice(0, 80) || 'Produit de qualité supérieure' %>...
+                  </p>
+                  
+                  <!-- Price Display -->
+                  <div class="mb-4">
+                    <% if (product.isDiscounted) { %>
+                      <div class="flex items-center gap-2">
+                        <span class="original-price"><%= product.originalPrice.toFixed(2) %> DA</span>
+                        <span class="discounted-price text-lg font-bold"><%= product.unitPrice.toFixed(2) %> DA</span>
+                        <span class="text-xs text-green-600">
+                          (Économie: <%= ((product.originalPrice - product.unitPrice) * product.qty).toFixed(2) %> DA)
+                        </span>
+                      </div>
+                    <% } else { %>
+                      <span class="text-sm font-medium"><%= product.unitPrice.toFixed(2) %> DA</span>
+                    <% } %>
+                  </div>
+                  
+                  <!-- Quantity Controls -->
+                  <div class="flex items-center gap-4">
+                    <div class="flex items-center">
+                      <button class="quantity-btn btn-decrease" data-id="<%= product.item._id %>">
+                        <i class="fas fa-minus text-xs"></i>
+                      </button>
+                      <input type="text" value="<%= product.qty %>" readonly 
+                             class="quantity-input item-qty" data-id="<%= product.item._id %>">
+                      <button class="quantity-btn btn-increase" data-id="<%= product.item._id %>">
+                        <i class="fas fa-plus text-xs"></i>
+                      </button>
+                    </div>
+                    
+                    <span class="text-sm font-medium product-subtotal" data-id="<%= product.item._id %>">
+                      <%= product.price.toFixed(2) %> DA
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Remove Button -->
+                <div class="flex sm:flex-col sm:items-end justify-between">
+                  <button class="text-gray-400 hover:text-gray-600 transition-colors remove-item" 
+                          data-id="<%= product.item._id %>">
+                    <i class="fas fa-times text-sm"></i>
+                  </button>
+<% if (product.discountedWith) { %>
+  <button class="text-gray-400 hover:text-gray-600 transition-colors remove-both" 
+          data-main-id="<%= product.discountedWith %>" 
+          data-discounted-id="<%= product.item._id %>"
+          title="Remove both items">
+    <i class="fas fa-trash-alt text-sm"></i> Remove Both
+  </button>
+<% } %>
+                </div>
+              </div>
+              <% }); %>
+            </div>
+          </div>
+
+          <!-- Shipping Info -->
+          <div class="zara-card p-6 mt-6 text-center">
+            <div class="flex items-center justify-center gap-3 mb-3">
+              <div class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <i class="fas fa-truck text-gray-600 text-xs"></i>
+              </div>
+              <h3 class="text-sm font-medium uppercase tracking-wide">Livraison & Retours</h3>
+            </div>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Livraison sous 2-4 jours ouvrables • Retours acceptés sous 4 jours • Paiement à la livraison
+            </p>
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="lg:col-span-1">
+          <div class="zara-card p-8 sticky top-8">
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b border-gray-200 pb-3">
+              Récapitulatif
+            </h3>
+            
+            <div class="space-y-4 mb-6">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-gray-600 uppercase tracking-wide">Sous-total</span>
+                <span class="text-sm font-medium"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+              </div>
+              
+              <!-- Display Savings -->
+              <% if (cartSummary.hasDiscount) { %>
+              <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                <span class="text-xs text-green-600 uppercase">Économies</span>
+                <span class="text-sm font-medium text-green-600">-<%= cartSummary.savings.toFixed(2) %> DA</span>
+              </div>
+              <% } %>
+            </div>
+            
+            <!-- Delivery Partner Info -->
+            <div class="flex justify-between items-center pt-2 border-t border-gray-100 mb-4">
+              <span class="text-xs text-gray-500">Livraison par</span>
+              <div class="flex items-center gap-2">
+                <img src="/favicon/mylerz.png" alt="Mylerz" class="h-5 w-auto object-contain">
+                <span class="text-xs text-gray-600">Mylerz</span>
+              </div>
+            </div>
+            
+            <div class="border-t border-gray-200 pt-4 mb-6">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium uppercase tracking-wide">Total</span>
+                <span class="text-lg font-medium" id="btn-total"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+              </div>
+              <% if (cartSummary.hasDiscount) { %>
+                <p class="text-xs text-green-600 mt-2">
+                  <i class="fas fa-check-circle"></i> Promotion -10% appliquée
+                </p>
+              <% } %>
+            </div>
+
+            <div class="space-y-3">
+              <form method="GET" action="/checkout">
+                <button type="submit" class="zara-btn w-full text-center">
+                  <i class="fas fa-lock mr-2"></i>Procéder au Paiement
+                </button>
+              </form>
+              
+              <a href="tel:0791679611" class="zara-btn-secondary text-sm inline-block w-full text-center">
+                <i class="fas fa-phone mr-2"></i>Appeler le Support
+              </a>
+            </div>
+
+            <!-- Security & Payment Info -->
+            <div class="mt-6 pt-6 border-t border-gray-100">
+              <div class="flex items-center justify-center gap-4 mb-3">
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-lock mr-1"></i> Paiement sécurisé
+                </div>
+                <div class="text-xs text-gray-500">
+                  <i class="fas fa-truck mr-1"></i> Livraison garantie
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 text-center">
+                Paiement à la livraison  disponible
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% } else { %>
+        <!-- Empty Cart -->
+        <div class="zara-card p-12 text-center max-w-md mx-auto">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-shopping-bag text-gray-400"></i>
+          </div>
+          <h2 class="text-lg font-light tracking-wide uppercase mb-4">Panier Vide</h2>
+          <p class="text-sm text-gray-600 mb-6">Votre panier est actuellement vide</p>
+          <a href="/paintello" class="zara-btn inline-block text-sm">
+            <i class="fas fa-bag-shopping mr-2"></i>Découvrir la Boutique
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="border-t border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const increaseBtns = document.querySelectorAll(".btn-increase");
+      const decreaseBtns = document.querySelectorAll(".btn-decrease");
+      const removeBtns = document.querySelectorAll(".remove-item");
+
+      // Format price helper
+      const formatPrice = (num) => {
+        if (typeof num !== 'number') num = parseFloat(num) || 0;
+        return new Intl.NumberFormat("fr-DZ", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(num) + " DA";
+      };
+
+      // Global total updater
+      function updateTotalsDisplay(totalPrice) {
+        const totalEl = document.getElementById("total-price");
+        const btnTotal = document.getElementById("btn-total");
+        if (totalEl) totalEl.innerText = formatPrice(totalPrice);
+        if (btnTotal) btnTotal.innerText = formatPrice(totalPrice);
       }
 
-      updateTotal();
-    }
+      // Update cart item quantity (frontend + backend sync)
+      function updateQty(productId, action) {
+        fetch(`/cart/${action}/${productId}`, { 
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              // Update item quantity
+              const qtyEl = document.querySelector(`.item-qty[data-id="${productId}"]`);
+              if (qtyEl) qtyEl.value = data.qty;
 
-    function updateTotal() {
-      const quantity = parseInt(document.getElementById('qty').value) || 1;
-      const total = basePrice * quantity + shippingPrice;
-      document.getElementById('total-price').textContent = `Total: ${total.toLocaleString()} DA`;
+              // Update item subtotal
+              const subtotalEl = document.querySelector(`.product-subtotal[data-id="${productId}"]`);
+              if (subtotalEl) subtotalEl.innerText = formatPrice(data.itemTotal);
+
+              // Update all totals (cart + button)
+              updateTotalsDisplay(data.totalPrice || 0);
+              
+              // Reload page to show updated discounts if needed
+              if (data.hasDiscountChanged) {
+                setTimeout(() => {
+                  window.location.reload();
+                }, 300);
+              }
+            } else {
+              console.error("Update failed:", data.error);
+            }
+          })
+          .catch((err) => console.error("Update quantity error:", err));
+      }
+
+      // Remove item from cart
+      function removeItem(productId) {
+        fetch(`/cart/remove/${productId}`, { 
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.success) {
+              // Reload page to reflect changes
+              window.location.reload();
+            } else {
+              console.error("Remove failed:", data.error);
+            }
+          })
+          .catch((err) => console.error("Remove item error:", err));
+      }
+
+      // Attach listeners
+      increaseBtns.forEach((btn) =>
+        btn.addEventListener("click", () => updateQty(btn.dataset.id, "increase"))
+      );
+      decreaseBtns.forEach((btn) =>
+        btn.addEventListener("click", () => updateQty(btn.dataset.id, "decrease"))
+      );
+      removeBtns.forEach((btn) =>
+        btn.addEventListener("click", () => removeItem(btn.dataset.id))
+      );
+    });
+// Add to your cart JavaScript
+function removeBothItems(mainId, discountedId) {
+  fetch(`/cart/remove-both`, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      mainProductId: mainId,
+      discountedProductId: discountedId
+    })
+  })
+  .then((res) => res.json())
+  .then((data) => {
+    if (data.success) {
+      window.location.reload();
+    } else {
+      alert(data.error || "Error removing items");
     }
+  })
+  .catch((err) => console.error("Remove both error:", err));
+}
+
+// Add event listener for remove-both buttons
+document.querySelectorAll(".remove-both").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const mainId = btn.dataset.mainId;
+    const discountedId = btn.dataset.discountedId;
+    removeBothItems(mainId, discountedId);
+  });
+});
   </script>
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/682625d0a2b6be190d3ada7e/1irag7e08';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+
+  <!-- Tawk.to -->
+  <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/682625d0a2b6be190d3ada7e/1irag7e08';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+  </script>
 </body>
- 
-<%- include ("../partials/footer") %>.
+</html>

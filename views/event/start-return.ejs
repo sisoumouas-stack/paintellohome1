@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande de Retour - Paintello</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">  
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+        
+        .zara-card {
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e5e5;
+        }
+        
+        .zara-btn {
+            background: #000;
+            color: white;
+            border: 1px solid #000;
+            padding: 12px 24px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .zara-btn:hover {
+            background: #333;
+        }
+        
+        .zara-btn:disabled {
+            background: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .zara-btn-secondary {
+            background: transparent;
+            color: #000;
+            border: 1px solid #000;
+        }
+        
+        .zara-btn-secondary:hover {
+            background: #000;
+            color: white;
+        }
+        
+        .zara-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        
+        .zara-input:focus {
+            outline: none;
+            border-color: #000;
+        }
+        
+        .zara-select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            background: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        
+        .zara-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .status-badge {
+            background: #f8f8f8;
+            color: #666;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            border-radius: 1px;
+            text-transform: uppercase;
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 2px;
+            margin-bottom: 16px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .field-error {
+            border-color: #e74c3c !important;
+        }
+        
+        .error-text {
+            color: #e74c3c;
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+<!-- Pixel, GTM, Clarity -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+   fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+  </script>
+  <% } %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+</head>
+
+<body class="min-h-screen bg-white">
+    <!-- Minimal Header -->
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-4">
+                    <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+                    <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+                </a>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+                    <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+                    <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi Commande</a>
+                </nav>
+
+                <!-- Icons -->
+                <div class="flex items-center gap-4">
+                    <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <% if (session.cart && session.cart.totalQty > 0) { %>
+                            <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                                <%= session.cart.totalQty %>
+                            </span>
+                        <% } %>
+                    </a>
+                    
+                    <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+                        <i class="fa-regular fa-user text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-12">
+        <div class="max-w-2xl mx-auto px-6">
+            <!-- Flash Messages -->
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="error-message mb-8">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+            
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="success-message mb-8">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <%= success %>
+                </div>
+            <% } %>
+
+            <!-- Page Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-2xl font-light tracking-wide uppercase mb-4">Demande de Retour</h1>
+                <p class="text-sm text-gray-600">Commande #<%= order._id.toString().slice(-6).toUpperCase() %></p>
+            </div>
+
+            <!-- Return Policy Info -->
+            <div class="zara-card p-6 mb-8">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-info-circle text-gray-600"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-medium uppercase tracking-wide mb-1">Politique de Retour</h3>
+                        <p class="text-xs text-gray-600">Délai de 4 jours pour les retours • Échange ou remboursement CCP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Form -->
+            <div class="zara-card p-8">
+                <form id="returnForm" action="/submit-return" method="POST">
+                    <input type="hidden" name="orderId" value="<%= order._id %>">
+                    
+                    <!-- Reason for Return -->
+                    <div class="mb-6">
+                        <label for="reason" class="block text-xs text-gray-500 uppercase tracking-wide mb-3">
+                            Raison du Retour *
+                        </label>
+                        <select id="reason" name="reason" class="zara-select" required>
+                            <option value="">Sélectionnez une raison</option>
+                            <option value="wrong_item">Mauvais article reçu</option>
+                            <option value="defective">Article défectueux/endommagé</option>
+                            <option value="not_as_described">Article non conforme à la description</option>
+                            <option value="changed_mind">Changement d'avis</option>
+                            <option value="other">Autre raison</option>
+                        </select>
+                        <div id="reasonError" class="error-text">Veuillez sélectionner une raison de retour</div>
+                    </div>
+                    
+                    <!-- Refund Method -->
+                    <div class="mb-6">
+                        <label for="refundMethod" class="block text-xs text-gray-500 uppercase tracking-wide mb-3">
+                            Méthode de Remboursement *
+                        </label>
+                        <select id="refundMethod" name="refundMethod" class="zara-select" required>
+                            <option value="">Sélectionnez une méthode</option>
+                            <option value="exchange">Échange contre un autre article</option>
+                            <option value="ccp_refund">Remboursement CCP</option>
+                        </select>
+                        <div id="methodError" class="error-text">Veuillez sélectionner une méthode de remboursement</div>
+                    </div>
+                    
+                    <!-- Exchange Details -->
+                    <div class="mb-6 hidden" id="exchangeDetails">
+                        <label for="exchangeItem" class="block text-xs text-gray-500 uppercase tracking-wide mb-3">
+                            Article souhaité en échange *
+                        </label>
+                        <input type="text" id="exchangeItem" name="exchangeItem" 
+                               class="zara-input" 
+                               placeholder="Nom ou référence du produit">
+                        <div id="exchangeError" class="error-text">Veuillez spécifier l'article souhaité en échange</div>
+                    </div>
+                    
+                    <!-- CCP Details -->
+                    <div class="mb-6 hidden" id="ccpDetails">
+                        <label for="ccpNumber" class="block text-xs text-gray-500 uppercase tracking-wide mb-3">
+                            Numéro de Compte CCP *
+                        </label>
+                        <input type="text" id="ccpNumber" name="ccpNumber" 
+                               class="zara-input" 
+                               placeholder="Votre numéro CCP à 12 chiffres"
+                               pattern="[0-9]{12}"
+                               title="12 chiffres requis">
+                        <div id="ccpError" class="error-text">Veuillez entrer un numéro CCP valide (12 chiffres)</div>
+                    </div>
+                    
+                    <!-- Additional Notes -->
+                    <div class="mb-8">
+                        <label for="notes" class="block text-xs text-gray-500 uppercase tracking-wide mb-3">
+                            Notes Additionnelles
+                        </label>
+                        <textarea id="notes" name="notes" 
+                                  class="zara-textarea" 
+                                  placeholder="Informations supplémentaires..."></textarea>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <div class="flex gap-4">
+                        <a href="/track-login" class="zara-btn-secondary text-sm text-center flex-1">
+                            Annuler
+                        </a>
+                        <button type="submit" class="zara-btn text-sm flex-1" id="submitBtn">
+                            <span id="submitText">Soumettre la Demande</span>
+                            <span id="loadingSpinner" class="hidden">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Traitement...
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Return Process Info -->
+            <div class="zara-card p-6 mt-8">
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-4">Processus de Retour</h3>
+                <div class="space-y-3 text-xs text-gray-600">
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs">1</span>
+                        </div>
+                        <p>Soumettez votre demande de retour</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs">2</span>
+                        </div>
+                        <p>Notre équipe valide votre demande sous 24h</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs">3</span>
+                        </div>
+                        <p>Instructions d'envoi envoyées par email</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-xs">4</span>
+                        </div>
+                        <p>Traitement sous 3-5 jours après réception</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const refundMethod = document.getElementById('refundMethod');
+            const exchangeDetails = document.getElementById('exchangeDetails');
+            const ccpDetails = document.getElementById('ccpDetails');
+            const exchangeItem = document.getElementById('exchangeItem');
+            const ccpNumber = document.getElementById('ccpNumber');
+            const form = document.getElementById('returnForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const submitText = document.getElementById('submitText');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+
+            let isFormValid = false;
+
+            // Toggle method-specific fields
+            refundMethod.addEventListener('change', function() {
+                const method = this.value;
+                
+                // Hide both first
+                exchangeDetails.classList.add('hidden');
+                ccpDetails.classList.add('hidden');
+                
+                // Remove error states
+                exchangeItem.classList.remove('field-error');
+                ccpNumber.classList.remove('field-error');
+                document.getElementById('exchangeError').style.display = 'none';
+                document.getElementById('ccpError').style.display = 'none';
+                
+                // Show relevant section
+                if (method === 'exchange') {
+                    exchangeDetails.classList.remove('hidden');
+                } else if (method === 'ccp_refund') {
+                    ccpDetails.classList.remove('hidden');
+                }
+                
+                validateForm();
+            });
+
+            // Real-time validation
+            function validateForm() {
+                let isValid = true;
+                
+                // Reset all errors
+                document.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+                document.querySelectorAll('.error-text').forEach(el => el.style.display = 'none');
+                
+                // Validate reason
+                const reason = document.getElementById('reason').value;
+                if (!reason) {
+                    document.getElementById('reason').classList.add('field-error');
+                    document.getElementById('reasonError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                // Validate method
+                const method = refundMethod.value;
+                if (!method) {
+                    refundMethod.classList.add('field-error');
+                    document.getElementById('methodError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                // Validate method-specific fields
+                if (method === 'exchange' && !exchangeItem.value.trim()) {
+                    exchangeItem.classList.add('field-error');
+                    document.getElementById('exchangeError').style.display = 'block';
+                    isValid = false;
+                }
+                
+                if (method === 'ccp_refund') {
+                    if (!ccpNumber.value.trim()) {
+                        ccpNumber.classList.add('field-error');
+                        document.getElementById('ccpError').style.display = 'block';
+                        isValid = false;
+                    } else if (!/^\d{12}$/.test(ccpNumber.value)) {
+                        ccpNumber.classList.add('field-error');
+                        document.getElementById('ccpError').textContent = 'Le numéro CCP doit contenir exactement 12 chiffres';
+                        document.getElementById('ccpError').style.display = 'block';
+                        isValid = false;
+                    }
+                }
+                
+                isFormValid = isValid;
+                submitBtn.disabled = !isValid;
+                return isValid;
+            }
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                if (!validateForm()) {
+                    e.preventDefault();
+                    // Scroll to first error
+                    const firstError = document.querySelector('.field-error');
+                    if (firstError) {
+                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return;
+                }
+
+                // Show loading state
+                submitText.classList.add('hidden');
+                loadingSpinner.classList.remove('hidden');
+                submitBtn.disabled = true;
+            });
+
+            // Real-time validation on input change
+            form.addEventListener('input', function() {
+                validateForm();
+            });
+
+            // Initial validation
+            validateForm();
+        });
+    </script>
+</body>
+</html>

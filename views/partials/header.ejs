@@ -3,49 +3,55 @@
 
 <head>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+<!-- Meta Pixel Code -->
+<% if (process.env.FB_PIXEL_ID) { %>
+<!-- Facebook Pixel Code -->
 
 
 <script>
-  !function(f,b,e,v,n,t,s){
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
-    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)
-  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
-  
- fbq('init', '633564199312760', {
-    em: '<%= user ? user.email : "" %>',
-    fn: '<%= user ? user.firstName : "" %>',
-    ln: '<%= user ? user.lastName : "" %>',
-    ph: '<%= user ? user.numero : "" %>'
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+
+  // Initialize pixel
+  fbq('init', '<%= process.env.FB_PIXEL_ID %>', {
+    <% if (user && user.email) { %>em: '<%= user.email %>',<% } %>
+    <% if (user && user.firstName) { %>fn: '<%= user.firstName %>',<% } %>
+    <% if (user && user.lastName) { %>ln: '<%= user.lastName %>',<% } %>
+    <% if (user && user.numero) { %>ph: '<%= user.numero %>',<% } %>
   });
-fbq('track', 'PageView', {
-eventID: '<%= eventId %>'
-  }
-);
+
+  fbq('track', 'PageView');
+
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"
-/></noscript>
+<noscript>
+  <img height="1" width="1" style="display:none" 
+       src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/>
+</noscript>
+<!-- End Facebook Pixel Code -->
+<% } %>
 
+<<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+</script>
 
-
-<!-- Meta Pixel Code -->
-
-<!-- End Meta Pixel Code -->
-
-<!-- End Meta Pixel Code -->
-
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
-<!-- End Google Tag Manager -->
-
+ <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
 
 <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
   <meta name="facebook-domain-verification" content="plfly5a8dktgdy17nvv2h8zsrpc9g5" />
@@ -87,6 +93,68 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 
 
   <style>
+.colour-grid-surround {
+  padding: 3rem 1rem;
+  text-align: center;
+}
+.colour-grid-text {
+  margin-bottom: 2rem;
+}
+.colour-grid-text .intro-heading {
+  text-transform: capitalize;
+  font-family: "Playfair Display", serif;
+  font-weight: 400;
+  font-size: 2.5rem;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+  color: #222;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.colour-grid-text p {
+  color: #555;
+  font-size: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+}
+.colour-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+.colour-grid-item-image img {
+  width: 100%;
+  border-radius: 12px 12px 0 0;
+  aspect-ratio: 1;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.colour-grid-item:hover img {
+  transform: scale(1.05);
+}
+.room-label {
+  background: #111;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 0 0 12px 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+}
+.room-label svg {
+  color: #fff;
+}
+@media (min-width: 768px) {
+  .colour-grid-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .colour-grid-text .intro-heading {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
 .logo {
   font-size: 2.5rem;
   font-weight: bold;
@@ -131,43 +199,25 @@ right: 12px;
     .view {
       height: 100%;
     }
-    @media (min-width: 851px) and (max-width: 1440px) {
-      html,
-      body,
-      header,
-     
-     
-      .view {
-        height: 850px;
-      }
-    }
-    @media (min-width: 800px) and (max-width: 850px) {
-      html,
-      body,
-      header,
-      
-      
-      .view {
-        height: 1000px;
-      }
+   /* Make hero auto-fit screen height on all devices */
+html, body, header {
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
 
-    }
-@media (min-width: 451px) and (max-width: 740px) {
-      html,
-      body,
-      header,
-      .view {
-        height: 1200px;
-      }
-    }
-    @media (max-width: 450px) {
-      html,
-      body,
-      header,
-      .view {
-        height: 1400px;
-      }
-  }
+/* Ensure hero video fills viewport height */
+.coat.hero-container {
+  min-height: 100vh;
+}
+
+/* Fix spacing below hero for all devices */
+header + main,
+.coat.hero-container + * {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
     .categories, .deals {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -186,7 +236,123 @@ right: 12px;
       margin: 10px 0;
     }
 
-  
+ /* === HERO VIDEO SECTION (Smooth + Responsive) === */
+.coat.hero-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh; /* full viewport height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  overflow: hidden;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+/* Background video wrapper */
+.video-img-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Video responsiveness */
+.video-desktop video,
+.video-mobile video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Mobile/Desktop switch */
+.video-desktop { display: none; }
+.video-mobile { display: block; }
+
+@media (min-width: 768px) {
+  .video-desktop { display: block; }
+  .video-mobile { display: none; }
+}
+
+/* Overlay effect */
+.overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1;
+}
+
+/* Content area */
+.coat.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 1rem;
+  max-width: 700px;
+}
+
+/* Headings */
+.coat.hero-heading p {
+  font-size: clamp(2.2rem, 6vw, 3.8rem);
+  margin: 0;
+  font-weight: 700;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+/* Subtitle */
+.coat.hero-subheading {
+  font-size: clamp(1rem, 2.5vw, 1.3rem);
+  margin-top: 1rem;
+  color: #f2f2f2;
+  font-weight: 300;
+}
+
+/* Button */
+.coat.btn--secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #ffffff;
+  color: #000000;
+  padding: 0.9rem 1.8rem;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.coat.btn--secondary:hover {
+  background: #000;
+  color: #fff;
+}
+
+/* Ensure next section touches hero with no gap */
+header + main,
+.coat.hero-container + * {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+@media (max-width: 768px) {
+  .coat.hero-container {
+    min-height: 90vh; /* slightly smaller for mobile nav space */
+  }
+
+  .coat.hero-heading p {
+    font-size: 2rem;
+  }
+
+  .coat.hero-subheading {
+    font-size: 0.95rem;
+    padding: 0 1rem;
+  }
+}
+
+
 </style>
 
 <script id='pixel-script-poptin' src='https://cdn.popt.in/pixel.js?id=1f8ed2afe3695' async='true'></script>
@@ -215,6 +381,7 @@ right: 12px;
                            <% } else{ %>
                            <a class="dropdown-item" href="/user/signup">Register</a>
                            <a class="dropdown-item" href="/user/signin">Sing up</a>
+                           <a class="dropdown-item" href="/track-login">Track Order</a>
                            <% } %>
                  </div> 
           </li>
@@ -241,7 +408,7 @@ right: 12px;
          
             
             <li class="nav-item ml-4">
-              <a class="nav-link title" href="/sale/wow" data-offset="90">Nos Services</a>
+              <a class="nav-link title" href="/contact" data-offset="90">Nos Services</a>
             </li>
             <li class="nav-item ml-4">
               <a class="nav-link title" href="/sale/clean" data-offset="90">interior paint</a>
@@ -253,7 +420,7 @@ right: 12px;
               <a class="nav-link title" href="/sale/wow" data-offset="90">outils</a>
             </li>
             <li class="nav-item ml-4">
-              <a class="nav-link title" href="/return" data-offset="90">Returns</a>
+              <a class="nav-link title" href="/track-login" data-offset="90">Returns</a>
             </li>
             
           </ul>
@@ -268,31 +435,51 @@ right: 12px;
       </div>
     </nav>
  
-<section class="view intro-2" style="background-image: url(https://live.staticflickr.com/65535/54424056395_fe456898d8_k.jpg); background-repeat: no-repeat; background-size: cover; background-position: center center;">
-      
+<!-- HERO SECTION (Paintello version, based on Coat Paints) -->
+<div class="coat hero-container overlay">
 
-        <div class="container h-100 d-flex justify-content-center align-items-center">
-          <div class="row h-100 d-flex justify-content-center align-items-center">
+  <div class="video-img-container">
+    <!-- Mobile Video -->
+    <div class="coat video-mobile">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/8c29baaa62984b8a8836a41ecb2ca1ce/8c29baaa62984b8a8836a41ecb2ca1ce.SD-480p-1.2Mbps-48816727.mp4?v=0" type="video/mp4">
+        <img src="//coatpaints.com/cdn/shop/files/preview_images/8c29baaa62984b8a8836a41ecb2ca1ce.thumbnail.0000000000_1000x.jpg?v=1749051609" alt="Paintello mobile preview">
+      </video>
+    </div>
 
-            <div class="col-md-10 col-lg-6 text-center text-md-center mt-5 pt-4 pt-md-0 mt-lg-0 mb-5 mb-md-0">
-             <div class="white-text">
-                <h1 class="h1-responsive font-weight-bold mt-sm-5 mb-4 wow fadeInLeft" data-wow-delay="0.3s">Transform Your Home with Color & Comfort</h1>
-                <hr class="hr-light wow fadeInLeft" data-wow-delay="0.3s">
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/"><img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;"></a>
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/paintello"><img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;"></a>
-              </div>
+    <!-- Desktop Video -->
+    <div class="coat video-desktop">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/3617af9fd8254f5688fdeef051307a00/3617af9fd8254f5688fdeef051307a00.HD-720p-3.0Mbps-48816014.mp4?v=0" type="video/mp4">
+        <img src="//coatpaints.com/cdn/shop/files/preview_images/3617af9fd8254f5688fdeef051307a00.thumbnail.0000000000_2800x.jpg?v=1749051004" alt="Paintello desktop preview">
+      </video>
+    </div>
+  </div>
 
-            </div>
+  <div class="coat hero-content text-center text-white">
+    <h1 class="coat hero-heading"><p><em>This is</em></p></h1>
+    <h1 class="coat hero-heading"><p>THE PAINT</p></h1>
+    <p class="coat hero-subheading">
+      Sustainable paint with unrivalled coverage, made-to-order in tasteful shades. 
+      Get everything to decorate, delivered fast.
+    </p>
+    <div class="coat button-container mt-4">
+      <a class="coat btn--secondary" href="/collections/flat-matt">
+        <span>Explore colours</span>
+        <span class="slide-btn-svg">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path fill-rule="evenodd" clip-rule="evenodd"
+              d="M11.23 3.15649L15.2431 7.16963L15.7734 7.69996L15.2431 8.23029L11.23 12.2434L10.1693 11.1828L12.902 8.45005H0.666862V6.95005H12.9022L10.1693 4.21715L11.23 3.15649Z"
+              fill="currentColor"></path>
+          </svg>
+        </span>
+      </a>
+    </div>
+  </div>
+</div>
 
-            
 
-          </div>
-        </div>
-      
-    </section>
     
-<div class="mb-4"> 
- <div class="mb-4"> 
      
       
       

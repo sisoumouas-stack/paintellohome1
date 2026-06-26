@@ -1,94 +1,708 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Track Your Order</title>
+  <title>Suivre Votre Commande | Paintello</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="manifest" href="/favicon/site.webmanifest">  
+  <meta name="theme-color" content="#ffffff">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    /* Fixed Logo Header */
-    #fixed-logo-header {
-      position: fixed;
-      top: 0;
-      width: 100%;
-      background-color: white;
-      padding: 10px 0;
-      text-align: center;
-      z-index: 9999;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
     }
-
-    #fixed-logo-header img {
-      max-height: 60px;
+    
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
     }
-
-    /* Page content */
-    .content-with-logo {
-      margin-top: 100px;
-      max-width: 600px;
-      margin-left: auto;
-      margin-right: auto;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-    }
-
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    input[type="tel"] {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-
-    button {
-      width: 100%;
-      background-color: #f4791f;
+    
+    .zara-btn {
+      background: #000;
       color: white;
-      padding: 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      cursor: pointer;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
     }
-
-    button:hover {
-      background-color: #c86000;
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
+    
+    .status-badge {
+      background: #f8f8f8;
+      color: #666;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 4px 8px;
+      border-radius: 1px;
+    }
+    
+    /* Guarantee Section Styles */
+    .guarantee-section {
+      background-color: #f8f9fa;
+      border-left: 4px solid #c9b59a;
+      border-radius: 2px;
+    }
+    
+    .learn-more-link {
+      color: #c9b59a;
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      padding: 6px 12px;
+      border: 1px solid #c9b59a;
+      transition: all 0.3s ease;
+      display: inline-block;
+      margin-top: 8px;
+    }
+    
+    .learn-more-link:hover {
+      background-color: #c9b59a;
+      color: white;
+      text-decoration: none;
+    }
+    
+    /* Guarantee Tabs Styles */
+    .guarantee-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e5e5e5;
+      margin-bottom: 24px;
+    }
+    
+    .guarantee-tab {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .guarantee-tab:hover {
+      color: #000;
+    }
+    
+    .guarantee-tab.active {
+      color: #000;
+      border-bottom-color: #000;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* Flash Messages */
+    .error-message {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 12px 16px;
+      border-radius: 2px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    
+    .success-message {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px 16px;
+      border-radius: 2px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Guarantee Icon */
+    .guarantee-icon {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .guarantee-tabs {
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      
+      .guarantee-tabs::-webkit-scrollbar {
+        display: none;
+      }
+      
+      .guarantee-tab {
+        min-width: max-content;
+        flex-shrink: 0;
+        padding: 12px 16px;
+      }
     }
   </style>
+  
+  <!-- Pixel, GTM, Clarity -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+   // Initialize pixel
+  fbq('init', '<%= process.env.FB_PIXEL_ID %>', {
+    <% if (user && user.email) { %>em: '<%= user.email %>',<% } %>
+    <% if (user && user.firstName) { %>fn: '<%= user.firstName %>',<% } %>
+    <% if (user && user.lastName) { %>ln: '<%= user.lastName %>',<% } %>
+    <% if (user && user.numero) { %>ph: '<%= user.numero %>',<% } %>
+  });
+    fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+  </script>
+  <% } %>
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
 </head>
-<body>
 
-  <!-- Fixed Logo -->
-  <div id="fixed-logo-header">
- <a href="/">
-    <img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo">
- </a>
-<a href="/">
-      <img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;">
-    </a>
-  </div>
+<body class="min-h-screen bg-white">
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+          <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+        </a>
 
-  <!-- Content Area -->
- <div class="content-with-logo">
-<form action="/track-login" method="POST" class="text-center mt-5">
-  <h4>🔎 Track Your Order</h4>
-  <input type="tel" name="numero" placeholder="Enter your phone number" required pattern="0[5-7][0-9]{8}" />
-  <button type="submit" class="btn btn-primary mt-3">Track</button>
-</form>
- <hr>
-                    
-                <div class="cart-link">
-      <a href="/">Go to Shop</a>
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-900 font-medium uppercase tracking-wide border-b border-black">Suivi Commande</a>
+        </nav>
+
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+          <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <% if (session.cart && session.cart.totalQty > 0) { %>
+              <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                <%= session.cart.totalQty %>
+              </span>
+            <% } %>
+          </a>
+          
+          <a href="/user/signup" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
+        </div>
+      </div>
     </div>
-</div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="py-12">
+    <!-- Flash Messages -->
+    <% if (typeof error !== 'undefined' && error) { %>
+        <div class="error-message max-w-4xl mx-auto mb-8 px-6">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <%= error %>
+        </div>
+    <% } %>
+
+    <% if (typeof success !== 'undefined' && success) { %>
+        <div class="success-message max-w-4xl mx-auto mb-8 px-6">
+            <i class="fas fa-check-circle mr-2"></i>
+            <%= success %>
+        </div>
+    <% } %>
+    
+    <div class="max-w-4xl mx-auto px-6">
+      
+      <!-- Return Policy Banner - Zara Style -->
+      <div class="zara-card p-8 mb-12 text-center">
+        <h1 class="text-2xl font-light tracking-wide mb-6">POLITIQUE DE RETOUR</h1>
+        <div class="grid md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-sync-alt text-gray-600"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Échange Sous 4 Jours</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">Échangez votre produit contre un autre de valeur égale</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-credit-card text-gray-600"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Remboursement</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">Remboursement intégral sur votre compte postal</p>
+          </div>
+          
+          <div class="text-center">
+            <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-calendar-alt text-gray-600"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-2">4 Jours</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">Délai pour demander un retour après réception</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Guarantee Policy Section -->
+      <div class="zara-card p-8 mb-12">
+        <h2 class="text-xl font-light tracking-wide mb-6 text-center">NOTRE GARANTIE PAINTELLO HOME</h2>
+        
+        <!-- Tabs Navigation -->
+        <div class="guarantee-tabs">
+          <button class="guarantee-tab active" data-tab="policy">Politique de Retour</button>
+          <button class="guarantee-tab" data-tab="process">Processus</button>
+          <button class="guarantee-tab" data-tab="quality">Qualité</button>
+          <button class="guarantee-tab" data-tab="faq">FAQ</button>
+        </div>
+        
+        <!-- Tab Contents -->
+        <div id="policy" class="tab-content active">
+          <div class="space-y-6">
+            <!-- Main Guarantee Card -->
+            <div class="p-6 bg-green-50 rounded-lg border border-green-200">
+              <div class="flex items-start gap-4">
+                <img src="https://cdn.shopify.com/s/files/1/0508/9266/9116/files/12.jpg?v=1723026470" 
+                     alt="Garantie" 
+                     class="guarantee-icon flex-shrink-0">
+                <div>
+                  <p class="font-semibold text-green-800 text-sm uppercase tracking-wide">Garantie de Satisfaction 100%</p>
+                  <p class="mt-2 text-green-700 text-sm">Garantie de satisfaction à 100% ou remboursement. Sans poser de questions.</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Our Promise -->
+            <div>
+              <p class="text-sm font-medium uppercase tracking-wide mb-3">Notre Promesse :</p>
+              <p class="text-sm text-gray-700 leading-relaxed">
+                Nous sommes tellement sûrs que vous allez adorer vos articles de Paintello Home Vases que nous offrons une garantie de remboursement de 4 jours.
+              </p>
+            </div>
+            
+            <!-- How It Works -->
+            <div>
+              <p class="text-sm font-medium uppercase tracking-wide mb-3">Comment Ça Marche :</p>
+              <p class="text-sm text-gray-700 leading-relaxed mb-4">
+                Si vous n'êtes pas entièrement satisfait de votre achat, contactez-nous simplement dans les 4 jours suivant la réception de votre commande pour initier un retour.
+              </p>
+            </div>
+            
+            <!-- Quality Assurance -->
+            <div>
+              <p class="text-sm font-medium uppercase tracking-wide mb-3">Assurance Qualité :</p>
+              <p class="text-sm text-gray-700 leading-relaxed">
+                Chaque produit subit des contrôles de qualité rigoureux avant l'expédition. Nous garantissons l'artisanat et la durabilité de nos articles.
+              </p>
+            </div>
+            
+            <!-- Return Policy Details -->
+            <div class="p-6 bg-amber-50 rounded-lg border border-amber-200">
+              <p class="font-medium text-amber-800 text-sm uppercase tracking-wide mb-4">Politique de Retour Détailée :</p>
+              <ul class="space-y-3 text-sm text-amber-700">
+                <li class="flex items-start gap-2">
+                  <span class="flex-shrink-0 mt-0.5">•</span>
+                  <span>Garantie de remboursement de 4 jours à partir de la date de réception</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="flex-shrink-0 mt-0.5">•</span>
+                  <span>Sans poser de questions - Processus simplifié</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="flex-shrink-0 mt-0.5">•</span>
+                  <span>Remboursement intégral sur le mode de paiement d'origine</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="flex-shrink-0 mt-0.5">•</span>
+                  <span>L'article doit être dans son état d'origine avec l'emballage</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <span class="flex-shrink-0 mt-0.5">•</span>
+                  <span>Les frais de retour sont à la charge du client sauf en cas de produit défectueux</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div id="process" class="tab-content hidden">
+          <div class="space-y-6">
+            <!-- Process Steps -->
+            <div class="grid md:grid-cols-3 gap-6">
+              <div class="text-center p-6 border border-gray-200">
+                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span class="text-sm font-medium">1</span>
+                </div>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Demande</h3>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  Remplissez le formulaire de retour dans les 4 jours suivant la réception
+                </p>
+              </div>
+              
+              <div class="text-center p-6 border border-gray-200">
+                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span class="text-sm font-medium">2</span>
+                </div>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Retour</h3>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  Emballer l'article avec soin et l'expédier à notre centre de retour
+                </p>
+              </div>
+              
+              <div class="text-center p-6 border border-gray-200">
+                <div class="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span class="text-sm font-medium">3</span>
+                </div>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Remboursement</h3>
+                <p class="text-xs text-gray-600 leading-relaxed">
+                  Remboursement traité sous 3-5 jours ouvrables après réception
+                </p>
+              </div>
+            </div>
+            
+            <!-- Important Notes -->
+            <div class="p-6 bg-blue-50 rounded-lg border border-blue-200">
+              <p class="font-medium text-blue-800 text-sm uppercase tracking-wide mb-3">Informations Importantes :</p>
+              <ul class="space-y-2 text-sm text-blue-700">
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+                  <span>Le délai de 4 jours commence à partir de la date de réception confirmée par le transporteur</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+                  <span>Les articles personnalisés ou sur mesure ne sont pas éligibles au retour</span>
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fas fa-info-circle mt-0.5 flex-shrink-0"></i>
+                  <span>Conservez toujours votre preuve d'achat et l'emballage d'origine</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div id="quality" class="tab-content hidden">
+          <div class="space-y-6">
+            <!-- Quality Commitment -->
+            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <i class="fas fa-award text-gray-600"></i>
+                </div>
+                <div>
+                  <p class="font-medium text-gray-800 text-sm uppercase tracking-wide mb-2">Notre Engagement Qualité</p>
+                  <p class="text-sm text-gray-700 leading-relaxed">
+                    Chaque produit Paintello Home est fabriqué avec des matériaux de haute qualité et subit plusieurs contrôles qualité avant l'expédition.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quality Standards -->
+            <div class="grid md:grid-cols-2 gap-6">
+              <div class="space-y-4">
+                <div>
+                  <p class="text-sm font-medium uppercase tracking-wide mb-2">Contrôles Rigoureux</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    Inspection visuelle, tests de durabilité et vérification des finitions pour chaque article
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium uppercase tracking-wide mb-2">Matériaux Durables</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    Sélection minutieuse des matériaux pour assurer longévité et satisfaction
+                  </p>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <div>
+                  <p class="text-sm font-medium uppercase tracking-wide mb-2">Emballage Sécurisé</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    Emballage spécialement conçu pour protéger vos articles pendant le transport
+                  </p>
+                </div>
+                
+                <div>
+                  <p class="text-sm font-medium uppercase tracking-wide mb-2">Support Continu</p>
+                  <p class="text-xs text-gray-600 leading-relaxed">
+                    Notre équipe est disponible pour répondre à toutes vos questions sur l'entretien et l'utilisation
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="faq" class="tab-content hidden">
+          <div class="space-y-6">
+            <!-- FAQ Items -->
+            <div class="space-y-4">
+              <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm font-medium uppercase tracking-wide mb-2">
+                  Q: Combien de temps ai-je pour demander un retour ?
+                </p>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                  Vous avez 4 jours à partir de la date de réception de votre commande pour initier un retour.
+                </p>
+              </div>
+              
+              <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm font-medium uppercase tracking-wide mb-2">
+                  Q: Combien de temps pour recevoir mon remboursement ?
+                </p>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                  Une fois que nous recevons l'article retourné, le remboursement est traité dans les 3-5 jours ouvrables.
+                </p>
+              </div>
+              
+              <div class="border-b border-gray-200 pb-4">
+                <p class="text-sm font-medium uppercase tracking-wide mb-2">
+                  Q: Puis-je échanger mon article contre un autre ?
+                </p>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                  Oui, vous pouvez demander un échange contre un autre article de valeur égale ou supérieure.
+                </p>
+              </div>
+              
+              <div class="pb-4">
+                <p class="text-sm font-medium uppercase tracking-wide mb-2">
+                  Q: Qui paie les frais de retour ?
+                </p>
+                <p class="text-sm text-gray-600 leading-relaxed">
+                  Les frais de retour sont à la charge du client, sauf si l'article est défectueux ou incorrect.
+                </p>
+              </div>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="p-6 bg-gray-50 rounded-lg border border-gray-200 text-center">
+              <p class="text-sm font-medium uppercase tracking-wide mb-2">Besoin d'aide supplémentaire ?</p>
+              <p class="text-sm text-gray-600 mb-4">Notre équipe support est disponible pour vous aider</p>
+              <a href="/contact" class="zara-btn text-sm uppercase tracking-wide inline-block">
+                Contactez le Support
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    
+       <!-- Tracking Section -->
+      <% if (typeof orders === 'undefined') { %>
+        <!-- Tracking Form -->
+        <div class="zara-card p-12 text-center max-w-md mx-auto">
+          <div class="mb-8">
+            <h2 class="text-xl font-light tracking-wide mb-4">SUIVRE VOTRE COMMANDE</h2>
+            <p class="text-sm text-gray-600">Entrez votre numéro de téléphone</p>
+          </div>
+
+          <form action="/track-login" method="POST">
+            <div class="mb-6">
+              <input 
+                type="tel" 
+                name="numero" 
+                placeholder="Exemple: 0551234567" 
+                required 
+                pattern="0[5-7][0-9]{8}"
+                title="Veuillez entrer un numéro de téléphone algérien valide"
+                class="w-full px-4 py-3 border border-gray-300 text-sm focus:outline-none focus:border-black transition-colors"
+              />
+            </div>
+            
+            <button type="submit" class="zara-btn w-full text-sm uppercase tracking-wide">
+              Suivre la Commande
+            </button>
+          </form>
+        </div>
+
+        <div class="text-center mt-8">
+          <p class="text-sm text-gray-600">
+            Pas de numéro de commande ? 
+            <a href="/contact" class="text-black underline hover:no-underline">Contactez le support</a>
+          </p>
+        </div>
+
+      <% } else if (orders.length === 0) { %>
+        <!-- No Orders Found -->
+        <div class="zara-card p-12 text-center max-w-md mx-auto">
+          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-search text-gray-400"></i>
+          </div>
+          <h2 class="text-lg font-light tracking-wide mb-4">AUCUNE COMMANDE TROUVÉE</h2>
+          <p class="text-sm text-gray-600 mb-6">Aucune commande associée à ce numéro</p>
+          <a href="/" class="zara-btn-secondary inline-block text-sm uppercase tracking-wide">
+            Continuer les Achats
+          </a>
+        </div>
+
+      <% } else { %>
+        <!-- Orders List -->
+        <div class="text-center mb-12">
+          <h1 class="text-2xl font-light tracking-wide">VOS COMMANDES</h1>
+          <p class="text-sm text-gray-600 mt-2"><%= orders.length %> commande(s) trouvée(s)</p>
+        </div>
+
+        <% orders.forEach(order => { %>
+          <div class="zara-card p-8 mb-6">
+            <!-- Order Header -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 pb-6 border-b border-gray-200">
+              <div class="flex items-center gap-4 mb-3 sm:mb-0">
+                <span class="status-badge uppercase">
+                  Commande #<%= order._id.toString().slice(-6).toUpperCase() %>
+                </span>
+                <span class="status-badge bg-green-50 text-green-700">
+                  En Transit
+                </span>
+              </div>
+              <div class="text-xs text-gray-500 uppercase tracking-wide">
+                <%= order.createdAt.toLocaleDateString('fr-FR') %>
+              </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="grid md:grid-cols-2 gap-8 mb-6">
+              <div class="space-y-4">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Client</p>
+                  <p class="text-sm"><%= order.firstName %> <%= order.lastName %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Téléphone</p>
+                  <p class="text-sm"><%= order.numero %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Wilaya</p>
+                  <p class="text-sm"><%= order.city %></p>
+                </div>
+              </div>
+              
+              <div class="space-y-4">
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Adresse</p>
+                  <p class="text-sm"><%= order.address %></p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Montant Total</p>
+                  <p class="text-sm font-medium"><%= order.totalWithShipping %> DZD</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Livraison Estimée</p>
+                  <p class="text-sm"><%= order.deliveryDelay %></p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Return Status or Actions -->
+            <% if (order.returnRequest) { %>
+              <div class="border-t border-gray-200 pt-6">
+                <div class="flex items-center gap-3">
+                  <span class="status-badge uppercase 
+                    <%= order.returnRequest.status === 'approved' ? 'bg-green-50 text-green-700' : 
+                       order.returnRequest.status === 'rejected' ? 'bg-red-50 text-red-700' : 
+                       'bg-yellow-50 text-yellow-700' %>">
+                    <%= order.returnRequest.status.toUpperCase() %>
+                  </span>
+                  <p class="text-sm text-gray-600">
+                    <% if (order.returnRequest.status === 'approved') { %>
+                      Retour approuvé - Contact sous peu
+                    <% } else if (order.returnRequest.status === 'rejected') { %>
+                      Retour refusé
+                    <% } else { %>
+                      En attente de traitement
+                    <% } %>
+                  </p>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="border-t border-gray-200 pt-6 flex flex-col sm:flex-row gap-3">
+                <a href="/start-return/<%= order._id %>" 
+                   class="zara-btn-secondary text-sm uppercase tracking-wide text-center flex-1">
+                  Demander un Retour
+                </a>
+                <a href="/contact?order=<%= order._id %>" 
+                   class="zara-btn text-sm uppercase tracking-wide text-center flex-1">
+                  Support Client
+                </a>
+              </div>
+            <% } %>
+          </div>
+        <% }); %>
+
+        <div class="text-center mt-8">
+          <a href="/" class="zara-btn-secondary inline-block text-sm uppercase tracking-wide px-8">
+            Continuer les Achats
+          </a>
+        </div>
+      <% } %>
+    </div>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="border-t border-gray-200 py-8">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+      <div class="mt-2 flex justify-center gap-6 text-xs text-gray-500">
+        <a href="/privacy" class="hover:text-gray-700">Confidentialité</a>
+        <a href="/terms" class="hover:text-gray-700">Conditions</a>
+        <a href="/contact" class="hover:text-gray-700">Contact</a>
+      </div>
+    </div>
+  </footer>
 
 </body>
 </html>
-
-
-

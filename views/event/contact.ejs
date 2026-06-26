@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactez-Nous | Paintello</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">  
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f8f8;
+        }
+        
+        .zara-card {
+            background: white;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e5e5;
+        }
+        
+        .zara-btn {
+            background: #000;
+            color: white;
+            border: 1px solid #000;
+            padding: 12px 24px;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .zara-btn:hover {
+            background: #333;
+        }
+        
+        .zara-btn-secondary {
+            background: transparent;
+            color: #000;
+            border: 1px solid #000;
+        }
+        
+        .zara-btn-secondary:hover {
+            background: #000;
+            color: white;
+        }
+        
+        .contact-icon {
+            width: 60px;
+            height: 60px;
+            background: #f8f8f8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        
+        .contact-icon i {
+            font-size: 24px;
+            color: #666;
+        }
+        
+        .phone-numbers {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+  <!-- Meta Pixel Code -->
+    <% if (process.env.FB_PIXEL_ID) { %>
+    <!-- Facebook Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    // Create config object dynamically
+    var pixelConfig = {};
+
+    // Only add parameters that have values
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    // Initialize with dynamic config
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none" 
+           src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/>
+    </noscript>
+    <!-- End Facebook Pixel Code -->
+    <% } %>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+    <!-- End Google Tag Manager -->
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+</head>
+
+<body class="min-h-screen bg-white">
+    <!-- Minimal Header -->
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-4">
+                    <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+                    <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+                </a>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+                    <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+                    <a href="/contact" class="text-sm text-gray-900 font-medium uppercase tracking-wide border-b border-black">Contact</a>
+                </nav>
+
+                <!-- Icons -->
+                <div class="flex items-center gap-4">
+                    <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <% if (session.cart && session.cart.totalQty > 0) { %>
+                            <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                                <%= session.cart.totalQty %>
+                            </span>
+                        <% } %>
+                    </a>
+                    
+                    <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+                        <i class="fa-regular fa-user text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-16">
+                <h1 class="text-3xl font-light tracking-wide uppercase mb-6">Contactez-Nous</h1>
+                <p class="text-sm text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                    Notre équipe est à votre disposition pour toute question concernant vos commandes, 
+                    nos produits ou les retours. Choisissez votre méthode de contact préférée.
+                </p>
+            </div>
+
+            <!-- Contact Methods Grid -->
+            <div class="grid md:grid-cols-3 gap-8 mb-16">
+                
+                <!-- Email Support -->
+                <div class="zara-card p-8 text-center">
+                    <div class="contact-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="text-sm font-medium uppercase tracking-wide mb-4">Support Email</h3>
+                    <div class="space-y-3 mb-6">
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Envoyez-nous un email, nous répondons sous 24 heures
+                        </p>
+                        <p class="text-sm font-medium">support@paintello.uk</p>
+                    </div>
+                    <a href="mailto:support@paintello.uk" class="zara-btn text-sm inline-block w-full">
+                        <i class="fas fa-paper-plane mr-2"></i>Envoyer un Email
+                    </a>
+                </div>
+                
+                <!-- Live Chat -->
+                <div class="zara-card p-8 text-center">
+                    <div class="contact-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <h3 class="text-sm font-medium uppercase tracking-wide mb-4">Chat en Direct</h3>
+                    <div class="space-y-3 mb-6">
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Discutez instantanément avec notre équipe
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Disponible 9h-17h, Dimanche-Jeudi
+                        </p>
+                    </div>
+                    <button onclick="Tawk_API.toggle()" class="zara-btn text-sm w-full">
+                        <i class="fas fa-comments mr-2"></i>Démarrer le Chat
+                    </button>
+                </div>
+                
+                <!-- Phone Support -->
+                <div class="zara-card p-8 text-center">
+                    <div class="contact-icon">
+                        <i class="fas fa-phone-alt"></i>
+                    </div>
+                    <h3 class="text-sm font-medium uppercase tracking-wide mb-4">Support Téléphonique</h3>
+                    <div class="space-y-3 mb-6">
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Appelez-nous directement pour une assistance immédiate
+                        </p>
+                        <div class="space-y-2">
+                            <p class="text-sm font-medium">0551477635</p>
+                            <p class="text-sm font-medium">0791679611</p>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            Disponible 9h-17h, Dimanche-Jeudi
+                        </p>
+                    </div>
+                    <div class="space-y-3">
+                        <a href="tel:0551477635" class="zara-btn-secondary text-sm inline-block w-full">
+                            <i class="fas fa-phone mr-2"></i>Appeler le 0551
+                        </a>
+                        <a href="tel:0791679611" class="zara-btn-secondary text-sm inline-block w-full">
+                            <i class="fas fa-phone mr-2"></i>Appeler le 0791
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Return Information -->
+            <div class="zara-card p-8 text-center max-w-2xl mx-auto">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exchange-alt text-gray-600"></i>
+                    </div>
+                    <h3 class="text-sm font-medium uppercase tracking-wide">Retours & Échanges</h3>
+                </div>
+                <p class="text-xs text-gray-600 mb-6 leading-relaxed">
+                    Pour initier une demande de retour, suivez d'abord votre commande. 
+                    Vous pouvez choisir entre un remboursement CCP ou un échange de produit.
+                </p>
+                <a href="/track-login" class="zara-btn text-sm inline-block">
+                    <i class="fas fa-search mr-2"></i>Suivre Votre Commande
+                </a>
+            </div>
+
+            <!-- FAQ Section -->
+            <div class="mt-16 text-center">
+                <h2 class="text-xl font-light tracking-wide uppercase mb-8">Questions Fréquentes</h2>
+                <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <div class="zara-card p-6 text-left">
+                        <h4 class="text-sm font-medium uppercase tracking-wide mb-3">Délais de Livraison</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Livraison standard sous 3-5 jours ouvrables. Livraison express disponible sous 1-2 jours.
+                        </p>
+                    </div>
+                    <div class="zara-card p-6 text-left">
+                        <h4 class="text-sm font-medium uppercase tracking-wide mb-3">Politique de Retour</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Retours acceptés sous 4 jours après réception. Échange ou remboursement CCP disponible.
+                        </p>
+                    </div>
+                    <div class="zara-card p-6 text-left">
+                        <h4 class="text-sm font-medium uppercase tracking-wide mb-3">Zones de Livraison</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Nous livrons dans toutes les wilayas d'Algérie. Frais de port offerts à partir de 5000 DA.
+                        </p>
+                    </div>
+                    <div class="zara-card p-6 text-left">
+                        <h4 class="text-sm font-medium uppercase tracking-wide mb-3">Paiements Acceptés</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">
+                            Paiement à la livraison (CCP) accepté dans toutes les wilayas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="border-t border-gray-200 py-8">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        </div>
+    </footer>
+ <!-- Tawk.to -->
+  <script type="text/javascript">
+  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+  (function(){
+  var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+  s1.async=true;
+  s1.src='https://embed.tawk.to/682625d0a2b6be190d3ada7e/1irag7e08';
+  s1.charset='UTF-8';
+  s1.setAttribute('crossorigin','*');
+  s0.parentNode.insertBefore(s1,s0);
+  })();
+  </script>
+</body>
+</html>
+    
+   

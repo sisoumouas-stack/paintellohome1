@@ -1,185 +1,708 @@
 
-<%- include ("../partials/header") %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+  <title>Neutral Colors - Paintello Home</title>
 
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8f8f8;
+    }
+    
+    .zara-card {
+      background: white;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #e5e5e5;
+      transition: all 0.3s ease;
+    }
+    
+    .zara-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .zara-btn {
+      background: #000;
+      color: white;
+      border: 1px solid #000;
+      padding: 12px 24px;
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+    
+    .zara-btn:hover {
+      background: #333;
+    }
+    
+    .zara-btn-secondary {
+      background: transparent;
+      color: #000;
+      border: 1px solid #000;
+    }
+    
+    .zara-btn-secondary:hover {
+      background: #000;
+      color: white;
+    }
 
- <!-- Navigation & Intro -->
-  <!-- sale content -->
-      <hr class="mt-4">
-       <div class="bm-page">
-          <div class="container">
-              <div class="row">
-              <div class="order-lg-last">
-              <div class="mb-4 mb-lg-5 bm-content">
+    /* Hero Video Styles */
+    .hero-video {
+      position: relative;
+      width: 100%;
+      height: 60vh;
+      overflow: hidden;
+    }
 
-  <h2 class="text-center text-uppercase"> Neutrals Colors</h2>
-  <ul class="row justify-content-center list-unstyled mb-4">
+    .hero-video video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background-color: #000;
+    }
 
-  <li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856cf9503d002f2019026eb">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155241_e080721a64.jpg">
-  </div>
-  <h2 class="h6 mb-0">ROMAIN_1066P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856cfde03d002f2019026ed">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484348774_499e68bec8.jpg">
-  </div>
-  <h2 class="h6 mb-0">RAMIE_1068P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dda903d002f201902713">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484348799_e2d846208c.jpg">
-  </div>
-  <h2 class="h6 mb-0">PRINT_1062P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d03d03d002f2019026ef">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155266_29874ac2b4.jpg">
-  </div>
-  <h2 class="h6 mb-0">PINKPOSY_1072P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d08803d002f2019026f1">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484435238_4b1f4097ac.jpg">
-  </div>
-  <h2 class="h6 mb-0">PETITO_984P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d0cc03d002f2019026f3">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484348844_c0c950df9c.jpg">
-  </div>
-  <h2 class="h6 mb-0">MINTAD_988P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d10f03d002f2019026f5">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484435263_3dc0a22f66.jpg">
-  </div>
-  <h2 class="h6 mb-0">LULLABY_986</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d16103d002f2019026f7">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155326_4b1627c169.jpg">
-  </div>
-  <h2 class="h6 mb-0">LITTELSTAR_1184P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d1ad03d002f2019026f9">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155351_e3fbf16511.jpg">
-  </div>
-  <h2 class="h6 mb-0">LITTELFALS_1192P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dd6103d002f201902711">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155361_ce56a9febd.jpg">
-  </div>
-  <h2 class="h6 mb-0">LIGHTE_1182P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d1fe03d002f2019026fb">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155376_5456429744.jpg">
-  </div>
-  <h2 class="h6 mb-0">IVORY_1064P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d24203d002f2019026fd">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484348949_3d7185d06b.jpg">
-  </div>
-  <h2 class="h6 mb-0">FREMING_990P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d28c03d002f2019026ff">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484435388_4ff65e74b7.jpg">
-  </div>
-  <h2 class="h6 mb-0">DROP2_988P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856d35c03d002f201902702">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484512455_f93f72b7ff.jpg">
-  </div>
-  <h2 class="h6 mb-0">COOLNOVA_1076P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856db5a03d002f201902705">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484512475_668d3033c8.jpg">
-  </div>
-  <h2 class="h6 mb-0">COOLHINTER_984P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856db9d03d002f201902707">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54483309512_01f24c34f5.jpg">
-  </div>
-  <h2 class="h6 mb-0">CLOVER_982P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dbdc03d002f201902709">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484435448_41023c447c.jpg">
-  </div>
-  <h2 class="h6 mb-0">BEIGE01_978P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dc8203d002f20190270b">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54483309542_78d258e714.jpg">
-  </div>
-  <h2 class="h6 mb-0">AMRIAL_980P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dcd203d002f20190270d">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484512515_ff20889f4b.jpg">
-  </div>
-  <h2 class="h6 mb-0">ZINNIA_1078P</h2>
-  </a>
-  </li>
-<li class="col-6 col-sm-4 col-md-3">
-  <a class="d-block mt-4 text-center text-dark" href="/neutral/6856dd1403d002f20190270f">
-  <div class="mb-1 px-2">
-  <img  class="border img-fluid rounded bm-lazyload lazyloaded" data-src="//cdn.bmstores.co.uk/images/dmCategory/thumbnailImageResponsive/wallpaper5.jpg" width="160" height="160" src="https://live.staticflickr.com/65535/54484155506_d4ef44d858.jpg">
-  </div>
-  <h2 class="h6 mb-0">SANDLIGHT_972P</h2>
-  </a>
-  </li>
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+    }
 
+    .video-desktop { display: none; }
+    .video-mobile { display: block; }
 
+    @media (min-width: 768px) {
+      .video-desktop { display: block; }
+      .video-mobile { display: none; }
+    }
 
+    /* Fade-in animation */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease-out forwards;
+    }
 
-  
-</ul></div></div></div></div></div>
-  
-  <%- include ("../partials/footer") %>.
+    .fade-in.delay-1 { animation-delay: 0.4s; }
+    .fade-in.delay-2 { animation-delay: 0.8s; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Section spacing */
+    .section-spacing {
+      padding: 4rem 0;
+    }
+
+    /* Neutral Colors Grid */
+    .neutral-colors-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      padding: 2rem 0;
+    }
+
+    @media (min-width: 640px) {
+      .neutral-colors-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .neutral-colors-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .neutral-colors-grid {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .neutral-color-card {
+      transition: all 0.3s ease;
+    }
+
+    .neutral-color-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .neutral-color-card img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .neutral-color-card:hover img {
+      transform: scale(1.05);
+    }
+  </style>
+<!-- Meta Pixel, GTM, Clarity Scripts -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    // ✅ Track PageView with server-side event ID
+  fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
+  });
+  </script>
+  <% } %>
+
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
+</head>
+
+<body class="min-h-screen bg-white">
+  <!-- Minimal Header -->
+  <header class="border-b border-gray-200 bg-white fixed top-0 left-0 w-full z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4">
+      <div class="flex items-center justify-between">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-4">
+          <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+        </a>
+
+        <!-- Navigation -->
+        <nav class="hidden md:flex items-center gap-8">
+          <a href="/" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Accueil</a>
+          <a href="/shop" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Boutique</a>
+          <a href="/track-login" class="text-sm text-gray-600 hover:text-gray-900 uppercase tracking-wide">Suivi</a>
+        </nav>
+
+        <!-- Icons -->
+        <div class="flex items-center gap-4">
+          <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+            <i class="fa-solid fa-bag-shopping text-lg"></i>
+            <% if (session.cart && session.cart.totalQty > 0) { %>
+              <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full">
+                <%= session.cart.totalQty %>
+              </span>
+            <% } %>
+          </a>
+          
+          <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+            <i class="fa-regular fa-user text-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Video Section -->
+  <section class="hero-video mt-16">
+    <!-- Mobile Video -->
+    <div class="video-mobile">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/8c29baaa62984b8a8836a41ecb2ca1ce/8c29baaa62984b8a8836a41ecb2ca1ce.SD-480p-1.2Mbps-48816727.mp4?v=0" type="video/mp4">
+      </video>
+    </div>
+
+    <!-- Desktop Video -->
+    <div class="video-desktop">
+      <video playsinline loop autoplay muted preload="auto">
+        <source src="//coatpaints.com/cdn/shop/videos/c/vp/3617af9fd8254f5688fdeef051307a00/3617af9fd8254f5688fdeef051307a00.HD-720p-3.0Mbps-48816014.mp4?v=0" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="hero-overlay">
+      <div class="max-w-4xl mx-auto px-6">
+        <h1 class="text-3xl md:text-5xl font-light tracking-wide mb-6 fade-in">
+          Neutral Colors Collection
+        </h1>
+        <p class="text-lg md:text-xl text-gray-200 mb-8 fade-in delay-1 max-w-2xl mx-auto">
+          Discover our timeless neutral tones — from warm beiges to soft ivories for versatile spaces.
+        </p>
+
+        <!-- CTA Button -->
+        <div class="fade-in delay-2">
+          
+            <i class="fas fa-shopping-bag mr-2"></i>Shop Neutral Collection
+          
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto px-6">
+    <!-- Neutral Colors Section -->
+    <section class="section-spacing">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl font-light tracking-wide uppercase mb-4">Neutral Colors</h2>
+        <p class="text-sm text-gray-600 max-w-2xl mx-auto">
+          Explore our extensive collection of neutral tones, perfect for creating warm and versatile spaces
+        </p>
+      </div>
+
+      <div class="neutral-colors-grid">
+        <!-- Product 1 -->
+        <a href="/neutral/6856cf9503d002f2019026eb" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155241_e080721a64.jpg" 
+                alt="ROMAIN_1066P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">ROMAIN_1066P</h3>
+              <p class="text-xs text-gray-500 mt-1">Roman Warm Beige</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 2 -->
+        <a href="/neutral/6856cfde03d002f2019026ed" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484348774_499e68bec8.jpg" 
+                alt="RAMIE_1068P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">RAMIE_1068P</h3>
+              <p class="text-xs text-gray-500 mt-1">Ramie Natural Linen</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 3 -->
+        <a href="/neutral/6856dda903d002f201902713" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484348799_e2d846208c.jpg" 
+                alt="PRINT_1062P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">PRINT_1062P</h3>
+              <p class="text-xs text-gray-500 mt-1">Print Soft White</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 4 -->
+        <a href="/neutral/6856d03d03d002f2019026ef" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155266_29874ac2b4.jpg" 
+                alt="PINKPOSY_1072P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">PINKPOSY_1072P</h3>
+              <p class="text-xs text-gray-500 mt-1">Pink Posy Blush</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 5 -->
+        <a href="/neutral/6856d08803d002f2019026f1" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484435238_4b1f4097ac.jpg" 
+                alt="PETITO_984P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">PETITO_984P</h3>
+              <p class="text-xs text-gray-500 mt-1">Petito Cream</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 6 -->
+        <a href="/neutral/6856d0cc03d002f2019026f3" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484348844_c0c950df9c.jpg" 
+                alt="MINTAD_988P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">MINTAD_988P</h3>
+              <p class="text-xs text-gray-500 mt-1">Mintad Soft Mint</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 7 -->
+        <a href="/neutral/6856d10f03d002f2019026f5" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484435263_3dc0a22f66.jpg" 
+                alt="LULLABY_986"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">LULLABY_986</h3>
+              <p class="text-xs text-gray-500 mt-1">Lullaby Soft White</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 8 -->
+        <a href="/neutral/6856d16103d002f2019026f7" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155326_4b1627c169.jpg" 
+                alt="LITTELSTAR_1184P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">LITTELSTAR_1184P</h3>
+              <p class="text-xs text-gray-500 mt-1">Little Star Cream</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 9 -->
+        <a href="/neutral/6856d1ad03d002f2019026f9" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155351_e3fbf16511.jpg" 
+                alt="LITTELFALS_1192P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">LITTELFALS_1192P</h3>
+              <p class="text-xs text-gray-500 mt-1">Little Falls Beige</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 10 -->
+        <a href="/neutral/6856dd6103d002f201902711" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155361_ce56a9febd.jpg" 
+                alt="LIGHTE_1182P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">LIGHTE_1182P</h3>
+              <p class="text-xs text-gray-500 mt-1">Light Ivory</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 11 -->
+        <a href="/neutral/6856d1fe03d002f2019026fb" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155376_5456429744.jpg" 
+                alt="IVORY_1064P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">IVORY_1064P</h3>
+              <p class="text-xs text-gray-500 mt-1">Pure Ivory</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 12 -->
+        <a href="/neutral/6856d24203d002f2019026fd" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484348949_3d7185d06b.jpg" 
+                alt="FREMING_990P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">FREMING_990P</h3>
+              <p class="text-xs text-gray-500 mt-1">Freming Warm Beige</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 13 -->
+        <a href="/neutral/6856d28c03d002f2019026ff" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484435388_4ff65e74b7.jpg" 
+                alt="DROP2_988P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">DROP2_988P</h3>
+              <p class="text-xs text-gray-500 mt-1">Drop Sand</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 14 -->
+        <a href="/neutral/6856d35c03d002f201902702" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484512455_f93f72b7ff.jpg" 
+                alt="COOLNOVA_1076P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">COOLNOVA_1076P</h3>
+              <p class="text-xs text-gray-500 mt-1">Cool Nova Gray</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 15 -->
+        <a href="/neutral/6856db5a03d002f201902705" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484512475_668d3033c8.jpg" 
+                alt="COOLHINTER_984P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">COOLHINTER_984P</h3>
+              <p class="text-xs text-gray-500 mt-1">Cool Hinter Beige</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 16 -->
+        <a href="/neutral/6856db9d03d002f201902707" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54483309512_01f24c34f5.jpg" 
+                alt="CLOVER_982P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">CLOVER_982P</h3>
+              <p class="text-xs text-gray-500 mt-1">Clover Cream</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 17 -->
+        <a href="/neutral/6856dbdc03d002f201902709" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484435448_41023c447c.jpg" 
+                alt="BEIGE01_978P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">BEIGE01_978P</h3>
+              <p class="text-xs text-gray-500 mt-1">Classic Beige</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 18 -->
+        <a href="/neutral/6856dc8203d002f20190270b" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54483309542_78d258e714.jpg" 
+                alt="AMRIAL_980P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">AMRIAL_980P</h3>
+              <p class="text-xs text-gray-500 mt-1">Amrial Warm White</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 19 -->
+        <a href="/neutral/6856dcd203d002f20190270d" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484512515_ff20889f4b.jpg" 
+                alt="ZINNIA_1078P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">ZINNIA_1078P</h3>
+              <p class="text-xs text-gray-500 mt-1">Zinnia Soft Pink</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Product 20 -->
+        <a href="/neutral/6856dd1403d002f20190270f" class="neutral-color-card group">
+          <div class="zara-card h-full overflow-hidden">
+            <div class="overflow-hidden">
+              <img 
+                class="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-105" 
+                src="https://live.staticflickr.com/65535/54484155506_d4ef44d858.jpg" 
+                alt="SANDLIGHT_972P"
+                loading="lazy"
+              >
+            </div>
+            <div class="p-4 text-center">
+              <h3 class="text-sm font-normal tracking-wide uppercase">SANDLIGHT_972P</h3>
+              <p class="text-xs text-gray-500 mt-1">Sand Light Beige</p>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Inspiration Section -->
+    <section class="section-spacing">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl font-light tracking-wide uppercase mb-4">Neutral Color Inspiration</h2>
+        <p class="text-sm text-gray-600 max-w-2xl mx-auto">
+          Discover how to incorporate neutral tones into your home decor
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <div class="text-center">
+          <div class="zara-card p-6">
+            <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-couch text-stone-600"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Versatile Foundation</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Create the perfect backdrop for any style with neutral tones that adapt to your changing decor and accessories.
+            </p>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <div class="zara-card p-6">
+            <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-sun text-stone-600"></i>
+            </div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-3">Timeless Elegance</h3>
+            <p class="text-xs text-gray-600 leading-relaxed">
+              Design spaces that stand the test of time with classic neutral palettes that never go out of style.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Minimal Footer -->
+  <footer class="border-t border-gray-200 py-12 bg-white">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="text-center">
+        <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        <div class="flex justify-center gap-6 mt-4">
+          <a href="/contact" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Contact</a>
+          <a href="/shipping" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Shipping</a>
+          <a href="/returns" class="text-xs text-gray-500 hover:text-gray-700 uppercase tracking-wide">Returns</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

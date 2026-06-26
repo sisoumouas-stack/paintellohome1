@@ -1,220 +1,229 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="fr">
 <head>
-  <meta name="facebook-domain-verification" content="plfly5a8dktgdy17nvv2h8zsrpc9g5" />
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <meta http-equiv="x-ua-compatible" content="ie=edge">
-  <title>Paintello | Register</title>
-<link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-<link rel="manifest" href="/favicon/site.webmanifest">  
-  <meta name="theme-color" content="#ffffff">  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
-  <!-- Bootstrap core CSS -->
-  <link href="../../css/bootstrap.min.css" rel="stylesheet">
-  <!-- Material Design Bootstrap -->
-  <link href="../../css/mdb.min.css" rel="stylesheet">
-  <style>
-    html,
-    body,
-    header,
-    .view {
-      height: 100vh;
-    }
-    @media (max-width: 740px) {
-      html,
-      body,
-      header,
-      .view {
-        height: 700px;
-      }
-    }
-    @media (min-width: 800px) and (max-width: 850px) {
-      html,
-      body,
-      header,
-      .view {
-        height: 650px;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S'inscrire | Paintello</title>
+    <meta name="facebook-domain-verification" content="plfly5a8dktgdy17nvv2h8zsrpc9g5" />
+    
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/favicon/site.webmanifest">  
+    <meta name="theme-color" content="#ffffff">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8f8f8; }
+        .zara-card { background: white; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e5e5; }
+        .zara-btn { background: #000; color: white; border: 1px solid #000; padding: 12px 24px; font-size: 13px; letter-spacing: 0.5px; transition: all 0.3s ease; text-transform: uppercase; width: 100%; cursor: pointer; }
+        .zara-btn:hover { background: #333; }
+        .zara-btn-secondary { background: transparent; color: #000; border: 1px solid #000; }
+        .zara-btn-secondary:hover { background: #000; color: white; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid #e5e5e5; font-size: 13px; transition: border-color 0.3s ease; background: white; }
+        .form-input:focus { outline: none; border-color: #000; }
+        .form-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; margin-bottom: 6px; font-weight: 500; }
+        .error-message { background: #fff5f5; border: 1px solid #fed7d7; color: #c53030; padding: 12px; font-size: 13px; border-radius: 2px; margin-bottom: 20px; }
+        .header-link { color: #666; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; transition: color 0.3s ease; }
+        .header-link:hover { color: #000; }
+        .success-icon { width: 80px; height: 80px; background: #d4edda; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .success-icon i { font-size: 36px; color: #28a745; }
+    </style>
+
+    <!-- Meta Pixel Code -->
+    <% if (process.env.FB_PIXEL_ID) { %>
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    fbq('track', 'PageView', {}, { eventID: '<%= metaEventIdPageView %>' });
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/></noscript>
+    <% } %>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
 
 </head>
 
+<body class="min-h-screen bg-white">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K8PWQM45" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
+    <!-- Minimal Header -->
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-4">
+                    <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+                    <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+                </a>
 
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center gap-8">
+                    <a href="/" class="header-link">Accueil</a>
+                    <a href="/shop" class="header-link">Boutique</a>
+                    <a href="/track-login" class="header-link">Suivi Commande</a>
+                </nav>
 
-
-<body class="login-page">
-
-  <!-- Main Navigation -->
-  <header>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light fixed-top scrolling-navbar white">
-      <div class="container">
-        <a class="navbar-brand font-weight-bold title" href="/">Paintello</a>
-        <!--Navigation icons-->
-        <ul class="nav navbar-nav nav-flex-icons ml-auto">
-          <li class="nav-item dropdown">
-                       <a class="nav-link dropdown" id="menu1" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user  black-text"></i>
-                      </a>
-                      <div class="dropdown-menu dropdown-menu-right bootstrap-menu  white scrollbar-default" aria-labelledby="menu1">
-                        <% if (login){ %>
-                          <a class="dropdown-item" href="/user/profile">profile</a>
-                           <a class="dropdown-item" href="/user/logout">Logout</a>
-                           <% } else{ %>
-                           <a class="dropdown-item" href="/user/signup">Register</a>
-                           <a class="dropdown-item" href="/user/signin">Sing up</a>
-                           <% } %>
-                 </div> 
-          </li>
-          <li class="nav-item ">
-                      <a class="nav-link " id="menu2" href="/shop" role="button"  aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-shopping-cart black-text"></i>
-                        <% if(session.cart){ %>
-                      <span class="mycounter"><%= session.cart.totalQty %></span>
-                      <% } %>
-                      </a>
-          </li>
-    
-        </ul>
-        
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02"
-          aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-          
-        </button>
-        
-        
-        <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
-          <ul class="list-unstyled navbar-nav mr-auto">
-            <li class="nav-item dropdown ml-4 mb-0">
-              <a class="nav-link dropdown-toggle title" id="navbarDropdownMenuLink" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false"> DIY </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <a class="dropdown-item" href="/interior">Paint</a>
-                <a class="dropdown-item" href="/wallpaper">Wallpaper</a>
-                <a class="dropdown-item" href="/floor">Flooring & Tiling</a>
-                <a class="dropdown-item" href="/tool">Tools And Equipment</a>
-                <a class="dropdown-item" href="/deco">Decorating</a>
-              </div>
-            </li>
-            <li class="nav-item dropdown ml-4 mb-0">
-              <a class="nav-link dropdown-toggle title" id="navbarDropdownMenuLink" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false"> Sale </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <a class="dropdown-item" href="/sale/electrical">Electrical Sale</a>
-                <a class="dropdown-item" href="/sale/furniteur">Furniture Sale</a>
-                <a class="dropdown-item" href="/sale/rug">Rugs Sale</a>
-                <a class="dropdown-item" href="/sale/cuisin">Kitchen Sale</a>
-                <a class="dropdown-item" href="/sale/decor">Home Decor Sale</a>
-                <a class="dropdown-item" href="/sale/soft">Soft Furnishings Sale</a>
-                <a class="dropdown-item" href="/sale/bedding">Bedding Sale</a>
-                <a class="dropdown-item" href="/sale/curtain">Curtains Sale</a>
-                <a class="dropdown-item" href="/sale/station">Stationery Sale</a>
-                <a class="dropdown-item" href="/sale/clean">Laundry & Cleaning Sale</a>
-              </div>
-            </li>
-            <li class="nav-item dropdown ml-4 mb-0">
-              <a class="nav-link dropdown-toggle title" id="navbarDropdownMenuLink" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false"> Sports-and-Leisure </a>
-              <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                <a class="dropdown-item" href="/sport/scooter">Scooters</a>
-                <a class="dropdown-item" href="/sport/travel">Travel Accessories</a>
-                <a class="dropdown-item" href="/sport/fitnes">Fitness</a>
-                
-              </div>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/wow" data-offset="90">Wow Deals</a>
-            </li>
-            <li class="nav-item ml-4">
-              <a class="nav-link title" href="/return" data-offset="90">Returns</a>
-            </li>
-            
-            
-          </ul>
-          
-          <!-- Social Icon  -->
-         
-      </div></div></div></div>
-    </nav>
-
-    <!-- Intro Section -->
-      <div class="mask rgba-indigo-light h-100 d-flex justify-content-center align-items-center">
-        <div class="container">
-          <div class="row">
-            <div class="col-xl-5 col-lg-6 col-md-10 col-sm-12 mx-auto mt-lg-5">
-
-              <!-- Form with header -->
-              <div class="card wow fadeIn" data-wow-delay="0.3s">
-                <div class="card-body">
-
-                  <!-- Header -->
-                  <div class="form-header pink-gradient">
-                    <h3>
-                      <i class="fas fa-user mt-2 mb-2"></i> REGISTER:</h3>
-                  </div>
-                  <% if (messages.length > 0) { %>
-
-                    <div class="alert alert-danger" role="alert">
-                      <%= messages %>
-                    </div>
+                <!-- Icons -->
+                <div class="flex items-center gap-4">
+                    <a href="/shop" class="relative text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                        <% if (req.session.cart && req.session.cart.totalQty > 0) { %>
+                            <span class="absolute -top-2 -right-2 bg-black text-white text-xs px-1.5 py-0.5 rounded-full"><%= req.session.cart.totalQty %></span>
+                        <% } %>
+                    </a>
                     
-                    <% } %>
-                  <!-- Body -->
-                  <form action="/user/signup" method="POST">
-                   
-
-                  <div class="md-form mb-0">
-                   
-                    <i class="fas fa-user prefix black-text"></i>
-                    <input type="email" class="form-control black-text" name="email" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email"> 
-                    <label for="exampleInputEmail1">Email address</label>
+                    <div class="relative group">
+                        <a href="#" class="text-gray-600 hover:text-gray-900">
+                            <i class="fa-regular fa-user text-lg"></i>
+                        </a>
+                        <div class="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                            <a href="/user/signup" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 border-b border-gray-100">S'inscrire</a>
+                            <a href="/user/signin" class="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-50">Se connecter</a>
+                        </div>
                     </div>
-
-                  <div class="md-form mb-0">
-                    <i class="fas fa-lock prefix black-text"></i>
-                  <input type="password" class="form-control" name="password" id="exampleInputPassword1" placeholder="Password"> 
-                    <label for="exampleInputPassword1">Your password</label>
-                  </div>
-             <input type="text" name="firstName" placeholder="First Name" required>
-             <input type="text" name="lastName" placeholder="Last Name" required>
-              <input type="tel" name="numero" placeholder="Phone Number" required>
-                  <div class="text-center">
-                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-                    <button type="submit" class="btn pink-gradient btn-lg">Sign up</button>
-                  </form>
-                    <hr>
-                    
-                    <div class="inline-ul text-center d-flex justify-content-center">
-                      <a class="p-2 m-2 fa-lg tw-ic">
-                        <i class="fab fa-twitter white-text"></i>
-                      </a>
-                      <a class="p-2 m-2 fa-lg li-ic">
-                        <i class="fab fa-linkedin-in white-text"> </i>
-                      </a>
-                      <a class="p-2 m-2 fa-lg ins-ic">
-                        <i class="fab fa-instagram white-text"> </i>
-                      </a>
-                    </div>
-                  </div>
-
                 </div>
-              </div>
-              <!-- Form with header -->
-
             </div>
-          </div>
         </div>
-      </div>
+    </header>
 
-  </header>
-  <!-- Main Navigation -->
-  <%- include ("../partials/footer") %>.
+    <!-- Main Content -->
+    <main class="py-16">
+        <div class="max-w-md mx-auto px-6">
+            
+            <!-- Page Header -->
+            <div class="text-center mb-10">
+                <h1 class="text-2xl font-light tracking-wide uppercase mb-2">Créer un compte</h1>
+                <p class="text-sm text-gray-600">
+                    Rejoignez notre communauté pour une expérience shopping personnalisée.
+                </p>
+            </div>
+
+         <!-- Promotional Banner - Zara Style -->
+        <div class="zara-card p-8 mb-8 text-center border-l-4 border-black">
+            <div class="mb-4">
+                <span class="text-5xl font-bold tracking-tighter" style="font-size: 3.5rem; letter-spacing: -0.05em;">
+                    10%
+                </span>
+            </div>
+            <h3 class="text-lg font-normal uppercase tracking-wider mb-3">
+                DE RÉDUCTION BIENVENUE
+            </h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-4">
+                Inscrivez-vous maintenant et profitez de <span class="font-semibold">10% de réduction</span><br>
+                sur votre première commande.
+            </p>
+            <div class="pt-4 border-t border-gray-100">
+                <p class="text-xs text-gray-500 uppercase tracking-wider">
+                Offre valable une fois par nouveau client
+                </p>
+            </div>
+        </div>
+            <!-- Registration Form -->
+            <div class="zara-card p-8 mb-8">
+                <% if (messages.length > 0) { %>
+                    <div class="error-message mb-6">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle mr-3"></i>
+                            <span><%= messages %></span>
+                        </div>
+                    </div>
+                <% } %>
+
+                <form action="/user/signup" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    
+                    <!-- Name Fields -->
+                    <div class="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="form-label">Prénom</label>
+                            <input type="text" name="firstName" class="form-input" placeholder="Votre prénom" required>
+                        </div>
+                        <div>
+                            <label class="form-label">Nom</label>
+                            <input type="text" name="lastName" class="form-input" placeholder="Votre nom" required>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-6">
+                        <label class="form-label">Adresse email</label>
+                        <input type="email" name="email" class="form-input" placeholder="votre@email.com" required>
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div class="mb-6">
+                        <label class="form-label">Numéro de téléphone</label>
+                        <input type="tel" name="numero" class="form-input" placeholder="0XXXXXXXXX" required>
+                        <p class="text-xs text-gray-500 mt-1">Utilisé pour les notifications de commande</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-8">
+                        <label class="form-label">Mot de passe</label>
+                        <input type="password" name="password" class="form-input" placeholder="Votre mot de passe" required>
+                        <p class="text-xs text-gray-500 mt-1">Minimum 6 caractères</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="zara-btn mb-6">
+                        <i class="fas fa-user-plus mr-2"></i>Créer mon compte
+                    </button>
+
+                    <!-- Terms & Conditions -->
+                    <p class="text-xs text-gray-500 text-center leading-relaxed">
+                        En créant un compte, vous acceptez nos 
+                        <a href="/terms" class="underline hover:text-black">Conditions Générales</a> 
+                        et notre 
+                        <a href="/privacy" class="underline hover:text-black">Politique de Confidentialité</a>.
+                    </p>
+                </form>
+            </div>
+
+            <!-- Login Link -->
+            <div class="zara-card p-6 text-center">
+                <p class="text-sm text-gray-600 mb-4">Vous avez déjà un compte ?</p>
+                <a href="/user/signin" class="zara-btn-secondary inline-block px-8 py-3 text-sm">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Se connecter
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        </div>
+    </footer>
+</body>
+</html>

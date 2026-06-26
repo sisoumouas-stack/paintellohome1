@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue | Paintello</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f8f8f8; }
+        .zara-card { background: white; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e5e5; }
+        .zara-btn { background: #000; color: white; border: 1px solid #000; padding: 12px 24px; font-size: 13px; letter-spacing: 0.5px; transition: all 0.3s ease; text-transform: uppercase; }
+        .zara-btn:hover { background: #333; }
+        .zara-btn-secondary { background: transparent; color: #000; border: 1px solid #000; }
+        .zara-btn-secondary:hover { background: #000; color: white; }
+        .success-icon { width: 80px; height: 80px; background: #d4edda; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+        .success-icon i { font-size: 36px; color: #28a745; }
+    </style>
+
+    <!-- Meta Pixel Code -->
+    <% if (process.env.FB_PIXEL_ID && completeRegistrationEventId) { %>
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>');
+    
+    // Send client-side CompleteRegistration with same event ID as server
+    fbq('track', 'CompleteRegistration', {
+        content_name: 'User Registration',
+        content_type: 'user',
+        status: 'registered',
+        value: 0,
+        currency: 'DZD'
+    }, {
+        eventID: '<%= completeRegistrationEventId %>'
+    });
+    
+    console.log("✅ Client-side CompleteRegistration sent with ID:", '<%= completeRegistrationEventId %>');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=CompleteRegistration&noscript=1"/></noscript>
+    <% } %>
+</head>
+
+<body class="min-h-screen bg-white">
+    <!-- Header (same as signup) -->
+    <header class="border-b border-gray-200 bg-white">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <a href="/" class="flex items-center gap-4">
+                    <img src="/favicon/android-chrome-192x192.png" alt="Paintello" class="h-8 w-8">
+                    <img src="/img/logo.png" alt="Paintello Home" class="h-10 w-auto">
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/shop" class="text-gray-600 hover:text-gray-900">
+                        <i class="fa-solid fa-bag-shopping text-lg"></i>
+                    </a>
+                    <a href="/user/profile" class="text-gray-600 hover:text-gray-900">
+                        <i class="fa-regular fa-user text-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-16">
+        <div class="max-w-md mx-auto px-6 text-center">
+            
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <!-- Welcome Message -->
+            <h1 class="text-2xl font-light tracking-wide uppercase mb-4">Bienvenue <%= user.firstName %> !</h1>
+            <p class="text-sm text-gray-600 mb-8">
+                Votre compte a été créé avec succès. Vous pouvez maintenant profiter de tous nos services.
+            </p>
+            <!-- In welcome.ejs, add this after the welcome message -->
+<% if (linkedOrdersCount > 0) { %>
+<div class="mt-8 p-6 bg-blue-50 border border-blue-200 rounded">
+    <div class="flex items-start gap-4">
+        <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-shopping-bag text-blue-600"></i>
+        </div>
+        <div>
+            <h3 class="text-sm font-medium uppercase tracking-wide mb-2">Commandes précédentes liées</h3>
+            <p class="text-sm text-blue-700">
+                Nous avons trouvé <strong><%= linkedOrdersCount %></strong> commande(s) précédentes associées à votre numéro de téléphone.
+                Vous pouvez maintenant les voir dans votre profil.
+            </p>
+        </div>
+    </div>
+</div>
+<% } %>
+            <!-- Debug Info (hidden in production) -->
+            <% if (completeRegistrationEventId && process.env.NODE_ENV !== 'production') { %>
+            <div class="mb-8 p-4 bg-gray-50 border border-gray-200 rounded">
+                <p class="text-xs text-gray-500 uppercase tracking-wide mb-2">Debug Info</p>
+                <p class="text-xs font-mono text-gray-600 break-all">
+                    Event ID: <%= completeRegistrationEventId %>
+                </p>
+            </div>
+            <% } %>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a href="/shop" class="zara-btn flex-1">
+                    <i class="fas fa-shopping-bag mr-2"></i>Commencer à magasiner
+                </a>
+                <a href="/user/profile" class="zara-btn-secondary flex-1">
+                    <i class="fas fa-user mr-2"></i>Mon Profil
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-600">© <%= new Date().getFullYear() %> Paintello</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,266 +1,971 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-
-<!-- Meta Pixel Code -->
-<!-- Meta Pixel Code -->
-<!-- Meta Pixel Code -->
-<script>
-  
-
-  !function(f,b,e,v,n,t,s){
-    if(f.fbq)return;n=f.fbq=function(){n.callMethod ?
-    n.callMethod.apply(n,arguments) : n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
+  <meta name="msvalidate.01" content="3E25742DD0A4CACC80E866B477A5CC04" />
+ <!-- Pixel, GTM, Clarity -->
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)n.queue=[];t=b.createElement(e);t.async=!0;
     t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s);
-  }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    s.parentNode.insertBefore(t,s)}(window,document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
 
-   fbq('init', '633564199312760', {
-    em: '<%= user ? user.email : "" %>',
-    fn: '<%= user ? user.firstName : "" %>',
-    ln: '<%= user ? user.lastName : "" %>',
-    ph: '<%= user ? user.numero : "" %>'
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+   fbq('track', 'PageView', {}, {
+    eventID: '<%= metaEventIdPageView %>'
   });
-fbq('track', 'PageView');
-</script>
-<noscript>
-  <img height="1" width="1" style="display:none"
-       src="https://www.facebook.com/tr?id=633564199312760&ev=PageView&noscript=1"/>
-</noscript>
-<!-- End Meta Pixel Code -->
-<!-- End Meta Pixel Code -->
+  </script>
+  <% } %>
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-K8PWQM45');</script>
 
-<!-- End Meta Pixel Code -->
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+      c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+      t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+      y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "t8r0mi7k1l");
+  </script>
   <title>Paintello Home</title>
-  <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-<link rel="manifest" href="/favicon/site.webmanifest">  
-  <meta name="theme-color" content="#ffffff">  <link href='https://cdn.jsdelivr.net/npm/boxicons@2.0.5/css/boxicons.min.css' rel='stylesheet'>
-  <link rel="stylesheet" href="/assets/vendor/font-awesome/css/fontawesome-all.min.css">
-  <link rel="stylesheet" href="/assets/vendor/animate.css/animate.min.css">
-  <link rel="stylesheet" href="/assets/vendor/hs-megamenu/src/hs.megamenu.css">
-<!-- Bootstrap 4 CSS -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<!-- Font Awesome (optional for icons) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.2/css/all.css">
-  <!-- Bootstrap core CSS -->
-  <link href="/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/css/bmo.min.css" rel="stylesheet">
-<!-- Add the slick-theme.css if you want default styling -->
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
-<!-- Add the slick-theme.css if you want default styling -->
-<link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"/>
-  <!-- Material Design Bootstrap -->
-  <link href="/css/mdb.min.css" rel="stylesheet">
-  <link href="/css/magiczoomplus.css" rel="stylesheet">
-  <link href="/css/zoomm.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <!-- Bootstrap CSS for navbar -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Tailwind (CDN for prototyping) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
   <style>
+    /* ===== ZARA HOME INSPIRED STYLES ===== */
+    :root {
+      --zara-black: #111;
+      --zara-gray: #f5f5f5;
+      --zara-light-gray: #e5e5e5;
+      --zara-dark-gray: #666;
+      --accent: #c9b59a;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      color: var(--zara-black);
+      background: white;
+      letter-spacing: 0.5px;
+    }
+
+    /* Navbar */
+    .navbar-zara {
+      background: white !important;
+      border-bottom: 1px solid var(--zara-light-gray);
+    }
+
+    .nav-link-zara {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--zara-black) !important;
+      transition: opacity 0.3s;
+    }
+
+    .nav-link-zara:hover {
+      opacity: 0.7;
+    }
+
+    /* Hero Section - FIXED BUTTONS */
+    .hero-zara {
+      position: relative;
+      height: 90vh;
+      overflow: hidden;
+    }
+
+    .hero-overlay-zara {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.5));
+    }
+
+    .hero-content-zara {
+      position: relative;
+      z-index: 2;
+      color: white;
+      padding: 0 20px;
+    }
+
+    .hero-title-zara {
+      font-size: 3.5rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+      margin-bottom: 1rem;
+    }
+
+    .hero-subtitle-zara {
+      font-size: 1rem;
+      font-weight: 300;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* FIXED BUTTONS CONTAINER */
+    .hero-buttons-container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+      margin-top: 40px;
+      width: 100%;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* FIXED BUTTON STYLES - SAME SIZE */
+    .hero-button-zara {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 14px 20px;
+      min-width: 0;
+      transition: all 0.3s ease;
+      text-decoration: none;
+    }
+
+    .hero-button-zara:hover {
+      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .hero-button-image {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .hero-button-text {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--zara-black);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Responsive adjustments for buttons */
+    @media (max-width: 768px) {
+      .hero-buttons-container {
+        flex-direction: column;
+        gap: 15px;
+        max-width: 300px;
+      }
+      
+      .hero-button-zara {
+        padding: 16px 20px;
+        width: 100%;
+      }
+      
+      .hero-title-zara {
+        font-size: 2.5rem;
+      }
+      
+      .hero-subtitle-zara {
+        font-size: 0.875rem;
+        padding: 0 10px;
+      }
+      
+      .hero-button-image {
+        width: 28px;
+        height: 28px;
+      }
+      
+      .hero-button-text {
+        font-size: 0.813rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-title-zara {
+        font-size: 2rem;
+      }
+      
+      .hero-subtitle-zara {
+        font-size: 0.75rem;
+      }
+      
+      .hero-buttons-container {
+        max-width: 280px;
+      }
+      
+      .hero-button-zara {
+        padding: 14px 16px;
+      }
+    }
+
+    /* Products Grid - Zara Style with LARGER IMAGES */
+    .products-grid-zara {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 50px;
+      padding: 60px 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1200px) {
+      .products-grid-zara {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 40px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .products-grid-zara {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 30px;
+        padding: 40px 20px;
+      }
+    }
+
+    /* Product Card - Zara Style with LARGER IMAGES */
+    .product-card-zara {
+      position: relative;
+      overflow: hidden;
+      background: white;
+      transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .product-card-zara:hover {
+      transform: translateY(-5px);
+    }
+
+    /* LARGER IMAGE CONTAINER */
+    .product-image-container-zara {
+      position: relative;
+      overflow: hidden;
+      height: 500px; /* Increased from 400px */
+      background: var(--zara-gray);
+    }
+
+    @media (max-width: 1200px) {
+      .product-image-container-zara {
+        height: 450px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .product-image-container-zara {
+        height: 400px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .product-image-container-zara {
+        height: 350px;
+      }
+    }
+
+    .product-image-zara {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+
+    .product-card-zara:hover .product-image-zara {
+      transform: scale(1.05);
+    }
+
+    /* STATUS BADGES - ON IMAGE */
+    .product-badges-zara {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .badge-zara {
+      padding: 8px 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: white;
+      color: var(--zara-black);
+      border-radius: 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Different badge colors based on status */
+    .badge-new {
+      background: var(--zara-black);
+      color: white;
+    }
+
+    .badge-promo {
+      background: #e65540;
+      color: white;
+    }
+
+    .badge-in-stock {
+      background: #2c9814;
+      color: white;
+    }
+
+    .badge-out-of-stock {
+      background: #dc2626;
+      color: white;
+    }
+
+    /* If multiple badges, add offset */
+    .badge-zara:nth-child(2) {
+      margin-top: 40px;
+    }
+
+    .badge-zara:nth-child(3) {
+      margin-top: 80px;
+    }
+
+    .product-info-zara {
+      padding: 25px 0;
+      text-align: center;
+    }
+
+    .product-title-zara {
+      font-size: 0.9rem;
+      font-weight: 400;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: var(--zara-black);
+      line-height: 1.4;
+    }
+
+    .product-price-zara {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: var(--zara-black);
+      margin-bottom: 8px;
+    }
+
+    .product-old-price-zara {
+      font-size: 0.8rem;
+      color: var(--zara-dark-gray);
+      text-decoration: line-through;
+      margin-left: 10px;
+      font-weight: 400;
+    }
+
+    /* Carousel Controls - Zara Style */
+    .carousel-control-zara {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 45px;
+      height: 45px;
+      background: rgba(255, 255, 255, 0.95);
+      border: none;
+      border-radius: 0;
+      opacity: 0;
+      transition: all 0.3s;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-image-container-zara:hover .carousel-control-zara {
+      opacity: 1;
+    }
+
+    .carousel-control-zara:hover {
+      background: white;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .carousel-control-prev-zara {
+      left: 20px;
+    }
+
+    .carousel-control-next-zara {
+      right: 20px;
+    }
+
+    .carousel-control-icon-zara {
+      width: 18px;
+      height: 18px;
+      color: var(--zara-black);
+    }
+
+    /* VIEW PRODUCT BUTTON - KEPT SAME */
+    .quick-view-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 20px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      text-align: center;
+      border-top: 1px solid var(--zara-light-gray);
+    }
+
+    .product-card-zara:hover .quick-view-overlay {
+      transform: translateY(0);
+    }
+
+    .quick-view-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--zara-black);
+      color: white;
+      border: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .quick-view-btn:hover {
+      background: #333;
+      letter-spacing: 2px;
+    }
+
+    /* Section Title */
+    .section-title-zara {
+      font-size: 1.8rem;
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 80px 20px 30px;
+      color: var(--zara-black);
+      position: relative;
+    }
+
+    .section-title-zara::after {
+      content: '';
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 1px;
+      background: var(--zara-black);
+    }
+
+    /* Footer */
+    .footer-zara {
+      border-top: 1px solid var(--zara-light-gray);
+      padding: 50px 20px;
+      text-align: center;
+      color: var(--zara-dark-gray);
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+    }
+
+    /* Carousel Indicators */
+    .carousel-indicators-zara {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      z-index: 2;
+    }
+
+    .carousel-indicator-zara {
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.5);
+      border: none;
+      border-radius: 50%;
+      padding: 0;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .carousel-indicator-zara.active {
+      background: white;
+    }
+
+    /* Fade-in animations */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 1s ease-out forwards;
+    }
+
+    .fade-in.delay-1 { animation-delay: 0.4s; }
+    .fade-in.delay-2 { animation-delay: 0.8s; }
+    .fade-in.delay-3 { animation-delay: 1.2s; }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Video Containers */
+    .video-img-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .video-desktop { display: none; }
+    .video-mobile { display: block; }
+
+    @media (min-width: 768px) {
+      .video-desktop { display: block; }
+      .video-mobile { display: none; }
+    }
+  </style>
   
- /* public/css/home.css */
-body {
-  font-family: 'Helvetica Neue', sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: #fdfdfd;
-  color: #333;
-}
-
-header, footer {
-  background: white;
-  padding: 20px 40px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-.logo {
-  font-size: 2.5rem;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.banner {
-  width: 100%;
-  height: 80vh;
-  background-size: cover;
-  background-position: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.banner-text {
-  background: rgba(255, 255, 255, 0.85);
-  padding: 40px;
-  font-size: 2rem;
-  text-transform: uppercase;
-}
-
-.section {
-  padding: 60px 20px;
-  max-width: 1200px;
-  margin: auto;
-}
-
-
-.section-title {
-  font-size: 2rem;
-  margin-bottom: 40px;
-  text-align: center;
-}
-
-.products {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 30px;
-}
-
-.product {
-  text-align: center;
-}
-
-.product img {
-  width: 100%;
-  border: 1px solid #eee;
-  transition: transform 0.3s ease;
-}
-
-.product img:hover {
-  transform: scale(1.05);
-}
-
-footer {
-  margin-top: 60px;
-  font-size: 0.9rem;
-}
-
-
-
-
-
-
-.logo {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #222;
-}
-
-
-
-
-
-
-</style>
-
+  
 </head>
-<body>
 
-  <header>
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top scrolling-navbar">
-  <div class="container">
+<body class="bg-white">
+  <!-- ===================== ZARA-STYLE NAVBAR ===================== -->
+<header class="fixed top-0 left-0 w-full z-50 navbar-zara">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      
+      <!-- Left: Logo -->
+      <a href="/" class="logo">
+        <img src="/img/logo.png" 
+             alt="Paintello Logo" 
+             class="h-20 md:h-24 w-auto" />
+      </a>
 
-    <!-- LOGO -->
-    <a class="logo" href="/">
-      <img src="/img/logo.png" alt="Paintello Home Logo" style="max-height: 120px;">
-    </a>
+      <!-- Center: Nav links -->
+      <nav class="hidden md:flex items-center gap-8">
+        <a href="/" class="nav-link-zara">Home</a>
+        <a href="/shop" class="nav-link-zara">Shop</a>
+        <a href="/track-login" class="nav-link-zara">Track Order</a>
+      </nav>
 
-    
+      <!-- Right: Icons -->
+      <div class="flex items-center gap-5">
+        <!-- Cart -->
+        <a href="/shop" class="relative flex items-center justify-center hover:opacity-70 transition" title="Cart">
+          <i class="fa-solid fa-bag-shopping text-gray-800 text-lg"></i>
+          <% if (session.cart && session.cart.totalQty > 0) { %>
+            <span class="absolute -top-2 -right-2 bg-[color:var(--zara-black)] text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+              <%= session.cart.totalQty %>
+            </span>
+          <% } %>
+        </a>
 
-    <!-- Navbar links -->
-  
-      <ul class="navbar-nav nav-flex-icons ml-auto ">
+        <!-- Profile dropdown -->
+        <div class="relative">
+          <button id="userMenuBtn" class="flex items-center justify-center hover:opacity-70 transition focus:outline-none" title="Account">
+            <i class="fa-regular fa-user text-gray-800 text-lg"></i>
+          </button>
 
-        <!-- PROFILE -->
-       <li class="nav-item dropdown">
-                       <a class="nav-link dropdown" id="menu1" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-user  black-text"></i>
-                      </a>
-                      <div class="dropdown-menu dropdown-menu-right bootstrap-menu  white scrollbar-default" aria-labelledby="menu1">
-                        <% if (login){ %>
-                          <a class="dropdown-item" href="/user/profile">profile</a>
-                           <a class="dropdown-item" href="/user/logout">Logout</a>
-            
-                           <% } else{ %>
-                           <a class="dropdown-item" href="/user/signup">Register</a>
-                           <a class="dropdown-item" href="/user/signin">Sing up</a>
-                           <a class="dropdown-item" href="/track-login">Track Order</a>
-                           <% } %>
-                 </div> 
-          </li>
-
-        <!-- CART -->
-        <li class="nav-item mx-2 position-relative">
-          <a class="nav-link" href="/shop" title="Cart">
-            <i class="fas fa-shopping-cart"></i>
-            <% if (session.cart && session.cart.totalQty > 0) { %>
-              <span class="badge badge-danger cart-badge"><%= session.cart.totalQty %></span>
+          <!-- Dropdown -->
+          <div id="userDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white border border-gray-200 py-2 z-50">
+            <% if (login) { %>
+              <a href="/user/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+              <a href="/user/logout" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Logout</a>
+            <% } else { %>
+              <a href="/user/signup" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Register</a>
+              <a href="/user/signin" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Sign in</a>
+              <a href="/track-login" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Track Order</a>
             <% } %>
-          </a>
-        </li>
-
-      </ul>
-    </div>
-  
-</nav>
-  </header>
-  <div class="banner" style="background-image: url('https://live.staticflickr.com/65535/54530748939_dda2a74c86.jpg');">
-   <div class="banner-text">
-                <h1 class="h1-responsive font-weight-bold mt-sm-5 mb-4 wow fadeInLeft" data-wow-delay="0.3s">Transform Your Home with Color & Comfort</h1>
-                <hr class="hr-light wow fadeInLeft" data-wow-delay="0.3s">
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/"><img src="/favicon/android-chrome-192x192.png" alt="Paintello Logo" style="max-height: 80px;"></a>
- <a class="btn btn-white btn-rounded btn-lg orange-text font-weight-bold ml-lg-0 wow fadeInLeft" data-wow-delay="0.4s" href="/paintello"><img src="/img/logo.png" alt="Paintello Logo" style="max-height: 80px;"></a>
-              </div>
-            </div>
-<div class="section">
-  <div class="section-title">New Arrivals</div>
-  <div class="row">
-    <% paintellos.forEach((paintello, index) => { %>
-      <div class="col-md-4 mb-4">
-        <div class="card">
- <a class="d-block mt-4 text-center text-dark" href="/coulors/grey">
-
- 
-          <!-- Bootstrap Carousel for each product -->
-          <div id="carousel-<%= index %>" class="carousel slide" data-ride="carousel">
-            <div class="carousel-inner">
-              <% paintello.image.forEach((img, i) => { %>
-                <div class="carousel-item <%= i === 0 ? 'active' : '' %>">
-                  <img class="d-block w-100" src="<%= img %>" alt="Image <%= i + 1 %>">
-                </div>
-              <% }) %>
-            </div>
-            <a class="carousel-control-prev" href="#carousel-<%= index %>" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            </a>
-            <a class="carousel-control-next" href="#carousel-<%= index %>" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            </a>
           </div>
-
-          <div class="card-body text-center">
-            <h5 class="card-title"><%= paintello.title %></h5>
-            <p class="card-text"><%= paintello.price %> DA</p>
-          </div>
- </a>
         </div>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobileMenuBtn" class="md:hidden flex items-center justify-center text-gray-800 text-xl">
+          <i class="fa-solid fa-bars"></i>
+        </button>
       </div>
-    <% }) %>
+    </div>
   </div>
-</div>
 
+  <!-- Mobile dropdown -->
+  <div id="mobileMenu" class="hidden md:hidden border-t border-gray-200 bg-white">
+    <div class="px-4 py-3 flex flex-col gap-2">
+      <a href="/" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Home</a>
+      <a href="/shop" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Shop</a>
+      <a href="/track-login" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Track Order</a>
+      <% if (login) { %>
+        <a href="/user/profile" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Profile</a>
+        <a href="/user/logout" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Logout</a>
+      <% } else { %>
+        <a href="/user/signup" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Register</a>
+        <a href="/user/signin" class="text-sm text-gray-700 hover:text-[color:var(--accent)] transition">Sign in</a>
+      <% } %>
+    </div>
+  </div>
+</header>
+<!-- ===================== /NAVBAR END ===================== -->
 
+  <!-- ===================== ZARA-STYLE HERO WITH FIXED BUTTONS ===================== -->
+  <section class="hero-zara">
+    <div class="video-img-container h-full">
+      <!-- Mobile GIF -->
+      <div class="video-mobile h-full">
+        <img src="https://www.paintello.uk/uploads/painthome.gif" 
+             alt="Paintello mobile preview" 
+             class="w-full h-full object-cover" />
+      </div>
 
-  
+      <!-- Desktop Video -->
+      <div class="video-desktop h-full">
+        <video playsinline loop autoplay muted preload="auto" class="w-full h-full object-cover">
+          <source src="/uploads/Designsanstitre(2).mp4" type="video/mp4">
+          <img src="//coatpaints.com/cdn/shop/files/preview_images/3617af9fd8254f5688fdeef051307a00.thumbnail.0000000000_2800x.jpg?v=1749051004" alt="Paintello desktop preview">
+        </video>
+      </div>
+    </div>
+    
+    <div class="hero-overlay-zara"></div>
+    
+    <div class="hero-content-zara absolute inset-0 flex flex-col items-center justify-center px-4">
+      <h1 class="hero-title-zara fade-in text-center"><em>This is</em></h1>
+      <h1 class="hero-title-zara fade-in delay-1 text-center">PAINTELLO HOME</h1>
+      <p class="hero-subtitle-zara fade-in delay-2 text-center">
+        Sustainable paint & décor — crafted in Algeria for homes that inspire.
+      </p>
 
+      <!-- FIXED BUTTONS CONTAINER - SAME SIZE -->
+      <div class="hero-buttons-container fade-in delay-3">
+        <!-- Paintello Button -->
+        <a href="/" class="hero-button-zara">
+          <img src="/favicon/android-chrome-192x192.png" 
+               alt="Paintello" 
+               class="hero-button-image">
+          <span class="hero-button-text">Paintello</span>
+        </a>
 
-  <%- include ("../partials/footer") %>.
+        <!-- Paintello Home Button -->
+        <a href="/paintello" class="hero-button-zara">
+          <img src="/img/logo.png" 
+               alt="Paintello Home" 
+               class="hero-button-image">
+          <span class="hero-button-text">Paintello Home</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ZARA-STYLE PRODUCTS GRID ===================== -->
+  <section class="bg-white">
+    <h2 class="section-title-zara">New Arrivals</h2>
+    
+    <div class="products-grid-zara">
+      <% paintellos.forEach((product, index) => { %>
+        <article class="product-card-zara fade-in" style="animation-delay: <%= (index % 6) * 0.1 %>s">
+          <div class="product-image-container-zara">
+            <!-- STATUS BADGES - ON IMAGE (Based on product.status) -->
+            <div class="product-badges-zara">
+              <% 
+                // Determine which badges to show based on product status
+                const badges = [];
+                
+                // Check for "New" status
+                if (product.status && product.status.toLowerCase().includes('new')) {
+                  badges.push({ type: 'new', text: 'New' });
+                }
+                
+                // Check for "Promo" status or if oldPrice exists
+                if ((product.status && product.status.toLowerCase().includes('promo')) || 
+                    (product.oldPrice && product.oldPrice > product.price)) {
+                  badges.push({ type: 'promo', text: 'Promo' });
+                }
+                
+                // Check for stock status
+                if (product.disponible === true || product.disponible === 'true') {
+                  badges.push({ type: 'in-stock', text: 'In Stock' });
+                } else if (product.disponible === false || product.disponible === 'false') {
+                  badges.push({ type: 'out-of-stock', text: 'Out of Stock' });
+                }
+                
+                // Show badges (limit to 3)
+                badges.slice(0, 3).forEach((badge, badgeIndex) => {
+              %>
+                <span class="badge-zara badge-<%= badge.type %>" style="margin-top: <%= badgeIndex * 40 %>px">
+                  <%= badge.text %>
+                </span>
+              <% }); %>
+            </div>
+
+            <!-- Product Images Carousel -->
+            <div id="carousel-<%= index %>" class="carousel slide h-full" data-ride="carousel">
+              <div class="carousel-inner h-full">
+                <% product.image.forEach((img, i) => { %>
+                  <div class="carousel-item <%= i === 0 ? 'active' : '' %> h-full">
+                    <img class="product-image-zara" src="<%= img %>" alt="<%= product.title %> - Image <%= i + 1 %>">
+                  </div>
+                <% }) %>
+              </div>
+              
+              <!-- Carousel Indicators -->
+              <% if (product.image.length > 1) { %>
+                <div class="carousel-indicators-zara">
+                  <% product.image.forEach((img, i) => { %>
+                    <button type="button" 
+                            class="carousel-indicator-zara <%= i === 0 ? 'active' : '' %>" 
+                            data-target="#carousel-<%= index %>" 
+                            data-slide-to="<%= i %>">
+                    </button>
+                  <% }) %>
+                </div>
+              <% } %>
+              
+              <!-- Carousel Controls -->
+              <% if (product.image.length > 1) { %>
+                <button class="carousel-control-zara carousel-control-prev-zara" type="button" data-target="#carousel-<%= index %>" data-slide="prev">
+                  <span class="carousel-control-icon-zara">
+                    <i class="fas fa-chevron-left"></i>
+                  </span>
+                </button>
+                <button class="carousel-control-zara carousel-control-next-zara" type="button" data-target="#carousel-<%= index %>" data-slide="next">
+                  <span class="carousel-control-icon-zara">
+                    <i class="fas fa-chevron-right"></i>
+                  </span>
+                </button>
+              <% } %>
+            </div>
+
+            <!-- VIEW PRODUCT BUTTON - SAME AS BEFORE -->
+            <div class="quick-view-overlay">
+              <a href="<%= product.href || '/product/' + product._id %>" class="quick-view-btn">
+                View Product
+              </a>
+            </div>
+          </div>
+
+          <div class="product-info-zara">
+            <h3 class="product-title-zara">
+              <a href="<%= product.href || '/product/' + product._id %>" class="hover:opacity-70 transition">
+                <%= product.title %>
+              </a>
+            </h3>
+            
+            <div class="product-price-zara">
+              <span><%= typeof product.price === 'number' ? product.price.toFixed(2) : product.price %> DA</span>
+              <% if (product.oldPrice && product.oldPrice > product.price) { %>
+                <span class="product-old-price-zara">
+                  <%= typeof product.oldPrice === 'number' ? product.oldPrice.toFixed(2) : product.oldPrice %> DA
+                </span>
+              <% } %>
+            </div>
+            
+            <!-- Optional: Show status as text below price -->
+            <% if (product.status && !product.status.toLowerCase().includes('new') && !product.status.toLowerCase().includes('promo')) { %>
+              <div class="text-xs text-gray-500 mt-2 uppercase tracking-wider">
+                <%= product.status %>
+              </div>
+            <% } %>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+    
+    <!-- Empty State -->
+    <% if (!paintellos || paintellos.length === 0) { %>
+      <div class="text-center py-20">
+        <p class="text-gray-500 mb-4">No products available at the moment.</p>
+        <a href="/" class="inline-block px-6 py-3 bg-black text-white text-sm uppercase tracking-wider hover:opacity-80 transition">
+          Continue Shopping
+        </a>
+      </div>
+    <% } %>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer-zara">
+    <div class="max-w-7xl mx-auto">
+      <p>© <%= new Date().getFullYear() %> Paintello Home — All rights reserved</p>
+      <div class="mt-4 flex justify-center gap-6 text-xs">
+        <a href="/privacy" class="hover:underline">Privacy Policy</a>
+        <a href="/terms" class="hover:underline">Terms of Service</a>
+        <a href="/contact" class="hover:underline">Contact Us</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <script>
+    // User dropdown functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const userBtn = document.getElementById('userMenuBtn');
+      const userMenu = document.getElementById('userDropdown');
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+
+      // Toggle user dropdown
+      if (userBtn && userMenu) {
+        userBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          userMenu.classList.toggle('hidden');
+        });
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', (e) => {
+        if (userMenu && !userMenu.contains(e.target) && userBtn && !userBtn.contains(e.target)) {
+          userMenu.classList.add('hidden');
+        }
+      });
+
+      // Toggle mobile menu
+      if (mobileBtn && mobileMenu) {
+        mobileBtn.addEventListener('click', () => {
+          mobileMenu.classList.toggle('hidden');
+        });
+      }
+
+      // Custom Carousel Functionality
+      function initCarousel(carousel) {
+        const items = carousel.querySelectorAll('.carousel-item');
+        const indicators = carousel.querySelectorAll('.carousel-indicator-zara');
+        const prevBtn = carousel.querySelector('[data-slide="prev"]');
+        const nextBtn = carousel.querySelector('[data-slide="next"]');
+        let currentIndex = 0;
+        let autoSlideInterval;
+
+        function showSlide(index) {
+          // Update items
+          items.forEach((item, i) => {
+            item.classList.toggle('active', i === index);
+          });
+          
+          // Update indicators
+          indicators.forEach((indicator, i) => {
+            indicator.classList.toggle('active', i === index);
+          });
+          
+          currentIndex = index;
+        }
+
+        function nextSlide() {
+          let newIndex = currentIndex + 1;
+          if (newIndex >= items.length) newIndex = 0;
+          showSlide(newIndex);
+        }
+
+        function prevSlide() {
+          let newIndex = currentIndex - 1;
+          if (newIndex < 0) newIndex = items.length - 1;
+          showSlide(newIndex);
+        }
+
+        // Previous button
+        if (prevBtn) {
+          prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            prevSlide();
+            resetAutoSlide();
+          });
+        }
+
+        // Next button
+        if (nextBtn) {
+          nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextSlide();
+            resetAutoSlide();
+          });
+        }
+
+        // Indicators
+        indicators.forEach((indicator, index) => {
+          indicator.addEventListener('click', () => {
+            showSlide(index);
+            resetAutoSlide();
+          });
+        });
+
+        // Auto slide
+        function startAutoSlide() {
+          if (items.length > 1) {
+            autoSlideInterval = setInterval(nextSlide, 4000);
+          }
+        }
+
+        function resetAutoSlide() {
+          clearInterval(autoSlideInterval);
+          startAutoSlide();
+        }
+
+        // Pause on hover
+        carousel.addEventListener('mouseenter', () => {
+          clearInterval(autoSlideInterval);
+        });
+
+        carousel.addEventListener('mouseleave', startAutoSlide);
+
+        // Initialize
+        startAutoSlide();
+      }
+
+      // Initialize all carousels
+      document.querySelectorAll('.carousel').forEach(carousel => {
+        initCarousel(carousel);
+      });
+
+      
+
+      // Add hover effect to cards
+      document.querySelectorAll('.product-card-zara').forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          this.style.zIndex = '10';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          this.style.zIndex = '1';
+        });
+      });
+    });
+
+   
+  </script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- FontAwesome -->
+  <script src="https://kit.fontawesome.com/a2d9b6b9f4.js" crossorigin="anonymous"></script>
+</body>
+</html>
