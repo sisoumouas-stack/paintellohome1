@@ -2,12 +2,12 @@
   "name": "n",
   "version": "1.0.0",
   "description": "Material Design for Bootstrap",
- 
   "engines": {
     "node": "v22.14.0",
     "npm": "11.4.2"
   },
   "dependencies": {
+    "@chargily/chargily-pay": "^2.1.0",
     "all": "*",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.10.0",
