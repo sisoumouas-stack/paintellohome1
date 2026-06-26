@@ -2019,9 +2019,9 @@ router.post("/checkout", async function (req, res) {
   } = req.body;
    const cityNormalised = (city || "").toLowerCase().trim();
 
-  const shipping = wilayaShippingInfo[selectedcity] || { fee: 1000, delay: "3-5 days" };
-  
-  // Determine fee
+    // ✅ FIX: Use cityNormalised instead of selectedcity
+  const shipping = wilayaShippingInfo[cityNormalised] || { fee: 1000, delay: "3-5 jours" };
+
   const shippingFee = cart.totalPrice >= freeShippingThreshold ? 0 : shipping.fee;
   const finalTotalPrice = cart.totalPrice + shippingFee;
  // ===============================
@@ -2237,7 +2237,6 @@ router.get("/payment/success", async (req, res) => {
 
     await order.save();
 
-    // Generate Purchase event ID
     const eventIdPurchase = generateEventId();
     const userData = getCleanUserData(req);
 
@@ -2263,75 +2262,59 @@ router.get("/payment/success", async (req, res) => {
       console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
     }
 
-    // WhatsApp / Email (same as before)
-    
-// ✅ Prepare WhatsApp message payload (using cityNormalised)
-const payload = {
-  messaging_product: "whatsapp",
-  to: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
-  type: "template",
-  template: {
-    name: "commande_confirmee",
-    language: { code: "fr" },
-    components: [
-      {
-        type: "header",
-        parameters: [
+    // WhatsApp – using pending.* fields
+    const payload = {
+      messaging_product: "whatsapp",
+      to: cleanNumero,
+      type: "template",
+      template: {
+        name: "commande_confirmee",
+        language: { code: "fr" },
+        components: [
           {
-            type: "image",
-            image: {
-              link: "https://www.paintello.uk/img/logo.png"
-            }
+            type: "header",
+            parameters: [{ type: "image", image: { link: "https://www.paintello.uk/img/logo.png" } }]
+          },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: pending.firstName || "Client" },
+              { type: "text", text: cart.totalPrice.toString() + " DZD" },
+              { type: "text", text: pending.shippingFee === 0 ? "GRATUIT" : pending.shippingFee.toString() + " DZD" },
+              { type: "text", text: pending.finalTotalPrice.toString() + " DZD" },
+              { type: "text", text: pending.shippingDelay },
+              { type: "text", text: `${pending.address}, ${pending.city}` }
+            ]
           }
         ]
-      },
-      {
-        type: "body",
-        parameters: [
-          { type: "text", text: firstName || "Client" },
-          { type: "text", text: cart.totalPrice.toString() + " DZD" },
-          { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
-          { type: "text", text: finalTotalPrice.toString() + " DZD" },
-          { type: "text", text: shipping.delay },
-          { type: "text", text: `${address}, ${cityNormalised}` }   // ✅ fixed
-        ]
       }
-    ]
-  }
-};
+    };
 
-try {
-  const response = await axios.post(
-    `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+    try {
+      await axios.post(
+        `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
+        payload,
+        { headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}`, 'Content-Type': 'application/json' } }
+      );
+      console.log("✅ WhatsApp sent");
+    } catch (err) {
+      console.error("❌ WhatsApp error:", err.response?.data || err.message);
     }
-  );
-  console.log("✅ WhatsApp message sent:", response.data);
-} catch (err) {
-  console.error("❌ WhatsApp error:", err.response?.data || err.message);
-}
 
-// ✅ Send admin email (using cityNormalised)
-await sendAdminOrderEmail({
-  name: firstName,
-  numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
-  subtotal: cart.totalPrice.toString(),
-  shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
-  total: finalTotalPrice.toString(),
-  deliveryDelay: shipping.delay,
-  address: `${address}, ${commune}, ${cityNormalised}`   // ✅ fixed
-});
+    // Admin email – using pending.* fields
+    await sendAdminOrderEmail({
+      name: pending.firstName,
+      numero: cleanNumero,
+      subtotal: cart.totalPrice.toString(),
+      shippingFee: pending.shippingFee === 0 ? "FREE" : pending.shippingFee.toString() + " DZD",
+      total: pending.finalTotalPrice.toString(),
+      deliveryDelay: pending.shippingDelay,
+      address: `${pending.address}, ${pending.commune}, ${pending.city}`,
+    });
 
-    // Clear cart and pending order
     req.session.cart = null;
     req.session.pendingOrder = null;
 
-    // Store confirmation data
     req.session.confirmationData = {
       paymentMethod: "chargily",
       eventId: eventIdPurchase,
