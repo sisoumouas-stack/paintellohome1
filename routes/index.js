@@ -3644,7 +3644,6 @@ router.post('/notify-me/:productId', async (req, res) => {
     });
   }
 });
-const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
 
 // Minimal admin-like route – secure it with a secret query param for now
 router.get("/order/deliver/:orderId", async (req, res) => {
