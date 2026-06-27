@@ -2263,7 +2263,9 @@ router.get("/payment/success", async (req, res) => {
 
     // Store the order ID in the session for later retrieval
     req.session.lastOrderId = order._id;
-
+await new Promise((resolve, reject) => {
+  req.session.save((err) => (err ? reject(err) : resolve()));
+});
     // Send CAPI Purchase event
     const eventIdPurchase = generateEventId();
     const userData = pending.savedUserData || getCleanUserData(req);
