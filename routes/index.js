@@ -2187,9 +2187,8 @@ await sendAdminOrderEmail({
   const failureUrl = `${baseUrl}/checkout?payment=failed`;
 
   try {
-    const amountInCents = Math.round(finalTotalPrice * 100);
     const payment = await createPayment({
-      amount: amountInCents,
+  amount: Math.round(finalTotalPrice),   // 3700 DA
       currency: "dzd",
       success_url: successUrl,
       failure_url: failureUrl,
@@ -2204,13 +2203,15 @@ await sendAdminOrderEmail({
 });
 
 router.get("/payment/success", async (req, res) => {
-  const paymentId = req.query.payment;
-  if (!paymentId || !req.session.pendingOrder) return res.redirect("/checkout");
+  const checkoutId = req.query.checkout_id;   // ✅ use checkout_id, not payment
+  if (!checkoutId || !req.session.pendingOrder) {
+    return res.redirect("/checkout");
+  }
 
   try {
-    const payment = await verifyPayment(paymentId);
+    const checkout = await verifyPayment(checkoutId);
 
-    if (payment.status !== "paid") {
+    if (checkout.status !== "paid") {
       req.flash("error", "Le paiement n'a pas abouti.");
       return res.redirect("/checkout");
     }
