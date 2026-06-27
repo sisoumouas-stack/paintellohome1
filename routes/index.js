@@ -2045,6 +2045,8 @@ if (paymentMethod === "cod") {
       deliveryDelay: shipping.delay,
       orderType: req.user ? "user" : "guest",
       totalWithShipping: finalTotalPrice,
+       paymentMethod: "cod",                     // ← new field, always "cod" here
+      metaUserData: userData || {}, 
     });
 
     await order.save();
