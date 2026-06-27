@@ -9,22 +9,38 @@ function generateEventId() {
   });
 }
 async function sendPurchaseForDeliveredCOD(order) {
-  // Only for COD orders that have stored user data
   if (order.paymentMethod !== "cod" || !order.metaUserData || Object.keys(order.metaUserData).length === 0) {
     console.log("⚠️ Skip Purchase – not a valid COD order or missing user data");
     return;
   }
 
+  // --- Extract items array safely ---
+  let itemsArray = [];
+  const cart = order.cart;
+  if (cart && cart.items) {
+    if (Array.isArray(cart.items)) {
+      itemsArray = cart.items;
+    } else if (typeof cart.items === 'object') {
+      // Items stored as object keyed by product ID
+      itemsArray = Object.values(cart.items);
+    }
+  }
+
+  // Build contents and content_ids
+  const contents = itemsArray.map(item => ({
+    id: (item.item && item.item._id) ? item.item._id.toString() : (item._id ? item._id.toString() : ''),
+    quantity: item.qty || item.quantity || 1,
+    item_price: item.price || (item.unitPrice || 0),
+  }));
+  const content_ids = contents.map(c => c.id).filter(id => id);
+
+  if (content_ids.length === 0) {
+    console.log("⚠️ No valid product IDs – skipping Purchase event");
+    return;
+  }
+
   const eventId = generateEventId();
   const userData = order.metaUserData;
-
-  // Build contents from the saved cart
-  const contents = order.cart.items.map(item => ({
-    id: item.item._id ? item.item._id.toString() : item.item.toString(),
-    quantity: item.qty,
-    item_price: item.price || (item.unitPrice ? item.unitPrice : 0),
-  }));
-  const content_ids = contents.map(c => c.id);
 
   try {
     await sendFacebookCAPIEvent({
@@ -35,7 +51,6 @@ async function sendPurchaseForDeliveredCOD(order) {
         value: order.totalWithShipping || order.cart.totalPrice,
         currency: "DZD",
         content_type: "product",
-        content_category: 'COD',
         content_ids: content_ids,
         contents: contents,
       },
