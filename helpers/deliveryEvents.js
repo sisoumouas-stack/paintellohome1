@@ -21,12 +21,10 @@ async function sendPurchaseForDeliveredCOD(order) {
     if (Array.isArray(cart.items)) {
       itemsArray = cart.items;
     } else if (typeof cart.items === 'object') {
-      // Items stored as object keyed by product ID
       itemsArray = Object.values(cart.items);
     }
   }
 
-  // Build contents and content_ids
   const contents = itemsArray.map(item => ({
     id: (item.item && item.item._id) ? item.item._id.toString() : (item._id ? item._id.toString() : ''),
     quantity: item.qty || item.quantity || 1,
