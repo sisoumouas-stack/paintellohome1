@@ -11,6 +11,7 @@ const User = require('../models/user'); // ✅ ADD THIS LINE
 const getCleanUserData = require('../utils/userData');
 const sendFacebookCAPIEvent = require('../services/facebookCapi'); // NEW: Official SDK
 const { createPayment, verifyPayment } = require('../helpers/chargily');
+const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
 
 require('dotenv').config();
 const twilio = require('twilio');
@@ -3643,6 +3644,34 @@ router.post('/notify-me/:productId', async (req, res) => {
     });
   }
 });
+const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
 
+// Minimal admin-like route – secure it with a secret query param for now
+router.get("/order/deliver/:orderId", async (req, res) => {
+  // Basic protection – change the secret to something strong later
+  if (req.query.secret !== "mySuperSecret123") {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).send("Order not found");
+
+    if (order.status === "delivered") {
+      return res.send("Order already marked as delivered.");
+    }
+
+    // Use the existing instance method from your model
+    await order.updateStatus("delivered", "Manual delivery confirmation via admin route", "admin");
+
+    // Now trigger the Purchase event
+    await sendPurchaseForDeliveredCOD(order);
+
+    res.send(`Order ${order._id} marked as delivered. Purchase event sent.`);
+  } catch (err) {
+    console.error("Error delivering order:", err);
+    res.status(500).send("Server error");
+  }
+});
     
 module.exports = router
