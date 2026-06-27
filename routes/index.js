@@ -2222,7 +2222,13 @@ router.get("/payment/success", async (req, res) => {
     console.log("⚠️ Already processed – ignoring duplicate success callback");
     return res.redirect("/confirmation");
   }
-  req.session.pendingOrder.processed = true;
+ req.session.pendingOrder.processed = true;
+await new Promise((resolve, reject) => {
+  req.session.save((err) => {
+    if (err) reject(err);
+    else resolve();
+  });
+});
 
   try {
     const checkout = await verifyPayment(checkoutId);
