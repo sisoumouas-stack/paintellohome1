@@ -2135,16 +2135,17 @@ if (paymentMethod === "cod") {
       console.error("❌ WhatsApp error:", err.response?.data || err.message);
     }
 
-    // Send admin email
-    await sendAdminOrderEmail({
-      name: firstName,
-      numero: cleanNumero,
-      subtotal: cart.totalPrice.toString(),
-      shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
-      total: finalTotalPrice.toString(),
-      deliveryDelay: shipping.delay,
-      address: `${address}, ${commune}, ${cityNormalised}`
-    });
+      // After order save
+await sendTelegramMessage(
+  `🛒 <b>Nouvelle commande</b> — ${order.firstName} ${order.lastName}\n` +
+  `📱 Tél: ${order.numero}\n` +
+  `📍 Adresse: ${order.address}, ${order.commune}, ${order.city}\n` +
+  `💰 Total: ${order.totalWithShipping} DZD\n` +
+  `🚚 Livraison: ${order.deliveryDelay}\n` +
+  `📦 Statut: ${order.status}\n` +
+  `💳 Paiement: ${order.paymentMethod === 'chargily' ? 'CIB/Edahabia' : 'Paiement à la livraison'}\n` +
+  `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+);
 
     // Clear cart
    req.session.cart = null;
@@ -2297,16 +2298,17 @@ await new Promise((resolve, reject) => {
     }
 
     // After order save
-await sendTelegramMessage(
-  `🛒 <b>Nouvelle commande</b> — ${order.firstName} ${order.lastName}\n` +
-  `📱 Tél: ${order.numero}\n` +
-  `📍 Adresse: ${order.address}, ${order.commune}, ${order.city}\n` +
-  `💰 Total: ${order.totalWithShipping} DZD\n` +
-  `🚚 Livraison: ${order.deliveryDelay}\n` +
-  `📦 Statut: ${order.status}\n` +
-  `💳 Paiement: ${order.paymentMethod === 'chargily' ? 'CIB/Edahabia' : 'Paiement à la livraison'}\n` +
-  `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
-);
+// ✅ Background Telegram notification (no await)
+sendTelegramMessage(
+  `🛒 <b>Nouvelle commande (CIB/Edahabia)</b> — ${pending.firstName} ${pending.lastName}\n` +
+  `📱 Tél: ${cleanNumero}\n` +
+  `📍 Adresse: ${pending.address}, ${pending.commune}, ${pending.city}\n` +
+  `💰 Total: ${pending.finalTotalPrice} DZD\n` +
+  `🚚 Livraison: ${pending.shippingDelay}\n` +
+  `📦 Statut: Payé\n` +
+  `💳 Paiement: CIB/Edahabia`
+).catch(err => console.error('❌ Telegram error:', err.message));
+    
     // WhatsApp
     const payload = {
       messaging_product: "whatsapp",
@@ -2346,16 +2348,7 @@ await sendTelegramMessage(
       console.error("❌ WhatsApp error:", err.response?.data || err.message);
     }
 
-    // Admin email
-    await sendAdminOrderEmail({
-      name: pending.firstName,
-      numero: cleanNumero,
-      subtotal: cart.totalPrice.toString(),
-      shippingFee: pending.shippingFee === 0 ? "FREE" : pending.shippingFee.toString() + " DZD",
-      total: pending.finalTotalPrice.toString(),
-      deliveryDelay: pending.shippingDelay,
-      address: `${pending.address}, ${pending.commune}, ${pending.city}`,
-    });
+   
 
     // Clear cart and pending order, but keep lastOrderId
     req.session.cart = null;
