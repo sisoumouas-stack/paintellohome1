@@ -341,36 +341,35 @@
         </div>
     </footer>
 
-    <!-- DYNAMIC META PIXEL EVENT (based on payment method) -->
-    <% if (process.env.FB_PIXEL_ID && typeof eventId !== 'undefined' && eventId) { %>
-    <script>
-        if (typeof fbq !== 'undefined') {
-            var method = '<%= paymentMethod %>';
-            var eventName = '<%= eventName %>';
-            var id = '<%= eventId %>';
+    <% if (typeof eventId !== 'undefined' && eventId) { %>
+<script>
+  if (typeof fbq !== 'undefined') {
+    var method = '<%= paymentMethod %>';
+    var eventName = '<%= eventName %>';
+    var id = '<%= eventId %>';
 
-            if (method === 'chargily') {
-                // Purchase event for online payment
-                fbq('track', 'Purchase', {
-                    value: <%= value %>,
-                    currency: '<%= currency %>',
-                    content_type: 'product',
-                    content_ids: <%- JSON.stringify(content_ids) %>,
-                    contents: <%- JSON.stringify(contents) %>
-                }, {
-                    eventID: id
-                });
-                console.log('Meta Pixel: Purchase fired with eventID', id);
-            } else if (method === 'cod') {
-                // InitiateCheckout for cash on delivery
-                fbq('track', 'InitiateCheckout', {}, {
-                    eventID: id
-                });
-                console.log('Meta Pixel: InitiateCheckout fired with eventID', id);
-            }
-        }
-    </script>
+    <% if (paymentMethod === 'chargily') { %>
+      // Online payment – Purchase event with all details
+      fbq('track', 'Purchase', {
+        value: <%= value %>,
+        currency: '<%= currency %>',
+        content_type: 'product',
+        content_ids: <%- JSON.stringify(content_ids) %>,
+        contents: <%- JSON.stringify(contents) %>
+      }, {
+        eventID: id
+      });
+      console.log('Pixel Purchase fired with eventID:', id);
+    <% } else { %>
+      // COD – InitiateCheckout event (no extra data needed)
+      fbq('track', 'InitiateCheckout', {}, {
+        eventID: id
+      });
+      console.log('Pixel InitiateCheckout fired with eventID:', id);
     <% } %>
+  }
+</script>
+<% } %>
 
     <!-- GA4 Purchase Event (only for actual purchases, not COD) -->
     <% if (typeof paymentMethod !== 'undefined' && paymentMethod === 'chargily') { %>
