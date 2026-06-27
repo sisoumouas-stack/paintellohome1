@@ -2179,8 +2179,10 @@ await sendAdminOrderEmail({
     shippingFee,
     shippingDelay: shipping.delay,
     finalTotalPrice,
-    rawNumero,
+    rawNumero,  
+    processed: false,
     user: req.user || null,
+    
   };
 
   const baseUrl = `${req.protocol}://${req.get("host")}`;
@@ -2207,7 +2209,12 @@ router.get("/payment/success", async (req, res) => {
   const checkoutId = req.query.checkout_id;   // ✅ use checkout_id, not payment
   if (!checkoutId || !req.session.pendingOrder) {
     return res.redirect("/checkout");
+   // Prevent duplicate processing
+  if (req.session.pendingOrder.processed) {
+    console.log("⚠️ Already processed – ignoring duplicate success callback");
+    return res.redirect("/confirmation");
   }
+  req.session.pendingOrder.processed = true;   // mark as processing
 
   try {
     const checkout = await verifyPayment(checkoutId);
