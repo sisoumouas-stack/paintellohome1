@@ -1,5 +1,5 @@
 // helpers/deliveryEvents.js
-const { sendFacebookCAPIEvent } = require('../services/facebookCapi'); // adjust the path
+const sendFacebookCAPIEvent = require('../services/facebookCapi');
 
 // UUID v4 generator function
 function generateEventId() {
