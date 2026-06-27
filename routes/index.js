@@ -2167,51 +2167,59 @@ await sendAdminOrderEmail({
       return res.redirect("/checkout");
     }
   }
- // 2. ONLINE PAYMENT (Chargily)
-  // ===============================
-  req.session.pendingOrder = {
-    cart: req.session.cart,
-    firstName,
-    lastName,
-    address,
-    city: cityNormalised,
-    commune,
-    shippingFee,
-    shippingDelay: shipping.delay,
-    finalTotalPrice,
-    rawNumero,  
-    processed: false,
-    user: req.user || null,
-    
-  };
+  
+// 2. ONLINE PAYMENT (Chargily)
+// ===============================
+// Save the user data NOW, while the user is still authenticated (before redirect)
+const userDataForLater = getCleanUserData(req);   // capture while user is present
 
-  const baseUrl = `${req.protocol}://${req.get("host")}`;
-  const successUrl = `${baseUrl}/payment/success`;
-  const failureUrl = `${baseUrl}/checkout?payment=failed`;
+req.session.pendingOrder = {
+  cart: req.session.cart,
+  firstName,
+  lastName,
+  address,
+  city: cityNormalised,
+  commune,
+  shippingFee,
+  shippingDelay: shipping.delay,
+  finalTotalPrice,
+  rawNumero,
+  processed: false,
+  user: req.user || null,
+  // 🔒 Store user data to use after payment
+  savedUserData: userDataForLater,
+};
 
-  try {
-    const payment = await createPayment({
-  amount: Math.round(finalTotalPrice),   // 3700 DA
-      currency: "dzd",
-      success_url: successUrl,
-      failure_url: failureUrl,
-      metadata: { session_id: req.sessionID },
-    });
-    return res.redirect(payment.checkout_url);
-  } catch (error) {
-    console.error("❌ Chargily payment creation error:", error);
-    req.flash("error", "Erreur lors de la création du paiement.");
-    return res.redirect("/checkout");
-  }
-});
+const baseUrl = `${req.protocol}://${req.get("host")}`;
+const successUrl = `${baseUrl}/payment/success`;
+const failureUrl = `${baseUrl}/checkout?payment=failed`;
 
-router.get("/payment/success", async (req, res) => {
-  const checkoutId = req.query.checkout_id;   // ✅ use checkout_id, not payment
+try {
+  const payment = await createPayment({
+    amount: Math.round(finalTotalPrice),   // in dinars
+    currency: "dzd",
+    success_url: successUrl,
+    failure_url: failureUrl,
+    metadata: { session_id: req.sessionID },
+  });
+  return res.redirect(payment.checkout_url);
+} catch (error) {
+  console.error("❌ Chargily payment creation error:", error);
+  req.flash("error", "Erreur lors de la création du paiement.");
+  return res.redirect("/checkout");
+}
+
+  router.get("/payment/success", async (req, res) => {
+  const checkoutId = req.query.checkout_id;
+
   if (!checkoutId || !req.session.pendingOrder) {
     return res.redirect("/checkout");
-   // Prevent duplicate processing
+  }
+
+  // Prevent duplicate processing
   if (req.session.pendingOrder.processed) {
     console.log("⚠️ Already processed – ignoring duplicate success callback");
+    // Still redirect to confirmation (if already processed, confirmation data should be set)
     return res.redirect("/confirmation");
   }
   req.session.pendingOrder.processed = true;   // mark as processing
@@ -2247,13 +2255,14 @@ router.get("/payment/success", async (req, res) => {
     await order.save();
 
     const eventIdPurchase = generateEventId();
-    const userData = getCleanUserData(req);
+    // ✅ Use the saved user data (not getCleanUserData(req) which might be empty now)
+    const userData = pending.savedUserData || getCleanUserData(req);
 
-    if (userData) {
+    if (userData && Object.keys(userData).length > 0) {
       await sendFacebookCAPIEvent({
         eventName: "Purchase",
         eventId: eventIdPurchase,
-        userData,
+        userData,      // now contains email, phone, external_id, etc.
         customData: {
           value: pending.finalTotalPrice,
           currency: "DZD",
@@ -2269,6 +2278,8 @@ router.get("/payment/success", async (req, res) => {
         testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
       });
       console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
+    } else {
+      console.log("⚠️ No user data – Purchase event skipped");
     }
 
     // WhatsApp – using pending.* fields
@@ -2310,7 +2321,7 @@ router.get("/payment/success", async (req, res) => {
       console.error("❌ WhatsApp error:", err.response?.data || err.message);
     }
 
-    // Admin email – using pending.* fields
+    // Admin email
     await sendAdminOrderEmail({
       name: pending.firstName,
       numero: cleanNumero,
@@ -2352,11 +2363,14 @@ router.get("/payment/success", async (req, res) => {
 
     return res.redirect("/confirmation");
   } catch (error) {
+    // On error, release the processed flag so the user can retry
+    req.session.pendingOrder.processed = false;
     console.error("❌ Payment verification error:", error);
     req.flash("error", "Erreur lors de la vérification du paiement.");
     return res.redirect("/checkout");
   }
 });
+  
 
 router.get("/confirmation", async (req, res) => {
   const data = req.session.confirmationData;
