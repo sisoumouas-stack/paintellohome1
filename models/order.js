@@ -18,7 +18,10 @@ const orderSchema = new Schema({
     type: Number, 
     required: true
   },
-  
+  metaUserData: {
+  type: Object,
+  default: {}
+},
   orderType: {
     type: String,
     enum: ['guest', 'user'],
