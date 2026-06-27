@@ -2025,153 +2025,154 @@ router.post("/checkout", async function (req, res) {
   const shippingFee = cart.totalPrice >= freeShippingThreshold ? 0 : shipping.fee;
   const finalTotalPrice = cart.totalPrice + shippingFee;
  // ===============================
-  // 1. CASH ON DELIVERY (COD)
-  // ===============================
-  if (paymentMethod === "cod") {
-    try {
-      const order = new Order({
-        user: req.user || null,
-        cart: cart,
-        address,
-        firstName,
-        lastName,
-        commune,
-        country: "Algeria",
-        city: cityNormalised,
-        numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
-        shippingFee,
-        deliveryDelay: shipping.delay,
-        orderType: req.user ? "user" : "guest",
-        totalWithShipping: finalTotalPrice,
+ // 1. CASH ON DELIVERY (COD)
+// ===============================
+if (paymentMethod === "cod") {
+  try {
+    const cleanNumero = "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, "");
+
+    const order = new Order({
+      user: req.user || null,
+      cart: cart,
+      address,
+      firstName,
+      lastName,
+      commune,
+      country: "Algeria",
+      city: cityNormalised,
+      numero: cleanNumero,
+      shippingFee,
+      deliveryDelay: shipping.delay,
+      orderType: req.user ? "user" : "guest",
+      totalWithShipping: finalTotalPrice,
+    });
+
+    await order.save();
+
+    // Generate InitiateCheckout event ID
+    const eventIdInitiateCheckout = generateEventId();
+    const userData = getCleanUserData(req);
+
+    if (userData) {
+      await sendFacebookCAPIEvent({
+        eventName: "InitiateCheckout",
+        eventId: eventIdInitiateCheckout,
+        userData,
+        customData: {
+          content_ids: cart.generateArray().map(p => p.item._id.toString()),
+          contents: cart.generateArray().map(p => ({
+            id: p.item._id.toString(),
+            quantity: p.qty,
+            item_price: p.item.price,
+          })),
+          content_type: "product",
+          value: finalTotalPrice,
+          currency: "DZD",
+          num_items: cart.totalQty || 0,
+        },
+        eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
+        testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
       });
+      console.log("✅ CAPI InitiateCheckout sent for COD", eventIdInitiateCheckout);
+    }
 
-      await order.save();
-
-      // Generate InitiateCheckout event ID
-      const eventIdInitiateCheckout = generateEventId();
-      const userData = getCleanUserData(req);
-
-      if (userData) {
-        await sendFacebookCAPIEvent({
-          eventName: "InitiateCheckout",
-          eventId: eventIdInitiateCheckout,
-          userData,
-          customData: {
-            content_ids: cart.generateArray().map(p => p.item._id.toString()),
-            contents: cart.generateArray().map(p => ({
-              id: p.item._id.toString(),
-              quantity: p.qty,
-              item_price: p.item.price,
-            })),
-            content_type: "product",
-            value: finalTotalPrice,
-            currency: "DZD",
-            num_items: cart.totalQty || 0,
-          },
-          eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
-          testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
-        });
-        console.log("✅ CAPI InitiateCheckout sent for COD", eventIdInitiateCheckout);
-      }
-
-
- // ✅ Prepare WhatsApp message payload (using cityNormalised)
-const payload = {
-  messaging_product: "whatsapp",
-  to: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
-  type: "template",
-  template: {
-    name: "commande_confirmee",
-    language: { code: "fr" },
-    components: [
-      {
-        type: "header",
-        parameters: [
+    // WhatsApp
+    const payload = {
+      messaging_product: "whatsapp",
+      to: cleanNumero,
+      type: "template",
+      template: {
+        name: "commande_confirmee",
+        language: { code: "fr" },
+        components: [
           {
-            type: "image",
-            image: {
-              link: "https://www.paintello.uk/img/logo.png"
-            }
+            type: "header",
+            parameters: [
+              {
+                type: "image",
+                image: {
+                  link: "https://www.paintello.uk/img/logo.png"
+                }
+              }
+            ]
+          },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: firstName || "Client" },
+              { type: "text", text: cart.totalPrice.toString() + " DZD" },
+              { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
+              { type: "text", text: finalTotalPrice.toString() + " DZD" },
+              { type: "text", text: shipping.delay },
+              { type: "text", text: `${address}, ${cityNormalised}` }
+            ]
           }
         ]
-      },
-      {
-        type: "body",
-        parameters: [
-          { type: "text", text: firstName || "Client" },
-          { type: "text", text: cart.totalPrice.toString() + " DZD" },
-          { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
-          { type: "text", text: finalTotalPrice.toString() + " DZD" },
-          { type: "text", text: shipping.delay },
-          { type: "text", text: `${address}, ${cityNormalised}` }   // ✅ fixed
-        ]
       }
-    ]
-  }
-};
+    };
 
-try {
-  const response = await axios.post(
-    `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
-    payload,
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
-        'Content-Type': 'application/json'
-      }
+    try {
+      const response = await axios.post(
+        `https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.META_WA_TOKEN}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      console.log("✅ WhatsApp message sent:", response.data);
+    } catch (err) {
+      console.error("❌ WhatsApp error:", err.response?.data || err.message);
     }
-  );
-  console.log("✅ WhatsApp message sent:", response.data);
-} catch (err) {
-  console.error("❌ WhatsApp error:", err.response?.data || err.message);
-}
 
-// ✅ Send admin email (using cityNormalised)
-await sendAdminOrderEmail({
-  name: firstName,
-  numero: "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, ""),
-  subtotal: cart.totalPrice.toString(),
-  shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
-  total: finalTotalPrice.toString(),
-  deliveryDelay: shipping.delay,
-  address: `${address}, ${commune}, ${cityNormalised}`   // ✅ fixed
-});
-    
-  // ✅ Clear cart after saving
+    // Send admin email
+    await sendAdminOrderEmail({
+      name: firstName,
+      numero: cleanNumero,
+      subtotal: cart.totalPrice.toString(),
+      shippingFee: shippingFee === 0 ? "FREE" : shippingFee.toString() + " DZD",
+      total: finalTotalPrice.toString(),
+      deliveryDelay: shipping.delay,
+      address: `${address}, ${commune}, ${cityNormalised}`
+    });
+
+    // Clear cart
     req.session.cart = null;
 
-   // Store confirmation data
-      req.session.confirmationData = {
-        paymentMethod: "cod",
-        eventId: eventIdInitiateCheckout,
-        eventName: "InitiateCheckout",
-        firstName,
-        lastName,
-        numero: cleanNumero,
-        address,
-        city: cityNormalised,
-        commune,
-        cartTotal: cart.totalPrice,
-        shippingFee,
-        deliveryDelay: shipping.delay,
-        totalPrice: finalTotalPrice,
-        cartItems: cart.generateArray(),
-        isFreeShipping: cart.totalPrice >= freeShippingThreshold,
-        // optional: pass content_ids for Pixel
-      };
+    // Store confirmation data
+    req.session.confirmationData = {
+      paymentMethod: "cod",
+      eventId: eventIdInitiateCheckout,
+      eventName: "InitiateCheckout",
+      firstName,
+      lastName,
+      numero: cleanNumero,
+      address,
+      city: cityNormalised,
+      commune,
+      cartTotal: cart.totalPrice,
+      shippingFee,
+      deliveryDelay: shipping.delay,
+      totalPrice: finalTotalPrice,
+      cartItems: cart.generateArray(),
+      isFreeShipping: cart.totalPrice >= freeShippingThreshold,
+    };
 
-      return res.redirect("/confirmation");
-    } catch (err) {
-      console.error("COD order error:", err);
-      req.flash("error", "Erreur lors de la commande.");
-      return res.redirect("/checkout");
-    }
+    return res.redirect("/confirmation");
+  } catch (err) {
+    console.error("COD order error:", err);
+    req.flash("error", "Erreur lors de la commande.");
+    return res.redirect("/checkout");
   }
-  
+}
+
+// ===============================
 // 2. ONLINE PAYMENT (Chargily)
 // ===============================
 // Save the user data NOW, while the user is still authenticated (before redirect)
-const userDataForLater = getCleanUserData(req);   // capture while user is present
+const userDataForLater = getCleanUserData(req);
 
 req.session.pendingOrder = {
   cart: req.session.cart,
@@ -2186,7 +2187,6 @@ req.session.pendingOrder = {
   rawNumero,
   processed: false,
   user: req.user || null,
-  // 🔒 Store user data to use after payment
   savedUserData: userDataForLater,
 };
 
@@ -2196,7 +2196,7 @@ const failureUrl = `${baseUrl}/checkout?payment=failed`;
 
 try {
   const payment = await createPayment({
-    amount: Math.round(finalTotalPrice),   // in dinars
+    amount: Math.round(finalTotalPrice),
     currency: "dzd",
     success_url: successUrl,
     failure_url: failureUrl,
@@ -2208,8 +2208,9 @@ try {
   req.flash("error", "Erreur lors de la création du paiement.");
   return res.redirect("/checkout");
 }
+});   // ← THIS WAS MISSING – closes the router.post
 
-  router.get("/payment/success", async (req, res) => {
+router.get("/payment/success", async (req, res) => {
   const checkoutId = req.query.checkout_id;
 
   if (!checkoutId || !req.session.pendingOrder) {
@@ -2219,10 +2220,9 @@ try {
   // Prevent duplicate processing
   if (req.session.pendingOrder.processed) {
     console.log("⚠️ Already processed – ignoring duplicate success callback");
-    // Still redirect to confirmation (if already processed, confirmation data should be set)
     return res.redirect("/confirmation");
   }
-  req.session.pendingOrder.processed = true;   // mark as processing
+  req.session.pendingOrder.processed = true;
 
   try {
     const checkout = await verifyPayment(checkoutId);
@@ -2255,14 +2255,13 @@ try {
     await order.save();
 
     const eventIdPurchase = generateEventId();
-    // ✅ Use the saved user data (not getCleanUserData(req) which might be empty now)
     const userData = pending.savedUserData || getCleanUserData(req);
 
     if (userData && Object.keys(userData).length > 0) {
       await sendFacebookCAPIEvent({
         eventName: "Purchase",
         eventId: eventIdPurchase,
-        userData,      // now contains email, phone, external_id, etc.
+        userData,
         customData: {
           value: pending.finalTotalPrice,
           currency: "DZD",
@@ -2282,7 +2281,7 @@ try {
       console.log("⚠️ No user data – Purchase event skipped");
     }
 
-    // WhatsApp – using pending.* fields
+    // WhatsApp
     const payload = {
       messaging_product: "whatsapp",
       to: cleanNumero,
@@ -2363,14 +2362,13 @@ try {
 
     return res.redirect("/confirmation");
   } catch (error) {
-    // On error, release the processed flag so the user can retry
     req.session.pendingOrder.processed = false;
     console.error("❌ Payment verification error:", error);
     req.flash("error", "Erreur lors de la vérification du paiement.");
     return res.redirect("/checkout");
   }
 });
-  
+
 
 router.get("/confirmation", async (req, res) => {
   const data = req.session.confirmationData;
