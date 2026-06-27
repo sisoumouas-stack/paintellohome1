@@ -12,6 +12,7 @@ const getCleanUserData = require('../utils/userData');
 const sendFacebookCAPIEvent = require('../services/facebookCapi'); // NEW: Official SDK
 const { createPayment, verifyPayment } = require('../helpers/chargily');
 const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
+const { sendTelegramMessage } = require('../helpers/telegram');
 
 require('dotenv').config();
 const twilio = require('twilio');
@@ -2295,6 +2296,17 @@ await new Promise((resolve, reject) => {
       console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
     }
 
+    // After order save
+await sendTelegramMessage(
+  `🛒 <b>Nouvelle commande</b> — ${order.firstName} ${order.lastName}\n` +
+  `📱 Tél: ${order.numero}\n` +
+  `📍 Adresse: ${order.address}, ${order.commune}, ${order.city}\n` +
+  `💰 Total: ${order.totalWithShipping} DZD\n` +
+  `🚚 Livraison: ${order.deliveryDelay}\n` +
+  `📦 Statut: ${order.status}\n` +
+  `💳 Paiement: ${order.paymentMethod === 'chargily' ? 'CIB/Edahabia' : 'Paiement à la livraison'}\n` +
+  `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+);
     // WhatsApp
     const payload = {
       messaging_product: "whatsapp",
@@ -3512,23 +3524,32 @@ router.post('/webhook', async (req, res) => {
     const messages = changes?.value?.messages?.[0];
 
     if (!messages) {
-      return res.sendStatus(200); // ✅ pas de message, réponse immédiate
+      return res.sendStatus(200);
     }
 
-    const from = messages.from; // ✅ numéro client (WhatsApp ID)
-    const text = messages.text?.body?.trim(); // ✅ on ne transforme pas encore en uppercase ici
+    const from = messages.from;
+    const text = messages.text?.body?.trim() || '[Message non texte]';
+    const customerName = changes?.value?.contacts?.[0]?.profile?.name || from;
 
-    // ✉️ Informations à transmettre
-    const name = "Client WhatsApp";
+    // Prepare data for email
+    const name = customerName;
     const numero = from.startsWith('213') ? '0' + from.slice(3) : from;
-    const response = text || "[Message vide ou non texte]";
+    const response = text;
 
-    // ✅ Send email in background (don't wait)
+    // ✅ Send email in background (keep your existing logic)
     sendClientReplyEmail({ name, numero, response }).catch(err => {
-      console.error('❌ Background email error:', err.message);
+      console.error('❌ Email background error:', err.message);
     });
 
-    // ✅ Immediately respond 200 to Meta
+    // ✅ Forward to Telegram instantly (also in background)
+    sendTelegramMessage(
+      `💬 <b>Message WhatsApp</b>\n` +
+      `👤 De: ${name} (${numero})\n` +
+      `📝 Texte: ${response}`
+    ).catch(err => {
+      console.error('❌ Telegram forward error:', err.message);
+    });
+
     return res.sendStatus(200);
   } catch (err) {
     console.error('❌ Webhook error:', err.message);
@@ -3673,5 +3694,7 @@ router.get("/order/deliver/:orderId", async (req, res) => {
     res.status(500).send("Server error");
   }
 });
-    
+
+
+
 module.exports = router
