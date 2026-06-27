@@ -2032,6 +2032,9 @@ if (paymentMethod === "cod") {
   try {
     const cleanNumero = "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, "");
 
+    // ✅ Capture user data ONCE here
+    const userData = getCleanUserData(req);
+
     const order = new Order({
       user: req.user || null,
       cart: cart,
@@ -2046,21 +2049,20 @@ if (paymentMethod === "cod") {
       deliveryDelay: shipping.delay,
       orderType: req.user ? "user" : "guest",
       totalWithShipping: finalTotalPrice,
-       paymentMethod: "cod",                     // ← new field, always "cod" here
-      metaUserData: userData || {}, 
+      paymentMethod: "cod",             // mark as COD
+      metaUserData: userData || {},     // store user data for later
     });
 
     await order.save();
 
-    // Generate InitiateCheckout event ID
+    // Generate InitiateCheckout event ID (same userData)
     const eventIdInitiateCheckout = generateEventId();
-    const userData = getCleanUserData(req);
 
     if (userData) {
       await sendFacebookCAPIEvent({
         eventName: "InitiateCheckout",
         eventId: eventIdInitiateCheckout,
-        userData,
+        userData,   // reuse the captured userData
         customData: {
           content_ids: cart.generateArray().map(p => p.item._id.toString()),
           contents: cart.generateArray().map(p => ({
@@ -2077,6 +2079,8 @@ if (paymentMethod === "cod") {
         testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
       });
       console.log("✅ CAPI InitiateCheckout sent for COD", eventIdInitiateCheckout);
+    } else {
+      console.log("⚠️ No user data – InitiateCheckout skipped");
     }
 
     // WhatsApp
@@ -2142,9 +2146,7 @@ if (paymentMethod === "cod") {
     });
 
     // Clear cart
-    req.session.cart = null;
-
-    // Store confirmation data
+   req.session.cart = null;
     req.session.confirmationData = {
       paymentMethod: "cod",
       eventId: eventIdInitiateCheckout,
@@ -2162,7 +2164,6 @@ if (paymentMethod === "cod") {
       cartItems: cart.generateArray(),
       isFreeShipping: cart.totalPrice >= freeShippingThreshold,
     };
-
     return res.redirect("/confirmation");
   } catch (err) {
     console.error("COD order error:", err);
