@@ -2212,27 +2212,28 @@ try {
 
 router.get("/payment/success", async (req, res) => {
   const checkoutId = req.query.checkout_id;
-
-  if (!checkoutId || !req.session.pendingOrder) {
-    return res.redirect("/checkout");
-  }
+  if (!checkoutId || !req.session.pendingOrder) return res.redirect("/checkout");
 
   // Prevent duplicate processing
   if (req.session.pendingOrder.processed) {
-    console.log("⚠️ Already processed – ignoring duplicate success callback");
-    return res.redirect("/confirmation");
+    console.log("⚠️ Already processed – loading confirmation from saved order");
+    // Try to load the already-saved order from the stored order ID
+    if (req.session.lastOrderId) {
+      return res.redirect(`/confirmation?order_id=${req.session.lastOrderId}`);
+    }
+    // Fallback: redirect to home with a message
+    req.flash("success", "Votre commande a déjà été confirmée.");
+    return res.redirect("/");
   }
- req.session.pendingOrder.processed = true;
-await new Promise((resolve, reject) => {
-  req.session.save((err) => {
-    if (err) reject(err);
-    else resolve();
+
+  // Mark as processing and save the session immediately
+  req.session.pendingOrder.processed = true;
+  await new Promise((resolve, reject) => {
+    req.session.save((err) => (err ? reject(err) : resolve()));
   });
-});
 
   try {
     const checkout = await verifyPayment(checkoutId);
-
     if (checkout.status !== "paid") {
       req.flash("error", "Le paiement n'a pas abouti.");
       return res.redirect("/checkout");
@@ -2260,9 +2261,12 @@ await new Promise((resolve, reject) => {
 
     await order.save();
 
+    // Store the order ID in the session for later retrieval
+    req.session.lastOrderId = order._id;
+
+    // Send CAPI Purchase event
     const eventIdPurchase = generateEventId();
     const userData = pending.savedUserData || getCleanUserData(req);
-
     if (userData && Object.keys(userData).length > 0) {
       await sendFacebookCAPIEvent({
         eventName: "Purchase",
@@ -2283,8 +2287,6 @@ await new Promise((resolve, reject) => {
         testEventCode: req.query.test_event_code || process.env.FB_TEST_EVENT_CODE,
       });
       console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
-    } else {
-      console.log("⚠️ No user data – Purchase event skipped");
     }
 
     // WhatsApp
@@ -2298,7 +2300,7 @@ await new Promise((resolve, reject) => {
         components: [
           {
             type: "header",
-            parameters: [{ type: "image", image: { link: "https://www.paintello.uk/img/logo.png" } }]
+            parameters: [{ type: "image", image: { link: "https://www.paintello.uk/img/logo.png" } }],
           },
           {
             type: "body",
@@ -2308,11 +2310,11 @@ await new Promise((resolve, reject) => {
               { type: "text", text: pending.shippingFee === 0 ? "GRATUIT" : pending.shippingFee.toString() + " DZD" },
               { type: "text", text: pending.finalTotalPrice.toString() + " DZD" },
               { type: "text", text: pending.shippingDelay },
-              { type: "text", text: `${pending.address}, ${pending.city}` }
-            ]
-          }
-        ]
-      }
+              { type: "text", text: `${pending.address}, ${pending.city}` },
+            ],
+          },
+        ],
+      },
     };
 
     try {
@@ -2337,9 +2339,11 @@ await new Promise((resolve, reject) => {
       address: `${pending.address}, ${pending.commune}, ${pending.city}`,
     });
 
+    // Clear cart and pending order, but keep lastOrderId
     req.session.cart = null;
     req.session.pendingOrder = null;
 
+    // Build confirmation data and redirect
     req.session.confirmationData = {
       paymentMethod: "chargily",
       eventId: eventIdPurchase,
@@ -2366,8 +2370,9 @@ await new Promise((resolve, reject) => {
       isFreeShipping: cart.totalPrice >= 5000,
     };
 
-    return res.redirect("/confirmation");
+    return res.redirect(`/confirmation?order_id=${order._id}`);
   } catch (error) {
+    // Release the lock on error
     req.session.pendingOrder.processed = false;
     console.error("❌ Payment verification error:", error);
     req.flash("error", "Erreur lors de la vérification du paiement.");
@@ -2375,12 +2380,40 @@ await new Promise((resolve, reject) => {
   }
 });
 
-
 router.get("/confirmation", async (req, res) => {
-  const data = req.session.confirmationData;
-  if (!data) {
-    return res.redirect("/");
+  let data = req.session.confirmationData;
+  const orderId = req.query.order_id;
+
+  // If session data is missing but we have an order ID, fetch from DB
+  if (!data && orderId) {
+    try {
+      const order = await Order.findById(orderId).populate("cart.items.item");
+      if (order) {
+        // Build a minimal confirmationData from the order
+        data = {
+          paymentMethod: order.orderType === "user" ? "chargily" : "cod", // might need to store actual method in order
+          eventId: null, // no pixel event on fallback
+          eventName: null,
+          firstName: order.firstName,
+          lastName: order.lastName,
+          numero: order.numero,
+          address: order.address,
+          city: order.city,
+          commune: order.commune,
+          cartTotal: order.cart.totalPrice,
+          shippingFee: order.shippingFee,
+          deliveryDelay: order.deliveryDelay,
+          totalPrice: order.totalWithShipping,
+          cartItems: order.cart.generateArray ? order.cart.generateArray() : [],
+          isFreeShipping: order.cart.totalPrice >= 5000,
+        };
+      }
+    } catch (err) {
+      console.error("Failed to fetch order for confirmation:", err);
+    }
   }
+
+  if (!data) return res.redirect("/");
 
   const eventIdPageView = generateEventId();
   const userData = getCleanUserData(req);
@@ -2395,38 +2428,23 @@ router.get("/confirmation", async (req, res) => {
         eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
         testEventCode,
       });
-      console.log("✅ Confirmation PageView sent");
-    } else {
-      console.log("🤖 Bot detected – confirmation PageView skipped");
     }
 
-    // Build the full data object to send to the template
-    const renderData = {
-      ...data,
-      metaEventIdPageView: eventIdPageView,
-      user: req.user,
-      req,
-    };
-
-    // Render the template, then clear the session AFTER the response is sent
+    const renderData = { ...data, metaEventIdPageView: eventIdPageView, user: req.user, req };
     res.render("event/confirmation", renderData, (err, html) => {
-      // Clear sensitive session data regardless of render success
       req.session.confirmationData = null;
-
       if (err) {
         console.error("❌ Confirmation render error:", err);
-        return res.status(500).send("Erreur d'affichage de la confirmation.");
+        return res.status(500).send("Erreur d'affichage.");
       }
       res.send(html);
     });
   } catch (err) {
     console.error("❌ Confirmation route error:", err);
-    // Even on error, clear session so user can restart
     req.session.confirmationData = null;
     return res.redirect("/checkout");
   }
 });
-
 
 
 
