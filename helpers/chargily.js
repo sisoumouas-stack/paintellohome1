@@ -2,7 +2,7 @@ const { ChargilyClient } = require('@chargily/chargily-pay');
 
 const client = new ChargilyClient({
   api_key: process.env.CHARGILY_SECRET_KEY, // This pulls directly from Render's dashboard now
-  mode: 'test',                             // Forces sandbox testing environment
+  mode: 'live',                             // Forces sandbox testing environment
 });
 
 async function createPayment({ amount, currency = 'dzd', success_url, failure_url, metadata }) {
