@@ -1,5 +1,5 @@
 // helpers/deliveryEvents.js
-const sendFacebookCAPIEvent = require('../services/facebookCapi');
+const sendFacebookCAPIEvent = require('../services/metaCapi');
 
 // UUID v4 generator function
 function generateEventId() {
