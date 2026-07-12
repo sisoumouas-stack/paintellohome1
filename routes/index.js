@@ -3,13 +3,13 @@ dns.setDefaultResultOrder('ipv4first');
 var express = require('express')
 var router = express.Router()
 var Cart = require("../models/cart");
-const getMetaUserData = require('../utils/metaUserData');
+const getMetaUserData = require('../utils/userData');
 const sendMetaCAPIEvent = require('../services/metaCapi');
 const nodemailer = require('nodemailer');
 const axios = require('axios');
 const User = require('../models/user'); // ✅ ADD THIS LINE
 const getCleanUserData = require('../utils/userData');
-const sendFacebookCAPIEvent = require('../services/facebookCapi'); // NEW: Official SDK
+const sendFacebookCAPIEvent = require('../services/metaCapi'); // NEW: Official SDK
 const { createPayment, verifyPayment } = require('../helpers/chargily');
 const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
 const { sendTelegramMessage } = require('../helpers/telegram');
