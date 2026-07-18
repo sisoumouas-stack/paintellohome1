@@ -160,11 +160,21 @@ app.use('/roboto',express.static(__dirname + '/font/roboto'))
 app.use(express.static('node_modules'))
 app.use(flash());
 
+// Put this BEFORE app.use('/', router)
+app.head('/health', (req,res) => res.status(200).end());
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'online',
-    uptime: process.uptime()
-  });
+  res.status(200).json({ status: 'online', uptime: process.uptime() });
+});
+
+// Block keep-alive bot if it still hits /
+app.use((req,res,next) => {
+  const ua = (req.headers['user-agent'] || '').toLowerCase();
+  const isKeepAlive = ua.includes('uptimerobot') || ua.includes('cron-job') || ua.includes('better') || ua.includes('kuma') || ua.includes('node-fetch') || ua.includes('axios');
+  if (req.path === '/' && isKeepAlive) {
+    console.log("🤖 KeepAlive bot GET / blocked - use /health instead", ua);
+    return res.status(200).send('ok');
+  }
+  next();
 });
 
 //bring events routes
