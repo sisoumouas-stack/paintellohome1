@@ -39,7 +39,7 @@ const Incoming = require('../models/Incoming');
 const fs = require('fs');
 const path = require('path');
 const furniteur = require('../models/furniteur');
-
+const { isBotRequest } = require('../utils/botDetection');
 // ===== HELPERS - BOT SAFE & META COMPLIANT =====
 function generateEventId() { return crypto.randomUUID(); }
 
@@ -248,6 +248,15 @@ router.get("/shop", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
+ 
+
+  // DEBUG: see who hits /
+  console.log(`HIT / UA=${req.headers['user-agent']?.slice(0,100)} IP=${req.headers['x-forwarded-for']?.split(',')[0]} MODE=${req.headers['sec-fetch-mode']}`);
+
+  if (isBotRequest(req, { blockCloudIPs: true })) {
+    return res.status(200).send('ok'); // block, don't render 21389
+  }
+
   try {
     const successMsg = req.flash("success")[0];
     const eventIdPageView = generateEventId();
@@ -257,7 +266,7 @@ router.get("/", async (req, res) => {
       sendFacebookCAPIEvent({ eventName:"PageView", eventId:eventIdPageView, userData, eventSourceUrl:getEventSourceUrl(req), customData:{}, testEventCode:getTestCode(req) }).catch(()=>{});
       console.log("✅ Home PageView queued");
     } else {
-      console.log("🤖 Bot detected – Home PageView skipped", getBotClassification(req)?.botType);
+      console.log("🤖 Bot detected – Home PageView skipped");
     }
     const headers = await header.find({}).lean();
     res.render("event/home", { headers, req, successMsg, metaEventIdPageView:eventIdPageView, user:req.user });
@@ -978,6 +987,14 @@ router.get("/confirmation", async (req, res) => {
 // GET /order/deliver/:orderId - Mark delivered + Send Purchase for COD
 router.get("/order/deliver/:orderId", async (req, res) => {
   if (req.query.secret !== "mySuperSecret123") return res.status(403).send("Access denied");
+  
+  // BLOCK Telegram / Facebook / Google preview bots
+  const ua = req.headers['user-agent'] || '';
+  if (isBotRequest(req) || /TelegramBot|facebookexternalhit|WhatsApp|TwitterBot/i.test(ua)) {
+    console.log(`🤖 Preview bot blocked from deliver link: ${ua}`);
+    return res.status(200).send("Link preview - order not marked as delivered. Open in browser to confirm.");
+  }
+
   try {
     const Order = require('../models/order');
     const order = await Order.findById(req.params.orderId);
