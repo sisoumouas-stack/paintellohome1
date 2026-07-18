@@ -3185,253 +3185,210 @@ function generateEventId() {
     return v.toString(16);
   });
 }
+// router.get("/producthome/:id") - FIXED
+
 router.get("/producthome/:id", async (req, res) => {
   try {
-    // ✅ Clean the ID
     const rawId = req.params.id;
     const cleanId = rawId.replace(/\.\w+$/, '');
-    
-    // ✅ Fetch the main product
-    const producthome = await Producthome.findById(cleanId);
-    
-    if (!producthome) {
-      return res.status(404).send("Product not found");
-    }
-    
-    // ✅ GET RELATED PRODUCTS BY TYPE (EXCLUDING CURRENT)
-    let relatedProducts = [];
-    if (producthome.type) {
-      relatedProducts = await Producthome.find({
-        
-        type: producthome.type        // Only in-stock products
-      })
-      .sort({ createdAt: -1 })         // Newest first
-      .limit(8);                       // Limit to 8 products
-    }
-    
-    // ✅ If no same-type products, get alternative products
-    if (relatedProducts.length < 4 && producthome.type) {
-      // Try to get products with similar keywords
-      const titleWords = producthome.title.split(' ').filter(word => word.length > 3);
-      
-      if (titleWords.length > 0) {
-        const additionalProducts = await Producthome.find({
-          _id: { $nin: [producthome._id, ...relatedProducts.map(p => p._id)] },
-          disponible: true,
-          $or: [
-            { title: { $regex: titleWords[0], $options: 'i' } },
-            { description: { $regex: titleWords[0], $options: 'i' } }
-          ]
-        })
-        .limit(8 - relatedProducts.length);
-        
-        relatedProducts = [...relatedProducts, ...additionalProducts];
-      }
-    }
-    
-    // ✅ Keep your existing random products slider (optional)
-    const randomProducts = await Producthome.find({
-      _id: { $ne: producthome._id },
-      disponible: true
-    })
-    .limit(12);
-    
-    // ✅ Rest of your existing code remains the same...
-    const paintellos = await Paintello.find({}).limit(20);
-    
-    const eventIdPageView = generateEventId();
+
+    // ✅ 1. Fetch product FIRST - need it for everything
+    const producthome = await Producthome.findById(cleanId).lean();
+    if (!producthome) return res.status(404).send("Product not found");
+
+    // ✅ 2. Generate IDs BEFORE any async work (server authority)
+  const eventIdPageView = generateEventId();
     const eventIdView = generateEventId();
     const eventIdCart = generateEventId();
     
-    
+    // ✅ 3. Bot check FAST - before heavy queries
     const userData = getCleanUserData(req);
-    
-    if (userData) {
-      const eventSourceUrl = `https://${req.get("host")}${req.originalUrl}`;
-      const testEventCode = req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
+    const isBot = !userData;
+
+    // ✅ 4. Build eventSourceUrl correctly (handle proxy)
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = (req.get("host") || "").split(":")[0];
+    const eventSourceUrl = `${protocol}://${host}${req.originalUrl}`;
+    const testEventCode = req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
+
+    // ✅ 5. Fire CAPI NON-BLOCKING - don't await before render
+    if (!isBot) {
+      // Set _fbc cookie if generated from fbclid
+      if (userData._isNewFbc && userData.fbc) {
+        res.cookie("_fbc", userData.fbc, { maxAge: 90*24*60*60*1000, httpOnly: false, secure: true, sameSite: "Lax", path: "/" });
+      }
+
+      // FIX: content_type must be "product" not "home_decor", id must be string
+      const productIdStr = producthome._id.toString();
       
-      await sendFacebookCAPIEvent({
+      // PageView - empty custom_data
+      sendFacebookCAPIEvent({
         eventName: "PageView",
         eventId: eventIdPageView,
         userData,
         eventSourceUrl,
+        customData: {},
         testEventCode
-      });
-      
-      await sendFacebookCAPIEvent({
+      }).catch(()=>{});
+
+      // ViewContent - with correct content_type
+      sendFacebookCAPIEvent({
         eventName: "ViewContent",
         eventId: eventIdView,
         userData,
         customData: {
           content_name: producthome.title,
-          content_ids: [producthome.id],
-          contents: [{
-            id: producthome.id,
-            quantity: 1,
-            item_price: producthome.price
-          }],
-          content_type: "home_decor",
-          value: producthome.price,
+          content_ids: [productIdStr],
+          contents: [{ id: productIdStr, quantity: 1, item_price: Number(producthome.price) }],
+          content_type: "product", // FIX: was "home_decor" -> Meta shows warning
+          value: Number(producthome.price),
           currency: "DZD"
         },
         eventSourceUrl,
         testEventCode
-      });
+      }).catch(()=>{});
+
+      console.log("✅ PageView + ViewContent queued");
+    } else {
+      const { getBotClassification } = require("../utils/botDetection");
+      console.log("🤖 Bot detected – ViewContent skipped", getBotClassification(req));
+    }
+
+    // ✅ 6. Parallelize DB queries + FIX relatedProducts logic
+    // Before: related included current product + out-of-stock + sequential awaits
+    const [relatedProducts, paintellos] = await Promise.all([
+      Producthome.find({ 
+        type: producthome.type,
+        _id: { $ne: producthome._id }, // FIX: exclude current
+        disponible: true // FIX: only in-stock
+      }).sort({ createdAt: -1 }).limit(8).lean(),
       
-      console.log("✅ PageView + ViewContent sent");
-      if (testEventCode) {
-        console.log(`🔬 Facebook Test Event Code: ${testEventCode}`);
+      Paintello.find({}).limit(20).lean()
+    ]);
+
+    // If <4 related, fetch more by keyword (keep your logic but lean)
+    let finalRelated = relatedProducts;
+    if (finalRelated.length < 4 && producthome.type) {
+      const titleWords = producthome.title.split(' ').filter(w => w.length > 3);
+      if (titleWords.length > 0) {
+        const additional = await Producthome.find({
+          _id: { $nin: [producthome._id, ...finalRelated.map(p => p._id)] },
+          disponible: true,
+          $or: [{ title: { $regex: titleWords[0], $options: 'i' } }]
+        }).limit(8 - finalRelated.length).lean();
+        finalRelated = [...finalRelated, ...additional];
       }
     }
-    
-    req.session.preGeneratedEventIds = {
-      cart: eventIdCart,
-     
-    };
-    
+
+    // ✅ 7. Save pre-gen IDs for AddToCart dedup
+    req.session.preGeneratedEventIds = { cart: eventIdCart, view: eventIdView, page: eventIdPageView };
+
     const has3DModel = !!producthome.stlFile;
-    const defaultColor = producthome.model3D?.defaultColor?.startsWith("#")
-      ? producthome.model3D.defaultColor
-      : `#${producthome.model3D?.defaultColor || "8CAAE6"}`;
-    
+    const defaultColor = producthome.model3D?.defaultColor?.startsWith("#") ? producthome.model3D.defaultColor : `#${producthome.model3D?.defaultColor || "8CAAE6"}`;
+
     res.render("event/producthome", {
       producthome,
-      relatedProducts,  // 👈 This is your RELATED products by type
-      randomProducts,   // 👈 Keep this for other sliders
+      relatedProducts: finalRelated,
       paintellos,
       req,
       metaEventIdView: eventIdView,
       metaEventIdCart: eventIdCart,
-  
       metaEventIdPageView: eventIdPageView,
       has3DModel,
-      model3DSettings: {
-        enabled: has3DModel,
-        stlFile: producthome.stlFile,
-        autoRotate: producthome.model3D?.autoRotate ?? true,
-        defaultColor
-      },
+      model3DSettings: { enabled: has3DModel, stlFile: producthome.stlFile, autoRotate: producthome.model3D?.autoRotate ?? true, defaultColor },
       user: req.user,
       login: req.isAuthenticated()
     });
-    
+
   } catch (error) {
     console.error("❌ Product page error:", error);
     res.status(500).send("Server Error");
   }
 });
+
+// router.get("/add-to-cart-producthome/:id") - FIXED
 router.get("/add-to-cart-producthome/:id", async (req, res) => {
   try {
-    // ✅ Clean the ID by removing any file extension
     const rawId = req.params.id;
     const cleanId = rawId.replace(/\.\w+$/, '');
-    
-    const producthomeId = cleanId;
     const quantity = parseInt(req.query.qty) || 1;
-    const secondProductId = req.query.second; // ✅ Get second product ID
+    const secondProductId = req.query.second;
     const redirectTo = req.query.redirect;
 
     const cart = new Cart(req.session.cart || {});
-    const producthome = await Producthome.findById(producthomeId);
+    const producthome = await Producthome.findById(cleanId).lean();
+    if (!producthome) return res.status(404).send("Product not found");
 
-    // ✅ Check if product exists
-    if (!producthome) {
-      return res.status(404).send("Product not found");
-    }
+    for (let i = 0; i < quantity; i++) cart.add(producthome, producthome._id.toString());
 
-    // ✅ Add main product (full price)
-    for (let i = 0; i < quantity; i++) {
-      cart.add(producthome, producthome.id);
-    }
-
-    // ✅ Add second product with 30% discount if selected
     let secondProduct = null;
     let secondProductDiscountedPrice = 0;
-    
-    // In your /add-to-cart-producthome/:id route
-if (secondProductId) {
-  secondProduct = await Producthome.findById(secondProductId);
-  
-  if (secondProduct) {
-    // Check if second product is the same as main product
-    const isSameProduct = secondProductId === producthomeId;
-    
-    if (isSameProduct) {
-      // Add the same product again but with 30% discount
-      // Link it to the main product
-      const discountedId = `${secondProductId}-discounted`;
-      cart.addDiscounted(secondProduct, discountedId, 0.1, producthomeId);
-      secondProductDiscountedPrice = secondProduct.price * 0.9;
-    } else {
-      // Different product, add with 30% discount and link to main product
-      cart.addDiscounted(secondProduct, secondProductId, 0.1, producthomeId);
-      secondProductDiscountedPrice = secondProduct.price * 0.9;
+    const DISCOUNT_RATE = 0.10; // FIX: was 0.1 but comment said 30% - now 10% matches badge -10%
+
+    if (secondProductId) {
+      secondProduct = await Producthome.findById(secondProductId).lean();
+      if (secondProduct) {
+        const isSameProduct = secondProductId === cleanId;
+        const discountedId = isSameProduct ? `${secondProductId}-discounted` : secondProductId;
+        cart.addDiscounted(secondProduct, discountedId, DISCOUNT_RATE, cleanId);
+        secondProductDiscountedPrice = secondProduct.price * (1 - DISCOUNT_RATE);
+      }
     }
-  }
-}
 
     req.session.cart = cart;
 
-    // ✅ Bot-safe user data
     const userData = getCleanUserData(req);
-
     if (!userData) {
       console.log("🤖 Bot detected – AddToCart skipped");
       return res.redirect(redirectTo === "checkout" ? "/checkout" : "/shop");
     }
 
-    // ✅ Use pre-generated Event ID
+    // FIX: Use pre-generated ID, fallback to new UUID only if missing (will break dedup but better than crash)
     const eventIds = req.session.preGeneratedEventIds || {};
-    const eventIdCart = eventIds.cart || generateEventId();
-    
-    // ✅ Get Facebook Test Event Code
+    const eventIdCart = eventIds.cart || crypto.randomUUID();
+    if (!eventIds.cart) console.warn("⚠️ No pre-generated cart ID found - dedup may fail, session expired");
+
     const testEventCode = req.query.test_event_code || process.env.FB_TEST_EVENT_CODE;
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = (req.get("host") || "").split(":")[0];
 
-    // ✅ Prepare content data for Facebook CAPI
-    const contents = [{
-      id: producthome.id,
-      quantity: quantity,
-      item_price: producthome.price
-    }];
-
-    let totalValue = producthome.price * quantity;
+    const mainIdStr = producthome._id.toString();
+    const contents = [{ id: mainIdStr, quantity, item_price: Number(producthome.price) }];
+    let totalValue = Number(producthome.price) * quantity;
 
     if (secondProduct) {
-      contents.push({
-        id: secondProduct.id,
-        quantity: 1,
-        item_price: secondProductDiscountedPrice
-      });
+      const secondIdStr = secondProduct._id.toString();
+      // FIX: if same product, don't duplicate content_ids, aggregate quantity
+      if (secondIdStr === mainIdStr) {
+        contents[0].quantity += 1;
+        contents[0].item_price = Number(producthome.price); // keep original for main
+        // Add discounted line separately
+        contents.push({ id: `${secondIdStr}-discount`, quantity: 1, item_price: secondProductDiscountedPrice });
+      } else {
+        contents.push({ id: secondIdStr, quantity: 1, item_price: secondProductDiscountedPrice });
+      }
       totalValue += secondProductDiscountedPrice;
     }
 
+    // FIX: content_type = "product" and id as string
     await sendFacebookCAPIEvent({
       eventName: "AddToCart",
       eventId: eventIdCart,
       userData,
       customData: {
         content_name: producthome.title,
-        content_ids: secondProduct 
-          ? [producthome.id, secondProduct.id]
-          : [producthome.id],
-        contents: contents,
-        content_type: "home_decor",
+        content_ids: [...new Set(contents.map(c => c.id.replace('-discount','').replace('-discounted','')))], // unique ids
+        contents,
+        content_type: "product",
         value: totalValue,
         currency: "DZD"
       },
-      eventSourceUrl: `https://${req.get("host")}${req.originalUrl}`,
+      eventSourceUrl: `${protocol}://${host}${req.originalUrl}`,
       testEventCode
     });
 
-    console.log("✅ AddToCart sent with synced Event ID");
-    
-    // ✅ Log test event code if used
-    if (testEventCode) {
-      console.log(`🔬 Facebook Test Event Code Used: ${testEventCode}`);
-    }
-
-    // ✅ Clear used Event ID
-    delete req.session.preGeneratedEventIds;
+    console.log("✅ AddToCart sent with ID:", eventIdCart);
+    delete req.session.preGeneratedEventIds?.cart; // only delete cart id
 
     res.redirect(redirectTo === "checkout" ? "/checkout" : "/shop");
 
