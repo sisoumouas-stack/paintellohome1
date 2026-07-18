@@ -305,22 +305,62 @@ router.post("/cart/remove-both", async (req,res) => {
 });
 
 // ===== CHECKOUT - FIXED =====
-router.get("/checkout", async (req,res) => {
+// GET /checkout
+router.get("/checkout", async (req, res) => {
   if (!req.session.cart) return res.redirect("/shop");
   const cart = new Cart(req.session.cart);
   const errMsg = req.flash("error")[0];
-  let discountAmount=0, totalBeforeDiscount=0, hasDiscount=false;
-  if (cart.items) { for(const id in cart.items){ const item=cart.items[id]; if(item.isDiscounted){ hasDiscount=true; const orig=item.originalPrice||item.item.price; const disc=item.unitPrice||(item.price/item.qty); discountAmount+=(orig-disc)*item.qty; } totalBeforeDiscount+=(item.originalPrice||item.item.price)*item.qty; } }
-  const eventIdPageView = generateEventId();
-  const userData = getCleanUserData(req);
-  if (userData) {
-    setFbcCookieIfNeeded(req,res,userData);
-    sendFacebookCAPIEvent({ eventName:"PageView", eventId:eventIdPageView, userData, eventSourceUrl:getEventSourceUrl(req), customData:{}, testEventCode:getTestCode(req) }).catch(()=>{});
-    console.log("✅ Checkout PageView queued");
-  } else {
-    console.log("🤖 Bot detected – Checkout PageView skipped");
+
+  let discountAmount = 0, totalBeforeDiscount = 0, hasDiscount = false;
+  if (cart.items) {
+    for (const id in cart.items) {
+      const item = cart.items[id];
+      if (item.isDiscounted) {
+        hasDiscount = true;
+        const orig = item.originalPrice || item.item.price;
+        const disc = item.unitPrice || (item.price / item.qty);
+        discountAmount += (orig - disc) * item.qty;
+      }
+      totalBeforeDiscount += (item.originalPrice || item.item.price) * item.qty;
+    }
   }
-  res.render("event/checkout", { totalPrice:cart.totalPrice, totalBeforeDiscount, discountAmount, hasDiscount, errMsg, noError:!errMsg, cart, metaEventIdPageView:eventIdPageView, user:req.user, req });
+
+  const eventIdPageView = generateEventId();
+  const eventIdInitiateCheckout = generateEventId();
+  const userData = getCleanUserData(req);
+  const testCode = getTestCode(req);
+
+  req.session.preGeneratedEventIds = {
+    ...(req.session.preGeneratedEventIds || {}),
+    initiateCheckout: eventIdInitiateCheckout,
+    testCode: testCode
+  };
+
+  if (userData) {
+    setFbcCookieIfNeeded(req, res, userData);
+    sendFacebookCAPIEvent({
+      eventName: "PageView",
+      eventId: eventIdPageView,
+      userData,
+      eventSourceUrl: getEventSourceUrl(req),
+      customData: {},
+      testEventCode: testCode
+    }).catch(()=>{});
+  }
+
+  res.render("event/checkout", {
+    totalPrice: cart.totalPrice,
+    totalBeforeDiscount,
+    discountAmount,
+    hasDiscount,
+    errMsg,
+    noError: !errMsg,
+    cart,
+    metaEventIdPageView: eventIdPageView,
+    metaEventIdInitiateCheckout: eventIdInitiateCheckout,
+    user: req.user,
+    req
+  });
 });
 
 // wilayaShippingInfo object - KEEP YOUR EXISTING FULL OBJECT HERE
@@ -570,88 +610,388 @@ const wilayaShippingInfo = {
 };
       
 
-router.post("/checkout", async (req,res) => {
+// ===== POST /checkout - FIXED WITH WHATSAPP + TELEGRAM =====
+// POST /checkout
+router.post("/checkout", async (req, res) => {
   if (!req.session.cart) return res.redirect("/shop");
   const cart = new Cart(req.session.cart);
   const freeShippingThreshold = 5000;
-  const { firstName, lastName, address, city, commune, numero:rawNumero, paymentMethod } = req.body;
-  const cityNormalised = (city||"").toLowerCase().trim();
+  const { firstName, lastName, address, city, commune, numero: rawNumero, paymentMethod } = req.body;
+  const cityNormalised = (city || "").toLowerCase().trim();
   const shippingInfo = wilayaShippingInfo[cityNormalised] || { fee: 1000, delay: "3-5 jours" };
   const shippingFee = cart.totalPrice >= freeShippingThreshold ? 0 : shippingInfo.fee;
   const finalTotalPrice = cart.totalPrice + shippingFee;
 
+  // 1. COD
   if (paymentMethod === "cod") {
     try {
       const cleanNumero = "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, "");
       const userData = getCleanUserData(req);
-      const order = new (require('../models/order'))({ user:req.user||null, cart, address, firstName, lastName, commune, country:"Algeria", city:cityNormalised, numero:cleanNumero, shippingFee, deliveryDelay:shippingInfo.delay, orderType:req.user?"user":"guest", totalWithShipping:finalTotalPrice, paymentMethod:"cod", metaUserData:userData||{} });
+      const Order = require('../models/order');
+      const order = new Order({
+        user: req.user || null,
+        cart: cart,
+        address, firstName, lastName, commune,
+        country: "Algeria",
+        city: cityNormalised,
+        numero: cleanNumero,
+        shippingFee,
+        deliveryDelay: shippingInfo.delay,
+        orderType: req.user ? "user" : "guest",
+        totalWithShipping: finalTotalPrice,
+        paymentMethod: "cod",
+        metaUserData: userData || {},
+      });
       await order.save();
-      const eventIdInitiateCheckout = generateEventId();
+
+      const eventIds = req.session.preGeneratedEventIds || {};
+      const eventIdInitiateCheckout = eventIds.initiateCheckout || generateEventId();
+      const testCode = eventIds.testCode || getTestCode(req);
+
       if (userData) {
-        sendFacebookCAPIEvent({ eventName:"InitiateCheckout", eventId:eventIdInitiateCheckout, userData, customData:{ content_ids:cart.generateArray().map(p=>p.item._id.toString()), contents:cart.generateArray().map(p=>({id:p.item._id.toString(), quantity:p.qty, item_price:p.item.price})), content_type:"product", value:finalTotalPrice, currency:"DZD", num_items:cart.totalQty||0 }, eventSourceUrl:getEventSourceUrl(req), testEventCode:getTestCode(req) }).catch(()=>{});
-        console.log("✅ CAPI InitiateCheckout queued");
+        sendFacebookCAPIEvent({
+          eventName: "InitiateCheckout",
+          eventId: eventIdInitiateCheckout,
+          userData,
+          customData: {
+            content_ids: cart.generateArray().map(p => p.item._id.toString()),
+            contents: cart.generateArray().map(p => ({ id: p.item._id.toString(), quantity: p.qty, item_price: p.item.price })),
+            content_type: "product",
+            value: finalTotalPrice,
+            currency: "DZD",
+            num_items: cart.totalQty || 0,
+          },
+          eventSourceUrl: getEventSourceUrl(req),
+          testEventCode: testCode,
+        }).catch(()=>{});
+        console.log("✅ CAPI InitiateCheckout sent for COD", eventIdInitiateCheckout);
       }
-      req.session.cart=null;
-      req.session.confirmationData={ paymentMethod:"cod", eventId:eventIdInitiateCheckout, eventName:"InitiateCheckout", firstName, lastName, numero:cleanNumero, address, city:cityNormalised, commune, cartTotal:cart.totalPrice, shippingFee, deliveryDelay:shippingInfo.delay, totalPrice:finalTotalPrice, cartItems:cart.generateArray(), isFreeShipping:cart.totalPrice>=freeShippingThreshold };
+
+      // WHATSAPP COD
+      const waPayloadCOD = {
+        messaging_product: "whatsapp",
+        to: cleanNumero,
+        type: "template",
+        template: {
+          name: "commande_confirmee",
+          language: { code: "fr" },
+          components: [
+            { type: "header", parameters: [{ type: "image", image: { link: "https://www.paintello.uk/img/logo.png" } }] },
+            {
+              type: "body",
+              parameters: [
+                { type: "text", text: firstName || "Client" },
+                { type: "text", text: cart.totalPrice.toString() + " DZD" },
+                { type: "text", text: shippingFee === 0 ? "GRATUIT" : shippingFee.toString() + " DZD" },
+                { type: "text", text: finalTotalPrice.toString() + " DZD" },
+                { type: "text", text: shippingInfo.delay },
+                { type: "text", text: `${address}, ${cityNormalised}` }
+              ]
+            }
+          ]
+        }
+      };
+      try {
+        const waRes = await axios.post(`https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`, waPayloadCOD, {
+          headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}`, 'Content-Type': 'application/json' }
+        });
+        console.log("✅ WhatsApp COD sent:", waRes.data.messages?.[0]?.id);
+      } catch (err) {
+        console.error("❌ WhatsApp COD error:", err.response?.data || err.message);
+      }
+
+      // TELEGRAM COD - with deliver link
+      try {
+        await sendTelegramMessage(
+          `🛒 <b>Nouvelle commande COD</b> — ${order.firstName} ${order.lastName}\n` +
+          `📱 Tél: ${order.numero}\n` +
+          `📍 Adresse: ${order.address}, ${order.commune}, ${order.city}\n` +
+          `💰 Total: ${order.totalWithShipping} DZD\n` +
+          `🚚 Livraison: ${order.deliveryDelay}\n` +
+          `📦 Statut: ${order.status}\n` +
+          `💳 Paiement: Paiement à la livraison\n` +
+          `🔗 Marquer livrée: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+        );
+        console.log("✅ Telegram COD sent");
+      } catch (e) {
+        console.error("❌ Telegram COD failed:", e.response?.data || e.message);
+      }
+
+      req.session.cart = null;
+      if (req.session.preGeneratedEventIds) delete req.session.preGeneratedEventIds.initiateCheckout;
+
+      req.session.confirmationData = {
+        paymentMethod: "cod",
+        eventId: eventIdInitiateCheckout,
+        eventName: "InitiateCheckout",
+        testEventCode: testCode,
+        firstName, lastName, numero: cleanNumero, address,
+        city: cityNormalised, commune,
+        cartTotal: cart.totalPrice,
+        shippingFee,
+        deliveryDelay: shippingInfo.delay,
+        totalPrice: finalTotalPrice,
+        cartItems: cart.generateArray(),
+        isFreeShipping: cart.totalPrice >= freeShippingThreshold,
+      };
       return res.redirect("/confirmation");
-    } catch(err){ console.error(err); req.flash("error","Erreur lors de la commande."); return res.redirect("/checkout"); }
+    } catch (err) {
+      console.error("COD error:", err);
+      req.flash("error", "Erreur lors de la commande.");
+      return res.redirect("/checkout");
+    }
   }
 
+  // 2. CHARGILY
   const userDataForLater = getCleanUserData(req);
-  req.session.pendingOrder = { cart:req.session.cart, firstName, lastName, address, city:cityNormalised, commune, shippingFee, shippingDelay:shippingInfo.delay, finalTotalPrice, rawNumero, processed:false, user:req.user||null, savedUserData:userDataForLater };
+  const testCode = getTestCode(req);
+  req.session.pendingOrder = {
+    cart: req.session.cart,
+    firstName, lastName, address,
+    city: cityNormalised, commune,
+    shippingFee,
+    shippingDelay: shippingInfo.delay,
+    finalTotalPrice,
+    rawNumero,
+    processed: false,
+    user: req.user || null,
+    savedUserData: userDataForLater,
+    testCode: testCode
+  };
+
   const baseUrl = `${req.protocol}://${req.get("host")}`;
   try {
-    const payment = await createPayment({ amount:Math.round(finalTotalPrice), currency:"dzd", success_url:`${baseUrl}/payment/success`, failure_url:`${baseUrl}/checkout?payment=failed`, metadata:{session_id:req.sessionID} });
+    const payment = await createPayment({
+      amount: Math.round(finalTotalPrice),
+      currency: "dzd",
+      success_url: `${baseUrl}/payment/success`,
+      failure_url: `${baseUrl}/checkout?payment=failed`,
+      metadata: { session_id: req.sessionID },
+    });
     return res.redirect(payment.checkout_url);
-  } catch(e){ console.error(e); req.flash("error","Erreur paiement"); return res.redirect("/checkout"); }
+  } catch (error) {
+    console.error("❌ Chargily error:", error);
+    req.flash("error", "Erreur création paiement.");
+    return res.redirect("/checkout");
+  }
 });
 
-router.get("/payment/success", async (req,res) => {
+// GET /payment/success - CHARGILY - Purchase + WhatsApp + Telegram
+router.get("/payment/success", async (req, res) => {
   const checkoutId = req.query.checkout_id;
   if (!checkoutId || !req.session.pendingOrder) return res.redirect("/checkout");
   if (req.session.pendingOrder.processed) {
     if (req.session.lastOrderId) return res.redirect(`/confirmation?order_id=${req.session.lastOrderId}`);
-    req.flash("success","Votre commande a déjà été confirmée."); return res.redirect("/");
+    req.flash("success", "Votre commande a déjà été confirmée.");
+    return res.redirect("/");
   }
-  req.session.pendingOrder.processed=true;
-  await new Promise((r,j)=>req.session.save(e=>e?j(e):r()));
+
+  req.session.pendingOrder.processed = true;
+  await new Promise((resolve, reject) => { req.session.save((err) => (err ? reject(err) : resolve())); });
+
   try {
     const checkout = await verifyPayment(checkoutId);
-    if (checkout.status!=="paid") { req.flash("error","Le paiement n'a pas abouti."); return res.redirect("/checkout"); }
+    if (checkout.status !== "paid") {
+      req.flash("error", "Le paiement n'a pas abouti.");
+      return res.redirect("/checkout");
+    }
+
     const pending = req.session.pendingOrder;
     const cart = new Cart(pending.cart);
     const cleanNumero = "213" + pending.rawNumero.replace(/^0+/, "").replace(/\D/g, "");
-    const order = new Order({ user:pending.user, cart, address:pending.address, firstName:pending.firstName, lastName:pending.lastName, commune:pending.commune, country:"Algeria", city:pending.city, numero:cleanNumero, shippingFee:pending.shippingFee, deliveryDelay:pending.shippingDelay, orderType:pending.user?"user":"guest", totalWithShipping:pending.finalTotalPrice });
+    const Order = require('../models/order');
+    const order = new Order({
+      user: pending.user,
+      cart: cart,
+      address: pending.address,
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      commune: pending.commune,
+      country: "Algeria",
+      city: pending.city,
+      numero: cleanNumero,
+      shippingFee: pending.shippingFee,
+      deliveryDelay: pending.shippingDelay,
+      orderType: pending.user ? "user" : "guest",
+      totalWithShipping: pending.finalTotalPrice,
+      paymentMethod: "chargily"
+    });
     await order.save();
-    req.session.lastOrderId=order._id;
-    await new Promise((r,j)=>req.session.save(e=>e?j(e):r()));
+    req.session.lastOrderId = order._id;
+    await new Promise((resolve, reject) => { req.session.save((err) => (err ? reject(err) : resolve())); });
+
     const eventIdPurchase = generateEventId();
     const userData = pending.savedUserData || getCleanUserData(req);
-    if (userData && Object.keys(userData).length>0) {
-      sendFacebookCAPIEvent({ eventName:"Purchase", eventId:eventIdPurchase, userData, customData:{ value:pending.finalTotalPrice, currency:"DZD", content_type:"product", content_ids:cart.generateArray().map(p=>p.item._id.toString()), contents:cart.generateArray().map(p=>({id:p.item._id.toString(), quantity:p.qty, item_price:p.item.price})) }, eventSourceUrl:getEventSourceUrl(req), testEventCode:getTestCode(req) }).catch(()=>{});
-      console.log("✅ CAPI Purchase queued");
+    const testCode = pending.testCode || getTestCode(req);
+    if (userData && Object.keys(userData).length > 0) {
+      sendFacebookCAPIEvent({
+        eventName: "Purchase",
+        eventId: eventIdPurchase,
+        userData,
+        customData: {
+          value: pending.finalTotalPrice,
+          currency: "DZD",
+          content_type: "product",
+          content_ids: cart.generateArray().map(p => p.item._id.toString()),
+          contents: cart.generateArray().map(p => ({ id: p.item._id.toString(), quantity: p.qty, item_price: p.item.price })),
+        },
+        eventSourceUrl: getEventSourceUrl(req),
+        testEventCode: testCode,
+      }).catch(()=>{});
+      console.log("✅ CAPI Purchase sent for Chargily", eventIdPurchase);
     }
-    sendTelegramMessage(`🛒 CIB/Edahabia — ${pending.firstName} ${pending.lastName} - ${pending.finalTotalPrice} DZD`).catch(()=>{});
-    const payload={ messaging_product:"whatsapp", to:cleanNumero, type:"template", template:{ name:"commande_confirmee", language:{code:"fr"}, components:[{type:"header",parameters:[{type:"image",image:{link:"https://www.paintello.uk/img/logo.png"}}]},{type:"body",parameters:[{type:"text",text:pending.firstName||"Client"},{type:"text",text:cart.totalPrice.toString()+" DZD"},{type:"text",text:pending.shippingFee===0?"GRATUIT":pending.shippingFee.toString()+" DZD"},{type:"text",text:pending.finalTotalPrice.toString()+" DZD"},{type:"text",text:pending.shippingDelay},{type:"text",text:`${pending.address}, ${pending.city}`}]}] } };
-    try{ await axios.post(`https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`, payload, {headers:{Authorization:`Bearer ${process.env.META_WA_TOKEN}`,'Content-Type':'application/json'}}); }catch(e){ console.error(e.response?.data); }
-    req.session.cart=null; req.session.pendingOrder=null;
-    req.session.confirmationData={ paymentMethod:"chargily", eventId:eventIdPurchase, eventName:"Purchase", value:pending.finalTotalPrice, currency:"DZD", content_ids:cart.generateArray().map(p=>p.item._id.toString()), contents:cart.generateArray().map(p=>({id:p.item._id.toString(), quantity:p.qty, item_price:p.item.price})), firstName:pending.firstName, lastName:pending.lastName, numero:cleanNumero, address:pending.address, city:pending.city, commune:pending.commune, cartTotal:cart.totalPrice, shippingFee:pending.shippingFee, deliveryDelay:pending.shippingDelay, totalPrice:pending.finalTotalPrice, cartItems:cart.generateArray(), isFreeShipping:cart.totalPrice>=5000 };
+
+    // TELEGRAM CHARGILY
+    try {
+      await sendTelegramMessage(
+        `🛒 <b>Nouvelle commande CIB/Edahabia PAYÉE</b> — ${pending.firstName} ${pending.lastName}\n` +
+        `📱 Tél: ${cleanNumero}\n` +
+        `📍 Adresse: ${pending.address}, ${pending.commune}, ${pending.city}\n` +
+        `💰 Total: ${pending.finalTotalPrice} DZD\n` +
+        `🚚 Livraison: ${pending.shippingDelay}\n` +
+        `📦 Statut: Payé\n` +
+        `💳 Paiement: CIB/Edahabia\n` +
+        `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+      );
+      console.log("✅ Telegram Chargily sent");
+    } catch (err) { console.error('❌ Telegram Chargily error:', err.message); }
+
+    // WHATSAPP CHARGILY
+    const waPayloadChargily = {
+      messaging_product: "whatsapp",
+      to: cleanNumero,
+      type: "template",
+      template: {
+        name: "commande_confirmee",
+        language: { code: "fr" },
+        components: [
+          { type: "header", parameters: [{ type: "image", image: { link: "https://www.paintello.uk/img/logo.png" } }] },
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: pending.firstName || "Client" },
+              { type: "text", text: cart.totalPrice.toString() + " DZD" },
+              { type: "text", text: pending.shippingFee === 0 ? "GRATUIT" : pending.shippingFee.toString() + " DZD" },
+              { type: "text", text: pending.finalTotalPrice.toString() + " DZD" },
+              { type: "text", text: pending.shippingDelay },
+              { type: "text", text: `${pending.address}, ${pending.city}` },
+            ],
+          },
+        ],
+      },
+    };
+    try {
+      await axios.post(`https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`, waPayloadChargily, {
+        headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}`, 'Content-Type': 'application/json' }
+      });
+      console.log("✅ WhatsApp Chargily sent");
+    } catch (err) {
+      console.error("❌ WhatsApp Chargily error:", err.response?.data || err.message);
+    }
+
+    req.session.cart = null;
+    req.session.pendingOrder = null;
+    req.session.confirmationData = {
+      paymentMethod: "chargily",
+      eventId: eventIdPurchase,
+      eventName: "Purchase",
+      testEventCode: testCode,
+      value: pending.finalTotalPrice,
+      currency: "DZD",
+      content_ids: cart.generateArray().map(p => p.item._id.toString()),
+      contents: cart.generateArray().map(p => ({ id: p.item._id.toString(), quantity: p.qty, item_price: p.item.price })),
+      firstName: pending.firstName,
+      lastName: pending.lastName,
+      numero: cleanNumero,
+      address: pending.address,
+      city: pending.city,
+      commune: pending.commune,
+      cartTotal: cart.totalPrice,
+      shippingFee: pending.shippingFee,
+      deliveryDelay: pending.shippingDelay,
+      totalPrice: pending.finalTotalPrice,
+      cartItems: cart.generateArray(),
+      isFreeShipping: cart.totalPrice >= 5000,
+    };
     return res.redirect(`/confirmation?order_id=${order._id}`);
-  } catch(e){ req.session.pendingOrder.processed=false; console.error(e); req.flash("error","Erreur vérification paiement"); return res.redirect("/checkout"); }
+  } catch (error) {
+    req.session.pendingOrder.processed = false;
+    console.error("❌ Payment verification error:", error);
+    req.flash("error", "Erreur vérification paiement.");
+    return res.redirect("/checkout");
+  }
 });
 
-router.get("/confirmation", async (req,res) => {
+// GET /confirmation
+router.get("/confirmation", async (req, res) => {
   let data = req.session.confirmationData;
   const orderId = req.query.order_id;
-  if (!data && orderId) { try{ const order = await Order.findById(orderId); if(order){ data={ firstName:order.firstName, lastName:order.lastName, numero:order.numero, address:order.address, city:order.city, commune:order.commune, cartTotal:order.cart.totalPrice, shippingFee:order.shippingFee, deliveryDelay:order.deliveryDelay, totalPrice:order.totalWithShipping, cartItems:order.cart.generateArray?order.cart.generateArray():[], isFreeShipping:order.cart.totalPrice>=5000 }; } }catch(e){} }
+  if (!data && orderId) {
+    try {
+      const Order = require('../models/order');
+      const order = await Order.findById(orderId);
+      if (order) {
+        data = {
+          paymentMethod: order.paymentMethod || "cod",
+          eventId: null,
+          eventName: null,
+          testEventCode: getTestCode(req),
+          firstName: order.firstName,
+          lastName: order.lastName,
+          numero: order.numero,
+          address: order.address,
+          city: order.city,
+          commune: order.commune,
+          cartTotal: order.cart.totalPrice,
+          shippingFee: order.shippingFee,
+          deliveryDelay: order.deliveryDelay,
+          totalPrice: order.totalWithShipping,
+          cartItems: order.cart.generateArray ? order.cart.generateArray() : [],
+          isFreeShipping: order.cart.totalPrice >= 5000,
+        };
+      }
+    } catch (err) { console.error(err); }
+  }
   if (!data) return res.redirect("/");
   const eventIdPageView = generateEventId();
   const userData = getCleanUserData(req);
-  if (userData) { setFbcCookieIfNeeded(req,res,userData); sendFacebookCAPIEvent({ eventName:"PageView", eventId:eventIdPageView, userData, eventSourceUrl:getEventSourceUrl(req), customData:{}, testEventCode:getTestCode(req) }).catch(()=>{}); }
-  const renderData = { ...data, metaEventIdPageView:eventIdPageView, user:req.user, req };
-  res.render("event/confirmation", renderData, (err,html)=>{ req.session.confirmationData=null; if(err){ console.error(err); return res.status(500).send("Erreur"); } res.send(html); });
+  const testCode = data.testEventCode || getTestCode(req);
+  if (userData) {
+    setFbcCookieIfNeeded(req, res, userData);
+    sendFacebookCAPIEvent({
+      eventName: "PageView",
+      eventId: eventIdPageView,
+      userData,
+      eventSourceUrl: getEventSourceUrl(req),
+      customData: {},
+      testEventCode: testCode,
+    }).catch(()=>{});
+  }
+  const renderData = { ...data, metaEventIdPageView: eventIdPageView, user: req.user, req };
+  res.render("event/confirmation", renderData, (err, html) => {
+    req.session.confirmationData = null;
+    if (err) { console.error(err); return res.status(500).send("Erreur"); }
+    res.send(html);
+  });
 });
 
+// GET /order/deliver/:orderId - Mark delivered + Send Purchase for COD
+router.get("/order/deliver/:orderId", async (req, res) => {
+  if (req.query.secret !== "mySuperSecret123") return res.status(403).send("Access denied");
+  try {
+    const Order = require('../models/order');
+    const order = await Order.findById(req.params.orderId);
+    if (!order) return res.status(404).send("Order not found");
+    if (order.status === "delivered") return res.send("Order already marked as delivered.");
+    await order.updateStatus("delivered", "Manual delivery confirmation via admin route", "admin");
+    const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
+    await sendPurchaseForDeliveredCOD(order);
+    res.send(`✅ Order ${order._id} marked as delivered. Purchase event sent for COD.`);
+  } catch (err) {
+    console.error("Error delivering order:", err);
+    res.status(500).send("Server error");
+  }
+});
 // ===== OTHER ROUTES - NO CAPI NEEDED =====
 router.get('/shipping-fee/:wilaya', (req,res) => res.status(404).json({error:'Use new shipping logic'}));
 router.post('/update-cart/:id', (req,res) => { let cart=new Cart(req.session.cart||{}); let newQty=parseInt(req.body.quantity); if(newQty>0) cart.update(req.params.id,newQty); req.session.cart=cart; res.redirect('/shop'); });
@@ -803,15 +1143,6 @@ router.post('/notify-me/:productId', async (req,res) => {
   }catch(e){ console.error(e); res.status(500).json({success:false,message:'Erreur serveur'}); }
 });
 
-router.get("/order/deliver/:orderId", async (req,res) => {
-  if(req.query.secret!=="mySuperSecret123") return res.status(403).send("Access denied");
-  try{
-    const order=await Order.findById(req.params.orderId); if(!order) return res.status(404).send("Order not found");
-    if(order.status==="delivered") return res.send("Already delivered");
-    await order.updateStatus("delivered","Manual delivery confirmation via admin route","admin");
-    await sendPurchaseForDeliveredCOD(order);
-    res.send(`Order ${order._id} marked as delivered`);
-  }catch(err){ console.error(err); res.status(500).send("Server error"); }
-});
+
 
 module.exports = router;
