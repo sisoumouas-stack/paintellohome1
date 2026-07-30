@@ -985,29 +985,91 @@ router.get("/confirmation", async (req, res) => {
 });
 
 // GET /order/deliver/:orderId - Mark delivered + Send Purchase for COD
+// Confirmation page (GET)
 router.get("/order/deliver/:orderId", async (req, res) => {
-  if (req.query.secret !== "mySuperSecret123") return res.status(403).send("Access denied");
-  
-  // BLOCK Telegram / Facebook / Google preview bots
-  const ua = req.headers['user-agent'] || '';
-  if (isBotRequest(req) || /TelegramBot|facebookexternalhit|WhatsApp|TwitterBot/i.test(ua)) {
-    console.log(`🤖 Preview bot blocked from deliver link: ${ua}`);
-    return res.status(200).send("Link preview - order not marked as delivered. Open in browser to confirm.");
+  if (req.query.secret !== process.env.DELIVERY_SECRET) {
+    return res.status(403).send("Access denied");
   }
 
   try {
-    const Order = require('../models/order');
     const order = await Order.findById(req.params.orderId);
-    if (!order) return res.status(404).send("Order not found");
-    if (order.status === "delivered") return res.send("Order already marked as delivered.");
-    await order.updateStatus("delivered", "Manual delivery confirmation via admin route", "admin");
-    const { sendPurchaseForDeliveredCOD } = require('../helpers/deliveryEvents');
-    await sendPurchaseForDeliveredCOD(order);
-    res.send(`✅ Order ${order._id} marked as delivered. Purchase event sent for COD.`);
+
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    if (order.status === "delivered") {
+      return res.send("<h2>✅ Order already delivered.</h2>");
+    }
+
+    res.send(`
+      <html>
+        <head>
+          <title>Confirm Delivery</title>
+        </head>
+        <body style="font-family:Arial;text-align:center;padding-top:80px">
+          <h2>Confirm delivery?</h2>
+
+          <p>Order: ${order._id}</p>
+
+          <form method="POST" action="/order/deliver/${order._id}?secret=${req.query.secret}">
+            <button
+              style="
+                background:#28a745;
+                color:white;
+                padding:15px 35px;
+                border:none;
+                border-radius:8px;
+                font-size:18px;
+                cursor:pointer;
+              ">
+              ✅ Mark as Delivered
+            </button>
+          </form>
+        </body>
+      </html>
+    `);
+
   } catch (err) {
-    console.error("Error delivering order:", err);
+    console.error(err);
     res.status(500).send("Server error");
   }
+});
+
+// Actually deliver the order (POST)
+router.post("/order/deliver/:orderId", async (req, res) => {
+
+  if (req.query.secret !== process.env.DELIVERY_SECRET) {
+    return res.status(403).send("Access denied");
+  }
+
+  try {
+
+    const order = await Order.findById(req.params.orderId);
+
+    if (!order) {
+      return res.status(404).send("Order not found");
+    }
+
+    if (order.status === "delivered") {
+      return res.send("Order already delivered.");
+    }
+
+    await order.updateStatus(
+      "delivered",
+      "Manual delivery confirmation",
+      "admin"
+    );
+
+    await sendPurchaseForDeliveredCOD(order);
+
+    res.send("<h2>✅ Delivery confirmed.<br>Purchase event sent.</h2>");
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server error");
+  }
+
 });
 // ===== OTHER ROUTES - NO CAPI NEEDED =====
 router.get('/shipping-fee/:wilaya', (req,res) => res.status(404).json({error:'Use new shipping logic'}));
