@@ -60,7 +60,13 @@ function removeEmpty(value) {
 }
 
 function buildUserData(userData) {
-  const country = normalizeString(userData.country) || DEFAULT_COUNTRY;
+  const normalizedCountry = normalizeString(userData.country);
+  // Meta requires an ISO 3166-1 alpha-2 code for `country`. userData.js already maps
+  // common country names, but anything that slips through unmapped must not be hashed
+  // as free text - it would never match anything on Meta's side. Fall back to default.
+  const country = normalizedCountry && /^[a-z]{2}$/.test(normalizedCountry)
+    ? normalizedCountry
+    : DEFAULT_COUNTRY;
 
   return removeEmpty({
     fbp: userData.fbp,
