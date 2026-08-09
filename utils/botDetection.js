@@ -8,10 +8,18 @@ function getHeader(req, name) {
 
 function extractIP(req = {}) {
   const headers = req.headers || {};
+  // Priority:
+  // 1. cf-connecting-ip - trustworthy ONLY if traffic actually passes through Cloudflare,
+  //    which overwrites this header at the edge (a client can't spoof it in that setup).
+  // 2. req.ip - resolved by Express using `trust proxy` (set in server.js). This walks
+  //    X-Forwarded-For from the trusted end based on the configured hop count, instead of
+  //    blindly reading the leftmost value, which the client controls and can spoof.
+  // 3/4. Manual header parsing / socket address - fallback for contexts without Express
+  //    request resolution (raw webhooks, tests).
   const ip = headers["cf-connecting-ip"] ||
+    req.ip ||
     headers["x-forwarded-for"]?.split(",")[0]?.trim() ||
     headers["x-real-ip"] ||
-    req.ip ||
     req.connection?.remoteAddress ||
     req.socket?.remoteAddress ||
     "";
@@ -21,8 +29,11 @@ function extractIP(req = {}) {
 function isPrivateIP(ip) {
   if (!ip) return true;
   if (ip === "0.0.0.0" || ip === "127.0.0.1" || ip === "::1" || ip === "::ffff:127.0.0.1") return true;
-  // Check private ranges: 10.x, 192.168.x, 172.16-31.x
-  return /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(ip);
+  // IPv4 private ranges: 10.x, 192.168.x, 172.16-31.x
+  if (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(ip)) return true;
+  // IPv6 private ranges: fc00::/7 (unique local), fe80::/10 (link-local)
+  if (/^(f[cd][0-9a-f]{0,3}:|fe[89ab][0-9a-f]:)/i.test(ip)) return true;
+  return false;
 }
 
 function matchesAny(value, patterns) {
