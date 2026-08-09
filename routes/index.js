@@ -65,6 +65,25 @@ function getTestCode(req) {
   return req.query.test_event_code || req.session?.preGeneratedEventIds?.testCode || process.env.FB_TEST_EVENT_CODE || undefined;
 }
 
+// Valid Mongo ObjectId check - avoids CastError -> unwanted 500s on bad/scraped ids
+function isValidObjectId(id) {
+  return typeof id === 'string' && mongoose.Types.ObjectId.isValid(id);
+}
+
+// Timing-safe comparison for secrets passed in query strings (delivery link, webhook verify token)
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+// Basic Algerian mobile number validation (matches the pattern already used in /track-login)
+function isValidAlgerianNumero(numero) {
+  return typeof numero === 'string' && /^0[5-7][0-9]{8}$/.test(numero.trim());
+}
+
 // ===== BLOCK NOISE ROUTES - NO CAPI =====
 router.head('/', (req, res) => res.status(200).end());
 router.get('/health', (req, res) => res.status(200).send('ok'));
@@ -135,6 +154,7 @@ async function handleProductPage(req, res, Model, viewPath, logPrefix) {
   try {
     const rawId = req.params.id;
     const cleanId = rawId.replace(/\.\w+$/, '');
+    if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
     const product = await Model.findById(cleanId).lean();
     if (!product) return res.status(404).send("Product not found");
 
@@ -181,6 +201,7 @@ async function handleAddToCart(req, res, Model, logPrefix) {
   try {
     const rawId = req.params.id;
     const cleanId = rawId.replace(/\.\w+$/, '');
+    if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
     const quantity = parseInt(req.query.qty) || 1;
     const redirectTo = req.query.redirect;
     const cart = new Cart(req.session.cart || {});
@@ -626,6 +647,16 @@ router.post("/checkout", async (req, res) => {
   const cart = new Cart(req.session.cart);
   const freeShippingThreshold = 5000;
   const { firstName, lastName, address, city, commune, numero: rawNumero, paymentMethod } = req.body;
+
+  if (!firstName?.trim() || !lastName?.trim() || !address?.trim() || !city?.trim() || !commune?.trim()) {
+    req.flash("error", "Merci de remplir tous les champs obligatoires.");
+    return res.redirect("/checkout");
+  }
+  if (!isValidAlgerianNumero(rawNumero)) {
+    req.flash("error", "Numéro de téléphone invalide.");
+    return res.redirect("/checkout");
+  }
+
   const cityNormalised = (city || "").toLowerCase().trim();
   const shippingInfo = wilayaShippingInfo[cityNormalised] || { fee: 1000, delay: "3-5 jours" };
   const shippingFee = cart.totalPrice >= freeShippingThreshold ? 0 : shippingInfo.fee;
@@ -636,7 +667,6 @@ router.post("/checkout", async (req, res) => {
     try {
       const cleanNumero = "213" + rawNumero.replace(/^0+/, "").replace(/\D/g, "");
       const userData = getCleanUserData(req);
-      const Order = require('../models/order');
       const order = new Order({
         user: req.user || null,
         cart: cart,
@@ -719,7 +749,7 @@ router.post("/checkout", async (req, res) => {
           `🚚 Livraison: ${order.deliveryDelay}\n` +
           `📦 Statut: ${order.status}\n` +
           `💳 Paiement: Paiement à la livraison\n` +
-          `🔗 Marquer livrée: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+          `🔗 Marquer livrée: https://www.paintello.uk/order/deliver/${order._id}?secret=${encodeURIComponent(process.env.DELIVERY_SECRET)}`
         );
         console.log("✅ Telegram COD sent");
       } catch (e) {
@@ -808,7 +838,6 @@ router.get("/payment/success", async (req, res) => {
     const pending = req.session.pendingOrder;
     const cart = new Cart(pending.cart);
     const cleanNumero = "213" + pending.rawNumero.replace(/^0+/, "").replace(/\D/g, "");
-    const Order = require('../models/order');
     const order = new Order({
       user: pending.user,
       cart: cart,
@@ -860,7 +889,7 @@ router.get("/payment/success", async (req, res) => {
         `🚚 Livraison: ${pending.shippingDelay}\n` +
         `📦 Statut: Payé\n` +
         `💳 Paiement: CIB/Edahabia\n` +
-        `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=mySuperSecret123`
+        `🔗 Voir: https://www.paintello.uk/order/deliver/${order._id}?secret=${encodeURIComponent(process.env.DELIVERY_SECRET)}`
       );
       console.log("✅ Telegram Chargily sent");
     } catch (err) { console.error('❌ Telegram Chargily error:', err.message); }
@@ -937,7 +966,7 @@ router.get("/confirmation", async (req, res) => {
   const orderId = req.query.order_id;
   if (!data && orderId) {
     try {
-      const Order = require('../models/order');
+      if (!isValidObjectId(orderId)) return res.redirect("/");
       const order = await Order.findById(orderId);
       if (order) {
         data = {
@@ -987,8 +1016,11 @@ router.get("/confirmation", async (req, res) => {
 // GET /order/deliver/:orderId - Mark delivered + Send Purchase for COD
 // Confirmation page (GET)
 router.get("/order/deliver/:orderId", async (req, res) => {
-  if (req.query.secret !== process.env.DELIVERY_SECRET) {
+  if (!safeCompare(req.query.secret, process.env.DELIVERY_SECRET)) {
     return res.status(403).send("Access denied");
+  }
+  if (!isValidObjectId(req.params.orderId)) {
+    return res.status(404).send("Order not found");
   }
 
   try {
@@ -1039,8 +1071,11 @@ router.get("/order/deliver/:orderId", async (req, res) => {
 // Actually deliver the order (POST)
 router.post("/order/deliver/:orderId", async (req, res) => {
 
-  if (req.query.secret !== process.env.DELIVERY_SECRET) {
+  if (!safeCompare(req.query.secret, process.env.DELIVERY_SECRET)) {
     return res.status(403).send("Access denied");
+  }
+  if (!isValidObjectId(req.params.orderId)) {
+    return res.status(404).send("Order not found");
   }
 
   try {
@@ -1076,7 +1111,7 @@ router.get('/shipping-fee/:wilaya', (req,res) => res.status(404).json({error:'Us
 router.post('/update-cart/:id', (req,res) => { let cart=new Cart(req.session.cart||{}); let newQty=parseInt(req.body.quantity); if(newQty>0) cart.update(req.params.id,newQty); req.session.cart=cart; res.redirect('/shop'); });
 router.post('/subscribe', async (req,res) => {
   const email=req.body.email; if(!email){ req.flash('error','Email required'); return res.redirect('/'); }
-  try{ const newEmail = new Newsletter({email}); await newEmail.save(); let transporter=nodemailer.createTransport({service:'gmail',auth:{user:process.env.EMAIL_USER,pass:process.env.EMAIL_PASS}}); await transporter.sendMail({from:`"Paintello" <${process.env.EMAIL_USER}>`,to:email,subject:'Welcome',html:'<p>Thank you for subscribing!</p>'}); req.flash('success','Subscribed'); res.redirect('event/confirmation'); }catch(e){ console.error(e); req.flash('error','Error'); res.redirect('event/confirmation'); }
+  try{ const newEmail = new Newsletter({email}); await newEmail.save(); let transporter=nodemailer.createTransport({service:'gmail',auth:{user:process.env.EMAIL_USER,pass:process.env.EMAIL_PASS}}); await transporter.sendMail({from:`"Paintello" <${process.env.EMAIL_USER}>`,to:email,subject:'Welcome',html:'<p>Thank you for subscribing!</p>'}); req.flash('success','Subscribed'); res.redirect('/'); }catch(e){ console.error(e); req.flash('error','Error'); res.redirect('/'); }
 });
 
 // ===== CONTACT & TRACK - FIXED =====
@@ -1138,6 +1173,7 @@ router.get('/track-order', async (req,res) => {
 router.get("/producthome/:id", async (req, res) => {
   try {
     const rawId = req.params.id; const cleanId = rawId.replace(/\.\w+$/, '');
+    if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
     const producthome = await Producthome.findById(cleanId).lean();
     if (!producthome) return res.status(404).send("Product not found");
     const eventIdPageView = generateEventId(); const eventIdView = generateEventId(); const eventIdCart = generateEventId();
@@ -1168,6 +1204,8 @@ router.get("/producthome/:id", async (req, res) => {
 router.get("/add-to-cart-producthome/:id", async (req, res) => {
   try {
     const rawId=req.params.id; const cleanId=rawId.replace(/\.\w+$/,''); const quantity=parseInt(req.query.qty)||1; const secondProductId=req.query.second; const redirectTo=req.query.redirect;
+    if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
+    if (secondProductId && !isValidObjectId(secondProductId)) return res.status(404).send("Second product not found");
     const cart=new Cart(req.session.cart||{}); const producthome=await Producthome.findById(cleanId).lean(); if(!producthome) return res.status(404).send("Product not found");
     for(let i=0;i<quantity;i++) cart.add(producthome, producthome._id.toString());
     let secondProduct=null, secondProductDiscountedPrice=0; const DISCOUNT_RATE=0.10;
@@ -1194,18 +1232,32 @@ router.get('/paintello', async (req,res) => {
 });
 
 router.get('/webhook', (req,res) => {
-  const VERIFY_TOKEN="paintello_webhook_token"; const mode=req.query["hub.mode"]; const token=req.query["hub.verify_token"]; const challenge=req.query["hub.challenge"];
-  if(mode==="subscribe" && token===VERIFY_TOKEN){ console.log("✅ Webhook verified"); return res.status(200).send(challenge); } else return res.sendStatus(403);
+  const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN;
+  const mode=req.query["hub.mode"]; const token=req.query["hub.verify_token"]; const challenge=req.query["hub.challenge"];
+  if(mode==="subscribe" && safeCompare(token, VERIFY_TOKEN)){ console.log("✅ Webhook verified"); return res.status(200).send(challenge); } else return res.sendStatus(403);
 });
+
+// Verifies the request really came from Meta using the X-Hub-Signature-256 header (HMAC-SHA256 of the raw body, keyed with your app secret).
+// Requires the raw request body - if you use express.json() globally, capture the raw body via a verify() callback and attach it as req.rawBody.
+function isValidMetaSignature(req) {
+  const signature = req.get('x-hub-signature-256');
+  if (!signature || !req.rawBody || !process.env.META_APP_SECRET) return false;
+  const expected = 'sha256=' + crypto.createHmac('sha256', process.env.META_APP_SECRET).update(req.rawBody).digest('hex');
+  return safeCompare(signature, expected);
+}
 
 router.post('/webhook', async (req,res) => {
   try{
+    if (!isValidMetaSignature(req)) {
+      console.warn('🚫 Webhook signature invalid - rejecting');
+      return res.sendStatus(403);
+    }
     const entry=req.body.entry?.[0]; const changes=entry?.changes?.[0]; const messages=changes?.value?.messages?.[0];
     if(!messages) return res.sendStatus(200);
     const from=messages.from; const text=messages.text?.body?.trim()||'[Message non texte]'; const customerName=changes?.value?.contacts?.[0]?.profile?.name||from;
     const name=customerName; const numero=from.startsWith('213')?'0'+from.slice(3):from; const response=text;
-    sendClientReplyEmail({name,numero,response}).catch(()=>{});
-    sendTelegramMessage(`💬 <b>Message WhatsApp</b>\n👤 De: ${name} (${numero})\n📝 Texte: ${response}`).catch(()=>{});
+    sendClientReplyEmail({name,numero,response}).catch((e)=>console.error('sendClientReplyEmail error:', e.message));
+    sendTelegramMessage(`💬 <b>Message WhatsApp</b>\n👤 De: ${name} (${numero})\n📝 Texte: ${response}`).catch((e)=>console.error('sendTelegramMessage error:', e.message));
     return res.sendStatus(200);
   }catch(err){ console.error(err); return res.sendStatus(500); }
 });
@@ -1213,6 +1265,7 @@ router.post('/webhook', async (req,res) => {
 router.post('/notify-me/:productId', async (req,res) => {
   try{
     const {productId}=req.params; const {email,phone}=req.body;
+    if(!isValidObjectId(productId)) return res.status(404).json({success:false,message:'Produit non trouvé'});
     const emailRegex=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if(!emailRegex.test(email)) return res.status(400).json({success:false,message:'Format d\'email invalide'});
     const product=await Producthome.findById(productId); if(!product) return res.status(404).json({success:false,message:'Produit non trouvé'});
