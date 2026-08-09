@@ -1,9 +1,13 @@
 var createError = require('http-errors');
 var express = require('express');
 var app = express();
+// Behind a reverse proxy / load balancer (Render, Heroku, Nginx...) so req.protocol,
+// req.ip and secure cookies reflect the real client, not the proxy hop.
+app.set('trust proxy', 1);
+// Don't advertise the framework in response headers.
+app.disable('x-powered-by');
 var path = require('path');
 var mongoose = require('mongoose');
-var bodyParser = require('body-parser')
 var bcrypt = require('bcrypt-nodejs');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
@@ -87,10 +91,12 @@ var beiget = require('./models/beiget');
 
 
 
-mongoose.connect('mongodb+srv://Islem:cmygNChSy2L9Q4xt@paintello.cu30n.mongodb.net/paintello?retryWrites=true&w=majority', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
+if (!process.env.MONGODB_URI) {
+  console.error('❌ MONGODB_URI manquant dans les variables d\'environnement.');
+  process.exit(1);
+}
+
+mongoose.connect(process.env.MONGODB_URI)
 .then(() => {
     console.log('✅ Connected to MongoDB successfully...');
 })
@@ -104,7 +110,7 @@ mongoose.connect('mongodb+srv://Islem:cmygNChSy2L9Q4xt@paintello.cu30n.mongodb.n
     app.use(validator());
     app.use(cookieParser());
     var store = new MongoDBStore({
-      uri: 'mongodb+srv://Islem:cmygNChSy2L9Q4xt@paintello.cu30n.mongodb.net/paintello?retryWrites=true&w=majority',
+      uri: process.env.MONGODB_URI,
       collection: 'mySessions'
     });
     
@@ -113,19 +119,29 @@ mongoose.connect('mongodb+srv://Islem:cmygNChSy2L9Q4xt@paintello.cu30n.mongodb.n
       console.log(error);
     });
     
-    app.use(require('express-session')({
-      secret: 'This is a secret',
+    if (!process.env.SESSION_SECRET) {
+      console.error('❌ SESSION_SECRET manquant dans les variables d\'environnement.');
+      process.exit(1);
+    }
+
+    app.use(session({
+      secret: process.env.SESSION_SECRET,
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7 // 1 week
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', // requires HTTPS + trust proxy (set above)
+        sameSite: 'lax'
       },
       store: store,
-      // Boilerplate options, see:
-      // * https://www.npmjs.com/package/express-session#resave
-      // * https://www.npmjs.com/package/express-session#saveuninitialized
-      resave: true,
-      saveUninitialized: true
+      resave: false,
+      saveUninitialized: false
     }));
-    app.use(express.json({ limit: '10mb' })); // pour supporter les JSON des webhooks
+    // limit + verify: capture the raw body so webhook signature checks (e.g. Meta's
+    // X-Hub-Signature-256 in routes/index.js) can HMAC against the exact bytes received.
+    app.use(express.json({
+      limit: '10mb',
+      verify: (req, res, buf) => { req.rawBody = buf; }
+    }));
     app.use(flash());
     app.use(passport.initialize());
     app.use(passport.session());
@@ -146,10 +162,9 @@ app.set('view engine','ejs')
 
 //bring bodypareser
 app.use(logger('dev'));
-app.use(bodyParser.urlencoded({extended: false}))
-app.use(bodyParser.json())
-app.use('/media', express.static(path.join(__dirname, 'public/images')));
-app.use('/images', express.static(path.join(__dirname, 'public/media')));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use('/media', express.static(path.join(__dirname, 'public/media')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/favicon',express.static(__dirname + '/favicon'))
 app.use('/css',express.static(__dirname + '/css'))
@@ -158,7 +173,6 @@ app.use('/img',express.static(__dirname + '/img'))
 app.use('/scss',express.static(__dirname + '/scss'))
 app.use('/roboto',express.static(__dirname + '/font/roboto'))
 app.use(express.static('node_modules'))
-app.use(flash());
 
 // Put this BEFORE app.use('/', router)
 app.head('/health', (req,res) => res.status(200).end());
@@ -200,9 +214,10 @@ app.use(function(req, res, next) {
   
   // error handler
   app.use(function(err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
+    // set locals, only providing error details in development
+    const isDev = req.app.get('env') === 'development';
+    res.locals.message = isDev ? err.message : 'Une erreur est survenue.';
+    res.locals.error = isDev ? err : {};
   res.header('Cache-Control', 'no-cache, no-store, must-revalidate')
     // render the error page
     res.status(err.status || 500);
