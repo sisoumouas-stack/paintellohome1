@@ -20,10 +20,10 @@
 
   // Initialize pixel
   fbq('init', '<%= process.env.FB_PIXEL_ID %>', {
-    <% if (user && user.email) { %>em: '<%= user.email %>',<% } %>
-    <% if (user && user.firstName) { %>fn: '<%= user.firstName %>',<% } %>
-    <% if (user && user.lastName) { %>ln: '<%= user.lastName %>',<% } %>
-    <% if (user && user.numero) { %>ph: '<%= user.numero %>',<% } %>
+    <% if (user && user.email) { %>em: <%- JSON.stringify(user.email) %>,<% } %>
+    <% if (user && user.firstName) { %>fn: <%- JSON.stringify(user.firstName) %>,<% } %>
+    <% if (user && user.lastName) { %>ln: <%- JSON.stringify(user.lastName) %>,<% } %>
+    <% if (user && user.numero) { %>ph: <%- JSON.stringify(user.numero) %>,<% } %>
   });
 
   // ✅ Track PageView with server-side event ID
@@ -39,7 +39,7 @@ setTimeout(function() {
     const serverEventId = '<%= metaEventIdView %>';
     
     fbq('track', 'ViewContent', {
-      content_name: '<%= producthome.title.replace(/'/g, "\\'") %>',
+      content_name: <%- JSON.stringify(producthome.title) %>,
       content_ids: ['<%= producthome._id %>'],
       content_type: 'home_decor',
       value: <%= producthome.price %>,
@@ -453,12 +453,97 @@ body {
       opacity: 1;
     }
     
+    .lightbox-content {
+      position: relative;
+      width: 92vw;
+      height: 85vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      touch-action: none;
+    }
+
     .lightbox-image {
-      max-width: 90%;
-      max-height: 90%;
+      max-width: 100%;
+      max-height: 100%;
       object-fit: contain;
       border-radius: 8px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      cursor: zoom-in;
+      transition: transform 0.25s ease;
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-drag: none;
+      touch-action: none;
+    }
+
+    .lightbox-image.zoomed {
+      cursor: grab;
+    }
+
+    .lightbox-image.panning {
+      cursor: grabbing;
+      transition: none;
+    }
+
+    .lightbox-zoom-controls {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: rgba(0,0,0,0.7);
+      border-radius: 999px;
+      padding: 6px;
+      z-index: 10000;
+    }
+
+    .lightbox-zoom-controls button {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+
+    .lightbox-zoom-controls button:hover {
+      background: rgba(255,255,255,0.15);
+    }
+
+    #lightboxZoomReset {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .lightbox-zoom-hint {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    .lightbox-zoom-hint.visible {
+      opacity: 1;
     }
     
     .lightbox-close {
@@ -584,10 +669,11 @@ body {
       border-color: var(--accent) !important;
     }
     
-    /* Larger main image */
+    /* Larger main image - square aspect ratio, scales with width, never crops (object-contain on the images) */
     #imageSlider {
-      height: 650px !important;
-      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      height: auto !important;
+      cursor: zoom-in;
     }
     
     /* Swipe hint */
@@ -1123,16 +1209,60 @@ body {
 }
 
 /* 2. PRODUCT IMAGE SECTION - ZARA STYLE */
-/* Main image slider */
+/* Main image - height comes from the aspect-ratio rule declared earlier; kept here for the border/bg only */
 #imageSlider {
-    height: 650px !important;
     background: #fff;
     border: 1px solid #e5e5e5;
 }
 
 .slider-img {
-    object-fit: cover;
+    object-fit: contain !important;
+    background: #fff;
     transition: opacity 0.4s ease;
+}
+
+/* Hover zoom lens - desktop only (toggled on/off via JS using a pointer:fine check) */
+.zoom-lens {
+    position: absolute;
+    display: none;
+    width: 170px;
+    height: 170px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+    background-repeat: no-repeat;
+    background-color: #fff;
+    z-index: 15;
+}
+
+.zoom-lens.active {
+    display: block;
+}
+
+/* Zoom badge - small circular affordance in the corner of the main image */
+.zoom-badge {
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #111;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    cursor: pointer;
+    z-index: 16;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.zoom-badge:hover {
+    background: #fff;
+    transform: scale(1.08);
 }
 
 /* Thumbnails column - Zara style */
@@ -1817,10 +1947,6 @@ section.my-32 .text-sm {
 /* 13. RESPONSIVE ADJUSTMENTS */
 @media (max-width: 768px) {
     /* Mobile adjustments */
-    #imageSlider {
-        height: 500px !important;
-    }
-    
     .thumbnail {
         width: 60px;
         height: 60px;
@@ -1856,10 +1982,6 @@ section.my-32 .text-sm {
 }
 
 @media (max-width: 480px) {
-    #imageSlider {
-        height: 400px !important;
-    }
-    
     .offer-slider {
         grid-template-columns: 1fr;
     }
@@ -2193,11 +2315,24 @@ input:focus, select:focus, textarea:focus {
     <% if (producthome && Array.isArray(producthome.image)) { %>
       <% producthome.image.forEach(function(img, idx){ %>
         <img src="<%= img %>" 
-             class="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out <%= idx===0 ? 'opacity-100' : 'opacity-0' %> slider-img"
+             class="absolute inset-0 w-full h-full object-contain transition-opacity duration-700 ease-in-out <%= idx===0 ? 'opacity-100' : 'opacity-0' %> slider-img"
              alt="image <%= idx+1 %>" 
              data-index="<%= idx %>" />
       <% }); %>
     <% } %>
+
+    <!-- Hover zoom lens (desktop only, added/removed via JS based on pointer support) -->
+    <div id="zoomLens" class="zoom-lens" aria-hidden="true"></div>
+
+    <!-- Zoom badge - opens the full zoom viewer -->
+    <button type="button" id="openLightboxBtn" class="zoom-badge" aria-label="Zoomer sur l'image">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <line x1="11" y1="8" x2="11" y2="14"></line>
+        <line x1="8" y1="11" x2="14" y2="11"></line>
+      </svg>
+    </button>
 
     <!-- Swipe hint -->
     <div class="swipe-hint">
@@ -2212,24 +2347,8 @@ input:focus, select:focus, textarea:focus {
       <i class="fas fa-chevron-right"></i>
     </button>
   </div>
-
-  <div class="mt-3 text-center">
-    <button id="openLightboxBtn" class="text-sm text-[color:var(--accent)] font-medium hover:underline">
-      View full image
-    </button>
-  </div>
 </div>
 
-        <!-- Gallery small grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <% if (producthome && Array.isArray(producthome.image)) { %>
-            <% producthome.image.slice(0,4).forEach(function(img, idx){ %>
-              <div class="rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer gallery-item" data-index="<%= idx %>">
-                <img src="<%= img %>" class="w-full h-32 md:h-40 object-cover hover:scale-105 transition-transform duration-300" alt="gallery <%= idx+1 %>"/>
-              </div>
-            <% }); %>
-          <% } %>
-        </div>
       </section>
 
       <!-- Right: Product info -->
@@ -2331,7 +2450,7 @@ input:focus, select:focus, textarea:focus {
               <label class="text-sm text-gray-700 font-medium">Quantity</label>
               <div class="flex items-center border rounded-full overflow-hidden w-36">
                 <button type="button" id="qtyMinus" class="px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors">-</button>
-                <input id="qtyInput" name="qty" value="1" class="w-12 text-center py-2 outline-none bg-transparent" />
+                <input id="qtyInput" name="qty" type="number" min="1" max="50" step="1" inputmode="numeric" value="1" class="w-12 text-center py-2 outline-none bg-transparent" />
                 <button type="button" id="qtyPlus" class="px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors">+</button>
               </div>
             </div>
@@ -2644,21 +2763,29 @@ input:focus, select:focus, textarea:focus {
 
   <!-- Enhanced Lightbox element -->
   <div id="lightbox" class="lightbox-backdrop">
-    <button id="lightboxClose" class="lightbox-close">
+    <button id="lightboxClose" class="lightbox-close" aria-label="Fermer">
       <i class="fas fa-times"></i>
     </button>
     
-    <button id="lightboxPrev" class="lightbox-nav lightbox-prev">
+    <button id="lightboxPrev" class="lightbox-nav lightbox-prev" aria-label="Image précédente">
       <i class="fas fa-chevron-left"></i>
     </button>
     
-    <button id="lightboxNext" class="lightbox-nav lightbox-next">
+    <button id="lightboxNext" class="lightbox-nav lightbox-next" aria-label="Image suivante">
       <i class="fas fa-chevron-right"></i>
     </button>
     
-    <div class="lightbox-content">
-      <img id="lightboxImage" src="" alt="Full image" class="lightbox-image" />
+    <div class="lightbox-content" id="lightboxViewport">
+      <img id="lightboxImage" src="" alt="Full image" class="lightbox-image" draggable="false" />
     </div>
+
+    <div class="lightbox-zoom-controls">
+      <button type="button" id="lightboxZoomOut" aria-label="Dézoomer">−</button>
+      <button type="button" id="lightboxZoomReset" aria-label="Réinitialiser le zoom">1:1</button>
+      <button type="button" id="lightboxZoomIn" aria-label="Zoomer">+</button>
+    </div>
+
+    <div class="lightbox-zoom-hint" id="lightboxZoomHint">Molette ou pincement pour zoomer &middot; double-tap pour agrandir</div>
   </div>
 
   <!-- Zara-style Notification Modal -->
@@ -2745,32 +2872,6 @@ input:focus, select:focus, textarea:focus {
     </div>
   </div>
 </div>
-        </form>
-        
-        <!-- Messages -->
-        <div id="successMessage" class="hidden mt-6 p-4 bg-green-50 border border-green-200">
-          <div class="flex items-start">
-            <svg class="w-5 h-5 text-green-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-            </svg>
-            <div>
-              <p class="text-sm font-medium text-green-800" id="successText"></p>
-              <p class="text-xs text-green-700 mt-1">Vous recevrez un email dès que le produit sera disponible.</p>
-            </div>
-          </div>
-        </div>
-        
-        <div id="errorMessage" class="hidden mt-6 p-4 bg-red-50 border border-red-200">
-          <div class="flex items-start">
-            <svg class="w-5 h-5 text-red-500 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-            </svg>
-            <div>
-              <p class="text-sm font-medium text-red-800" id="errorText"></p>
-              <p class="text-xs text-red-700 mt-1">Veuillez réessayer ou nous contacter.</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -2899,8 +3000,8 @@ input:focus, select:focus, textarea:focus {
       const prev = document.getElementById('prevSlide');
       const next = document.getElementById('nextSlide');
       const thumbnails = document.querySelectorAll('.thumbnail');
-      const galleryItems = document.querySelectorAll('.gallery-item');
       const imageSlider = document.getElementById('imageSlider');
+      const zoomLens = document.getElementById('zoomLens');
       let currentSlide = 0;
 
       function showSlide(index) {
@@ -2952,54 +3053,129 @@ input:focus, select:focus, textarea:focus {
         });
       });
 
-      // Event listeners for gallery items
-      galleryItems.forEach(item => {
-        item.addEventListener('click', function() {
-          const index = parseInt(this.getAttribute('data-index'));
-          showSlide(index);
-        });
-      });
+      // ---------- Hover zoom lens (desktop with a real mouse only - skipped on touch) ----------
+      const supportsHoverZoom = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+      const ZOOM_LENS_FACTOR = 2.5;
 
-      // ---------- Enhanced Lightbox Functionality ----------
+      if (supportsHoverZoom && imageSlider && zoomLens) {
+        imageSlider.addEventListener('mousemove', function(e) {
+          if (mDown) return; // don't fight with an active drag/swipe
+          const activeImg = slides[currentSlide];
+          if (!activeImg) return;
+          const rect = imageSlider.getBoundingClientRect();
+          const x = Math.min(rect.width, Math.max(0, e.clientX - rect.left));
+          const y = Math.min(rect.height, Math.max(0, e.clientY - rect.top));
+          const xPct = (x / rect.width) * 100;
+          const yPct = (y / rect.height) * 100;
+
+          zoomLens.style.backgroundImage = `url("${activeImg.getAttribute('src')}")`;
+          zoomLens.style.backgroundSize = `${rect.width * ZOOM_LENS_FACTOR}px ${rect.height * ZOOM_LENS_FACTOR}px`;
+          zoomLens.style.backgroundPosition = `${xPct}% ${yPct}%`;
+
+          const lensSize = zoomLens.offsetWidth || 170;
+          const lensX = Math.min(rect.width - lensSize / 2, Math.max(lensSize / 2, x));
+          const lensY = Math.min(rect.height - lensSize / 2, Math.max(lensSize / 2, y));
+          zoomLens.style.left = (lensX - lensSize / 2) + 'px';
+          zoomLens.style.top = (lensY - lensSize / 2) + 'px';
+          zoomLens.classList.add('active');
+        });
+
+        imageSlider.addEventListener('mouseleave', function() {
+          zoomLens.classList.remove('active');
+        });
+      }
+
+      // ---------- Enhanced Lightbox Functionality (real pinch / scroll / drag zoom) ----------
       const lightbox = document.getElementById('lightbox');
       const lightboxImage = document.getElementById('lightboxImage');
+      const lightboxViewport = document.getElementById('lightboxViewport');
       const lightboxClose = document.getElementById('lightboxClose');
       const lightboxPrev = document.getElementById('lightboxPrev');
       const lightboxNext = document.getElementById('lightboxNext');
       const openLightboxBtn = document.getElementById('openLightboxBtn');
+      const lbZoomIn = document.getElementById('lightboxZoomIn');
+      const lbZoomOut = document.getElementById('lightboxZoomOut');
+      const lbZoomReset = document.getElementById('lightboxZoomReset');
+      const lbZoomHint = document.getElementById('lightboxZoomHint');
+
+      const ZOOM_MIN = 1, ZOOM_MAX = 4;
+      let zoomScale = 1, panX = 0, panY = 0, hintTimer = null;
+
+      function applyTransform(withTransition) {
+        lightboxImage.style.transition = withTransition ? '' : 'none';
+        lightboxImage.style.transform = 'translate(' + panX + 'px, ' + panY + 'px) scale(' + zoomScale + ')';
+        lightboxImage.classList.toggle('zoomed', zoomScale > 1);
+      }
+
+      function clampPan() {
+        if (!lightboxViewport) return;
+        const rect = lightboxViewport.getBoundingClientRect();
+        const maxX = Math.max(0, (rect.width * (zoomScale - 1)) / 2);
+        const maxY = Math.max(0, (rect.height * (zoomScale - 1)) / 2);
+        panX = Math.min(maxX, Math.max(-maxX, panX));
+        panY = Math.min(maxY, Math.max(-maxY, panY));
+      }
+
+      function setZoom(newScale, withTransition) {
+        zoomScale = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newScale));
+        if (zoomScale === 1) { panX = 0; panY = 0; }
+        clampPan();
+        applyTransform(withTransition !== false);
+      }
+
+      function resetZoom() {
+        setZoom(1, true);
+      }
+
+      function showZoomHint() {
+        if (!lbZoomHint) return;
+        lbZoomHint.classList.add('visible');
+        clearTimeout(hintTimer);
+        hintTimer = setTimeout(function() { lbZoomHint.classList.remove('visible'); }, 2500);
+      }
+
+      function handleDoubleActivate() {
+        if (zoomScale > 1) resetZoom();
+        else setZoom(2.5, true);
+      }
 
       function openLightbox() {
         const currentImageSrc = slides[currentSlide].getAttribute('src');
         lightboxImage.setAttribute('src', currentImageSrc);
+        resetZoom();
         lightbox.classList.add('active');
         document.body.style.overflow = 'hidden';
+        showZoomHint();
       }
 
       function closeLightbox() {
         lightbox.classList.remove('active');
         document.body.style.overflow = '';
+        resetZoom();
       }
 
-      // Open lightbox when clicking main image
-      imageSlider.addEventListener('click', openLightbox);
-      
-      // Open lightbox when clicking "View full image" button
+      function updateLightboxImage() {
+        const currentImageSrc = slides[currentSlide].getAttribute('src');
+        lightboxImage.setAttribute('src', currentImageSrc);
+        resetZoom();
+      }
+
       if (openLightboxBtn) {
-        openLightboxBtn.addEventListener('click', openLightbox);
+        openLightboxBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          openLightbox();
+        });
       }
 
-      // Lightbox navigation
-      if (lightboxClose) {
-        lightboxClose.addEventListener('click', closeLightbox);
-      }
-      
+      if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+
       if (lightboxPrev) {
         lightboxPrev.addEventListener('click', function() {
           prevSlide();
           updateLightboxImage();
         });
       }
-      
+
       if (lightboxNext) {
         lightboxNext.addEventListener('click', function() {
           nextSlide();
@@ -3007,81 +3183,184 @@ input:focus, select:focus, textarea:focus {
         });
       }
 
-      function updateLightboxImage() {
-        const currentImageSrc = slides[currentSlide].getAttribute('src');
-        lightboxImage.setAttribute('src', currentImageSrc);
+      if (lbZoomIn) lbZoomIn.addEventListener('click', function() { setZoom(zoomScale + 1, true); });
+      if (lbZoomOut) lbZoomOut.addEventListener('click', function() { setZoom(zoomScale - 1, true); });
+      if (lbZoomReset) lbZoomReset.addEventListener('click', resetZoom);
+
+      // Close on backdrop click
+      lightbox.addEventListener('click', function(e) {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      // Keyboard: Esc closes, arrows navigate (only while not zoomed), +/- zoom
+      document.addEventListener('keydown', function(e) {
+        if (!lightbox.classList.contains('active')) return;
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowLeft' && zoomScale === 1) { prevSlide(); updateLightboxImage(); }
+        else if (e.key === 'ArrowRight' && zoomScale === 1) { nextSlide(); updateLightboxImage(); }
+        else if (e.key === '+' || e.key === '=') setZoom(zoomScale + 1, true);
+        else if (e.key === '-') setZoom(zoomScale - 1, true);
+      });
+
+      // Scroll wheel to zoom (desktop)
+      if (lightboxViewport) {
+        lightboxViewport.addEventListener('wheel', function(e) {
+          e.preventDefault();
+          setZoom(zoomScale + (e.deltaY < 0 ? 0.4 : -0.4), false);
+        }, { passive: false });
       }
 
-      // Close lightbox when clicking on backdrop
-      lightbox.addEventListener('click', function(e) {
-        if (e.target === lightbox) {
-          closeLightbox();
-        }
-      });
+      // Double-click to toggle zoom (desktop)
+      if (lightboxImage) {
+        lightboxImage.addEventListener('dblclick', handleDoubleActivate);
+      }
 
-      // Close lightbox with ESC key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && lightbox.classList.contains('active')) {
-          closeLightbox();
-        } else if (lightbox.classList.contains('active')) {
-          if (e.key === 'ArrowLeft') {
-            prevSlide();
-            updateLightboxImage();
-          } else if (e.key === 'ArrowRight') {
-            nextSlide();
-            updateLightboxImage();
+      // Mouse drag: pan when zoomed, swipe to navigate when not
+      let lbMouseDown = false, lbMouseStartX = 0, lbMouseStartY = 0, lbPanOriginX = 0, lbPanOriginY = 0;
+
+      if (lightboxViewport) {
+        lightboxViewport.addEventListener('mousedown', function(e) {
+          lbMouseDown = true;
+          lbMouseStartX = e.clientX;
+          lbMouseStartY = e.clientY;
+          if (zoomScale > 1) {
+            lbPanOriginX = panX;
+            lbPanOriginY = panY;
+            lightboxImage.classList.add('panning');
           }
-        }
-      });
+        });
 
-      // ---------- Swipe Functionality for Main Image ----------
-      let startX = 0, endX = 0;
+        document.addEventListener('mousemove', function(e) {
+          if (!lbMouseDown || zoomScale <= 1) return;
+          panX = lbPanOriginX + (e.clientX - lbMouseStartX);
+          panY = lbPanOriginY + (e.clientY - lbMouseStartY);
+          clampPan();
+          applyTransform(false);
+        });
 
-      if (imageSlider) {
-        imageSlider.addEventListener('touchstart', e => { 
-          startX = e.touches[0].clientX; 
-        });
-        
-        imageSlider.addEventListener('touchmove', e => { 
-          endX = e.touches[0].clientX; 
-        });
-        
-        imageSlider.addEventListener('touchend', () => {
-          const diff = endX - startX;
-          if (Math.abs(diff) > 50) { // swipe threshold
-            if (diff > 0) prevSlide(); 
-            else nextSlide();
-          }
-          startX = endX = 0;
-        });
-        
-        // Mouse swipe for desktop
-        imageSlider.addEventListener('mousedown', function(e) {
-          startX = e.clientX;
-          document.addEventListener('mousemove', onMouseMove);
-          document.addEventListener('mouseup', onMouseUp);
-        });
-        
-        function onMouseMove(e) {
-          endX = e.clientX;
-        }
-        
-        function onMouseUp() {
-          const diff = startX - endX;
-          
-          if (Math.abs(diff) > 50) { // Minimum swipe distance
-            if (diff > 0) {
-              nextSlide();
-            } else {
-              prevSlide();
+        document.addEventListener('mouseup', function(e) {
+          if (!lbMouseDown) return;
+          lbMouseDown = false;
+          lightboxImage.classList.remove('panning');
+          if (zoomScale === 1) {
+            const diffX = lbMouseStartX - e.clientX;
+            if (Math.abs(diffX) > 50) {
+              if (diffX > 0) { nextSlide(); updateLightboxImage(); }
+              else { prevSlide(); updateLightboxImage(); }
             }
           }
-          
-          document.removeEventListener('mousemove', onMouseMove);
-          document.removeEventListener('mouseup', onMouseUp);
-          startX = 0;
-          endX = 0;
-        }
+        });
+      }
+
+      // Touch: single-finger pan/swipe, two-finger pinch-zoom, double-tap to toggle zoom
+      let lbTouchActive = false, lbTouchStartX = 0, lbTouchStartY = 0;
+      let lbPinchStartDist = 0, lbPinchStartScale = 1, lbLastTapTime = 0;
+
+      function touchDistance(touches) {
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+
+      if (lightboxViewport) {
+        lightboxViewport.addEventListener('touchstart', function(e) {
+          if (e.touches.length === 2) {
+            lbTouchActive = false;
+            lbPinchStartDist = touchDistance(e.touches);
+            lbPinchStartScale = zoomScale;
+          } else if (e.touches.length === 1) {
+            lbTouchActive = true;
+            lbTouchStartX = e.touches[0].clientX;
+            lbTouchStartY = e.touches[0].clientY;
+            lbPanOriginX = panX;
+            lbPanOriginY = panY;
+
+            const now = Date.now();
+            if (now - lbLastTapTime < 300) {
+              handleDoubleActivate();
+              lbTouchActive = false;
+            }
+            lbLastTapTime = now;
+          }
+        }, { passive: true });
+
+        lightboxViewport.addEventListener('touchmove', function(e) {
+          if (e.touches.length === 2) {
+            e.preventDefault();
+            const dist = touchDistance(e.touches);
+            const factor = dist / (lbPinchStartDist || dist);
+            setZoom(lbPinchStartScale * factor, false);
+          } else if (e.touches.length === 1 && lbTouchActive && zoomScale > 1) {
+            e.preventDefault();
+            panX = lbPanOriginX + (e.touches[0].clientX - lbTouchStartX);
+            panY = lbPanOriginY + (e.touches[0].clientY - lbTouchStartY);
+            clampPan();
+            applyTransform(false);
+          }
+        }, { passive: false });
+
+        lightboxViewport.addEventListener('touchend', function(e) {
+          if (lbTouchActive && zoomScale === 1 && e.changedTouches && e.changedTouches.length) {
+            const diffX = lbTouchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diffX) > 50) {
+              if (diffX > 0) { nextSlide(); updateLightboxImage(); }
+              else { prevSlide(); updateLightboxImage(); }
+            }
+          }
+          lbTouchActive = false;
+        });
+      }
+
+      // ---------- Main image: swipe (mouse or touch) to change slide, tap to open the zoom viewer ----------
+      let mDown = false, mStartX = 0, mStartY = 0, mMoved = false;
+
+      if (imageSlider) {
+        imageSlider.addEventListener('mousedown', function(e) {
+          if (e.target.closest('#prevSlide, #nextSlide, .zoom-badge')) return;
+          mDown = true;
+          mMoved = false;
+          mStartX = e.clientX;
+          mStartY = e.clientY;
+        });
+
+        document.addEventListener('mousemove', function(e) {
+          if (!mDown) return;
+          if (Math.abs(e.clientX - mStartX) > 10 || Math.abs(e.clientY - mStartY) > 10) mMoved = true;
+        });
+
+        document.addEventListener('mouseup', function(e) {
+          if (!mDown) return;
+          mDown = false;
+          const diffX = mStartX - e.clientX;
+          if (Math.abs(diffX) > 50) {
+            if (diffX > 0) nextSlide(); else prevSlide();
+          } else if (!mMoved) {
+            openLightbox();
+          }
+        });
+
+        let tStartX = 0, tStartY = 0, tMoved = false;
+
+        imageSlider.addEventListener('touchstart', function(e) {
+          if (e.target.closest('#prevSlide, #nextSlide, .zoom-badge')) return;
+          tMoved = false;
+          tStartX = e.touches[0].clientX;
+          tStartY = e.touches[0].clientY;
+        }, { passive: true });
+
+        imageSlider.addEventListener('touchmove', function(e) {
+          if (Math.abs(e.touches[0].clientX - tStartX) > 10 || Math.abs(e.touches[0].clientY - tStartY) > 10) tMoved = true;
+        }, { passive: true });
+
+        imageSlider.addEventListener('touchend', function(e) {
+          const endTouch = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0].clientX : tStartX;
+          const diffX = tStartX - endTouch;
+          if (Math.abs(diffX) > 50) {
+            if (diffX > 0) nextSlide(); else prevSlide();
+          } else if (!tMoved) {
+            openLightbox();
+          }
+        });
       }
 
     // ---------- Tabs ----------
@@ -3157,11 +3436,11 @@ if (addForm) {
   addForm.addEventListener('submit', function(e){
     e.preventDefault();
 
-    // MAIN PRODUCT QUANTITY (CLIENT CHOICE)
+    // MAIN PRODUCT QUANTITY (CLIENT CHOICE) - clamped client-side for UX;
+    // the server re-clamps too, this is not the security boundary on its own.
+    const MAX_QTY = 50;
     const qtyInput = document.getElementById('qtyInput');
-    const mainQty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
-
-    const mainProductId = '<%= producthome._id %>';
+    const mainQty = qtyInput ? Math.min(MAX_QTY, Math.max(1, parseInt(qtyInput.value) || 1)) : 1;
     const mainPrice = <%= producthome.price %>;
 
     // SECOND PRODUCT (FIXED QTY = 1)
@@ -3193,7 +3472,7 @@ if (addForm) {
         const serverEventId = '<%= metaEventIdCart %>';
 
         window.fbq('track', 'AddToCart', {
-          content_name: '<%= producthome.title.replace(/'/g, "\\'") %>',
+          content_name: <%- JSON.stringify(producthome.title) %>,
           content_ids: secondProductId
             ? [mainProductId, secondProductId]
             : [mainProductId],
@@ -3236,7 +3515,7 @@ if (buyNowBtn) {
     buyNowBtn.disabled = true;
 
     const qtyInput = document.getElementById('qtyInput');
-    const mainQty = qtyInput ? parseInt(qtyInput.value) || 1 : 1;
+    const mainQty = qtyInput ? Math.min(50, Math.max(1, parseInt(qtyInput.value) || 1)) : 1;
 
     const mainProductId = '<%= producthome._id %>';
     const mainPrice = <%= producthome.price %>;
@@ -3268,7 +3547,7 @@ if (buyNowBtn) {
         const serverEventIdCart = '<%= metaEventIdCart %>';
 
         window.fbq('track', 'AddToCart', {
-          content_name: '<%= producthome.title.replace(/'/g, "\\'") %>',
+          content_name: <%- JSON.stringify(producthome.title) %>,
           content_ids: secondProductId
             ? [mainProductId, secondProductId]
             : [mainProductId],
@@ -3312,7 +3591,7 @@ if (qtyInput) {
   // Quantity plus
   if (plus) {
     plus.addEventListener('click', () => { 
-      qtyInput.value = parseInt(qtyInput.value || 1) + 1;
+      qtyInput.value = Math.min(50, parseInt(qtyInput.value || 1) + 1);
     });
   }
   
@@ -3881,7 +4160,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Send message
     if (sendBtn) {
       sendBtn.addEventListener('click', function() {
-        const productTitle = '<%= producthome && producthome.title ? producthome.title.replace(/'/g, "\\'") : "Product" %>';
+        const productTitle = <%- JSON.stringify(producthome && producthome.title ? producthome.title : "Product") %>;
         const productPrice = '<%= producthome && typeof producthome.price !== "undefined" ? Number(producthome.price).toFixed(2) : "0.00" %>';
         const userMessage = messageInput.value.trim() || '';
         
