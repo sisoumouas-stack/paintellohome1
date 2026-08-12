@@ -35,7 +35,7 @@
     "morgan": "*",
     "multer": "^1.4.4",
     "multer-gridfs-storage": "^5.0.2",
-    "nodemailer": "github:nodemailer/nodemailer",
+ 
     "passport": "*",
     "passport-facebook": "^3.0.0",
     "passport-local": "*",
