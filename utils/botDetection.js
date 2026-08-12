@@ -69,7 +69,17 @@ function isSuspiciousPattern(userAgent) {
   if (userAgent === "Mozilla" || userAgent === "Mozilla/5.0") return true;
   const hasBrowserMarker = /mozilla|chrome|safari|firefox|edg\//i.test(userAgent);
   const hasBotWord = /bot|crawler|spider|scraper/i.test(userAgent);
-  return hasBotWord && !hasBrowserMarker && !userAgent.toLowerCase().includes("googlebot");
+  if (hasBotWord && !hasBrowserMarker && !userAgent.toLowerCase().includes("googlebot")) return true;
+
+  // Every real browser, and virtually every crawler that wants to be taken seriously,
+  // sends a UA containing at least one of these engine tokens (a 20+ year old web
+  // convention). A UA with none of them and no bot-sounding keyword either is very
+  // likely a custom script/scanner with a made-up product name, e.g.
+  // "TrashHound-Wildcard-Resolver/1" or "monitor-telegram-clone-realtime/1.0" -
+  // neither matches any known list above, and neither would be caught without this.
+  if (!hasBrowserMarker) return true;
+
+  return false;
 }
 
 function isBotUserAgent(userAgent) {
