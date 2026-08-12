@@ -84,6 +84,24 @@ function isValidAlgerianNumero(numero) {
   return typeof numero === 'string' && /^0[5-7][0-9]{8}$/.test(numero.trim());
 }
 
+// Clamps a raw ?qty= value to a sane positive range. Two purposes:
+// - negative/zero/non-numeric input already falls back to 1 via `|| 1`, but a very
+//   large value (e.g. ?qty=99999999) would otherwise drive `for(let i=0;i<quantity;i++)`
+//   to loop tens of millions of times synchronously and block the whole event loop -
+//   a trivial single-request DoS. This caps that.
+const MAX_CART_QTY = 50;
+function clampQuantity(raw) {
+  const n = parseInt(raw) || 1;
+  return Math.min(MAX_CART_QTY, Math.max(1, n));
+}
+
+// Escapes regex special characters before using free text (e.g. a product title word)
+// inside a MongoDB $regex - otherwise a title containing ( ) + . * etc. produces an
+// invalid regex and throws, crashing the whole page render.
+function escapeRegex(str) {
+  return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ===== BLOCK NOISE ROUTES - NO CAPI =====
 router.head('/', (req, res) => res.status(200).end());
 router.get('/health', (req, res) => res.status(200).send('ok'));
@@ -202,7 +220,7 @@ async function handleAddToCart(req, res, Model, logPrefix) {
     const rawId = req.params.id;
     const cleanId = rawId.replace(/\.\w+$/, '');
     if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
-    const quantity = parseInt(req.query.qty) || 1;
+    const quantity = clampQuantity(req.query.qty);
     const redirectTo = req.query.redirect;
     const cart = new Cart(req.session.cart || {});
     const product = await Model.findById(cleanId).lean();
@@ -1190,9 +1208,29 @@ router.get("/producthome/:id", async (req, res) => {
       Paintello.find({}).limit(20).lean()
     ]);
     let finalRelated = relatedProducts;
-    if (finalRelated.length < 4 && producthome.type) {
-      const titleWords = producthome.title.split(' ').filter(w=>w.length>3);
-      if (titleWords.length>0) { const additional = await Producthome.find({ _id:{$nin:[producthome._id, ...finalRelated.map(p=>p._id)]}, disponible:true, $or:[{title:{$regex:titleWords[0],$options:'i'}}] }).limit(8-finalRelated.length).lean(); finalRelated=[...finalRelated,...additional]; }
+    // Fallback 1: overlap on title words - runs even when `type` isn't set on this
+    // product (previously skipped in that case), and tries a few words, not just
+    // the first, for better odds of finding a match. Words are regex-escaped so a
+    // title containing ( ) + . etc. can't produce an invalid regex and crash the page.
+    if (finalRelated.length < 4) {
+      const titleWords = (producthome.title || '').split(' ').filter(w => w.length > 3);
+      if (titleWords.length > 0) {
+        const excludeIds = [producthome._id, ...finalRelated.map(p => p._id)];
+        const additional = await Producthome.find({
+          _id: { $nin: excludeIds },
+          disponible: true,
+          $or: titleWords.slice(0, 3).map(w => ({ title: { $regex: escapeRegex(w), $options: 'i' } }))
+        }).limit(8 - finalRelated.length).lean();
+        finalRelated = [...finalRelated, ...additional];
+      }
+    }
+    // Fallback 2: still nothing (no shared type, no title overlap) - show any other
+    // available product rather than leaving the cross-sell section empty/hidden.
+    if (finalRelated.length === 0) {
+      finalRelated = await Producthome.find({
+        _id: { $ne: producthome._id },
+        disponible: true
+      }).sort({ createdAt: -1 }).limit(4).lean();
     }
     req.session.preGeneratedEventIds = { cart:eventIdCart, view:eventIdView, page:eventIdPageView, testCode:getTestCode(req) };
     const has3DModel = !!producthome.stlFile;
@@ -1203,7 +1241,7 @@ router.get("/producthome/:id", async (req, res) => {
 
 router.get("/add-to-cart-producthome/:id", async (req, res) => {
   try {
-    const rawId=req.params.id; const cleanId=rawId.replace(/\.\w+$/,''); const quantity=parseInt(req.query.qty)||1; const secondProductId=req.query.second; const redirectTo=req.query.redirect;
+    const rawId=req.params.id; const cleanId=rawId.replace(/\.\w+$/,''); const quantity=clampQuantity(req.query.qty); const secondProductId=req.query.second; const redirectTo=req.query.redirect;
     if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
     if (secondProductId && !isValidObjectId(secondProductId)) return res.status(404).send("Second product not found");
     const cart=new Cart(req.session.cart||{}); const producthome=await Producthome.findById(cleanId).lean(); if(!producthome) return res.status(404).send("Product not found");
