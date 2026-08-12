@@ -2352,7 +2352,19 @@ input:focus, select:focus, textarea:focus {
       </section>
 
       <!-- Right: Product info -->
-      <aside class="lg:col-span-5 <%= producthome && producthome.disponible === false ? 'out-of-stock' : '' %>">
+      <%
+        // `disponible` is meant to be a boolean stock flag, but a record can end up with
+        // it stored as something else (string "false", 0...) depending on how it was
+        // saved - a strict `!== false` comparison then always reads as "in stock"
+        // regardless. Treat any of these as unavailable; anything else (including a
+        // missing field) as available, matching the prior default behavior.
+        function isProductAvailable(p) {
+          if (!p) return true;
+          const v = p.disponible;
+          return !(v === false || v === 'false' || v === 0 || v === '0' || v === 'no' || v === 'non');
+        }
+      %>
+      <aside class="lg:col-span-5 <%= producthome && !isProductAvailable(producthome) ? 'out-of-stock' : '' %>">
         <div class="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
           <div class="mb-4">
             <h1 class="text-2xl font-semibold text-gray-900"><%= producthome && producthome.title ? producthome.title : '' %></h1>
@@ -2414,8 +2426,8 @@ input:focus, select:focus, textarea:focus {
 <% } %>
 
           <!-- ===== STOCK MESSAGE SECTION ===== -->
-          <div id="green_message" class="flex-div-wrapper <%= producthome && producthome.disponible !== false ? 'in-stock-message' : 'out-of-stock-message' %>">
-            <% if (producthome && producthome.disponible !== false) { %>
+          <div id="green_message" class="flex-div-wrapper <%= producthome && isProductAvailable(producthome) ? 'in-stock-message' : 'out-of-stock-message' %>">
+            <% if (producthome && isProductAvailable(producthome)) { %>
               <!-- IN STOCK MESSAGE -->
               <div class="flex-div">
                 <span style="margin-right: 14px; margin-left: 3px;" class="green-dot"></span>
@@ -2443,7 +2455,7 @@ input:focus, select:focus, textarea:focus {
           </div>
 
           <!-- Add to cart form - Only show if product is available -->
-          <% if (producthome && producthome.disponible !== false) { %>
+          <% if (producthome && isProductAvailable(producthome)) { %>
 
           <form id="addToCartForm" action="/add-to-cart-producthome/<%= producthome._id %>" method="GET" class="mt-6 add-to-cart-buttons">
             <div class="flex items-center gap-3">
