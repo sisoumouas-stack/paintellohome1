@@ -18,11 +18,11 @@
 
   try {
     var pixelConfig = {};
-    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
-    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
-    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
-    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
-    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
     fbq('track', 'PageView', {}, {
       eventID: '<%= metaEventIdPageView %>'
@@ -339,20 +339,59 @@
               let hasDiscount = false;
               let discountAmount = 0;
               let totalBeforeDiscount = 0;
+              let cartItems = [];
               if (session.cart && session.cart.items) {
-                const cartItems = Object.values(session.cart.items);
+                cartItems = Object.values(session.cart.items);
                 cartItems.forEach(item => {
+                  const product = item.item || {};
+                  const fallbackUnitPrice = item.qty ? (item.price || 0) / item.qty : (product.price || 0);
+                  const originalPrice = item.originalPrice || product.price || fallbackUnitPrice;
                   if (item.isDiscounted) {
                     hasDiscount = true;
-                    const originalPrice = item.originalPrice || item.item.price;
-                    const discount = originalPrice - (item.unitPrice || item.price / item.qty);
+                    const discount = originalPrice - (item.unitPrice || fallbackUnitPrice);
                     discountAmount += discount * item.qty;
                   }
-                  totalBeforeDiscount += (item.originalPrice || item.item.price) * item.qty;
+                  totalBeforeDiscount += originalPrice * item.qty;
                 });
               }
               const totalAfterDiscount = totalPrice - discountAmount;
             %>
+
+            <!-- Cart items -->
+            <% if (cartItems.length > 0) { %>
+              <div class="space-y-4 mb-6 pb-6 border-b border-gray-100 max-h-80 overflow-y-auto pr-1">
+                <% cartItems.forEach(function(item) {
+                     const product = item.item || {};
+                     const img = Array.isArray(product.image) && product.image[0] ? product.image[0] : '/img/logo.png';
+                     const title = product.title || 'Article';
+                     const qty = item.qty || 1;
+                     const fallbackUnitPrice = qty ? (item.price || 0) / qty : (product.price || 0);
+                     const unit = item.unitPrice || fallbackUnitPrice;
+                     const originalUnit = item.originalPrice || product.price || unit;
+                     const lineTotal = unit * qty;
+                     const lineOriginal = originalUnit * qty;
+                %>
+                  <div class="flex items-center gap-3">
+                    <div class="relative flex-shrink-0">
+                      <img src="<%= img %>" alt="<%= title %>" class="w-14 h-14 object-cover rounded border border-gray-200 bg-gray-50">
+                      <span class="absolute -top-2 -right-2 bg-black text-white text-[10px] font-medium w-5 h-5 rounded-full flex items-center justify-center"><%= qty %></span>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium truncate"><%= title %></p>
+                      <% if (item.isDiscounted && lineOriginal > lineTotal) { %>
+                        <p class="text-xs text-gray-400 line-through"><%= lineOriginal.toFixed(2) %> DA</p>
+                      <% } %>
+                    </div>
+                    <div class="text-sm font-medium flex-shrink-0"><%= lineTotal.toFixed(2) %> DA</div>
+                  </div>
+                <% }); %>
+              </div>
+            <% } else { %>
+              <div class="mb-6 pb-6 border-b border-gray-100 text-center">
+                <p class="text-sm text-gray-500">Votre panier est vide.</p>
+                <a href="/shop" class="text-xs uppercase tracking-wide underline text-gray-700 hover:text-black">Voir la boutique</a>
+              </div>
+            <% } %>
             <div class="space-y-4 mb-6">
               <% if (hasDiscount && discountAmount > 0) { %>
                 <div class="flex justify-between items-center">
