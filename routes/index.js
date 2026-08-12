@@ -102,6 +102,14 @@ function escapeRegex(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// `disponible` is meant to be a boolean stock flag, but depending on how a record was
+// saved it may end up stored as something else (string "false", 0, ...) - a strict
+// `disponible: true` query match would then silently exclude it. Treat anything in
+// this "false-like" list as unavailable; everything else (including a missing field)
+// as available. $nin also matches documents where the field doesn't exist at all.
+const UNAVAILABLE_VALUES = [false, 0, 'false', '0', 'no', 'non'];
+const AVAILABLE_FILTER = { disponible: { $nin: UNAVAILABLE_VALUES } };
+
 // ===== BLOCK NOISE ROUTES - NO CAPI =====
 router.head('/', (req, res) => res.status(200).end());
 router.get('/health', (req, res) => res.status(200).send('ok'));
@@ -1204,7 +1212,7 @@ router.get("/producthome/:id", async (req, res) => {
       console.log("✅ PageView + ViewContent queued");
     } else { console.log("🤖 Bot detected – ViewContent skipped", getBotClassification(req)?.botType); }
     const [relatedProducts, paintellos] = await Promise.all([
-      Producthome.find({ type:producthome.type, _id:{$ne:producthome._id}, disponible:true }).sort({createdAt:-1}).limit(8).lean(),
+      Producthome.find({ type:producthome.type, _id:{$ne:producthome._id}, ...AVAILABLE_FILTER }).sort({createdAt:-1}).limit(8).lean(),
       Paintello.find({}).limit(20).lean()
     ]);
     let finalRelated = relatedProducts;
@@ -1218,7 +1226,7 @@ router.get("/producthome/:id", async (req, res) => {
         const excludeIds = [producthome._id, ...finalRelated.map(p => p._id)];
         const additional = await Producthome.find({
           _id: { $nin: excludeIds },
-          disponible: true,
+          ...AVAILABLE_FILTER,
           $or: titleWords.slice(0, 3).map(w => ({ title: { $regex: escapeRegex(w), $options: 'i' } }))
         }).limit(8 - finalRelated.length).lean();
         finalRelated = [...finalRelated, ...additional];
@@ -1229,7 +1237,7 @@ router.get("/producthome/:id", async (req, res) => {
     if (finalRelated.length === 0) {
       finalRelated = await Producthome.find({
         _id: { $ne: producthome._id },
-        disponible: true
+        ...AVAILABLE_FILTER
       }).sort({ createdAt: -1 }).limit(4).lean();
     }
     req.session.preGeneratedEventIds = { cart:eventIdCart, view:eventIdView, page:eventIdPageView, testCode:getTestCode(req) };
