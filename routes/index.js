@@ -380,13 +380,15 @@ router.get("/checkout", async (req, res) => {
   if (cart.items) {
     for (const id in cart.items) {
       const item = cart.items[id];
+      const product = item.item || {};
+      const fallbackUnitPrice = item.qty ? (item.price || 0) / item.qty : (product.price || 0);
+      const orig = item.originalPrice || product.price || fallbackUnitPrice;
       if (item.isDiscounted) {
         hasDiscount = true;
-        const orig = item.originalPrice || item.item.price;
-        const disc = item.unitPrice || (item.price / item.qty);
+        const disc = item.unitPrice || fallbackUnitPrice;
         discountAmount += (orig - disc) * item.qty;
       }
-      totalBeforeDiscount += (item.originalPrice || item.item.price) * item.qty;
+      totalBeforeDiscount += orig * item.qty;
     }
   }
 
@@ -414,7 +416,7 @@ router.get("/checkout", async (req, res) => {
   }
 
   res.render("event/checkout", {
-    totalPrice: cart.totalPrice,
+    totalPrice: cart.totalPrice || 0,
     totalBeforeDiscount,
     discountAmount,
     hasDiscount,
@@ -1220,33 +1222,44 @@ router.get("/producthome/:id", async (req, res) => {
       sendFacebookCAPIEvent({ eventName:"ViewContent", eventId:eventIdView, userData, customData:{ content_name:producthome.title, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(producthome.price)}], content_type:"product", value:Number(producthome.price), currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode }).catch(()=>{});
       console.log("✅ PageView + ViewContent queued");
     } else { console.log("🤖 Bot detected – ViewContent skipped", getBotClassification(req)?.botType); }
-    const [typeCandidates, paintellos] = await Promise.all([
-      Producthome.find({ type:producthome.type, _id:{$ne:producthome._id} }).sort({createdAt:-1}).limit(20).lean(),
+    // Fetch a bounded pool of candidates once, then do all matching in JS below rather
+    // than as separate MongoDB query conditions. Two reasons: (1) `disponible` casting
+    // already bit us once (see isAvailable() above); (2) `type` is schema-normalized
+    // (lowercase/trim) only when saved *through* Mongoose - a document pasted directly
+    // into Atlas keeps whatever casing/whitespace it was given, so a strict `{ type:
+    // producthome.type }` query can silently miss real siblings over something as small
+    // as "Draped_Wedding_Dress" vs "draped_wedding_dress ". Normalizing on both sides
+    // in JS avoids that regardless of how a document was written.
+    const [candidatePool, paintellos] = await Promise.all([
+      Producthome.find({ _id: { $ne: producthome._id } }).sort({ createdAt: -1 }).limit(200).lean(),
       Paintello.find({}).limit(20).lean()
     ]);
-    let finalRelated = typeCandidates.filter(isAvailable).slice(0, 8);
+    const availablePool = candidatePool.filter(isAvailable);
+    const normalizeType = t => (t || '').toString().trim().toLowerCase();
+    const currentType = normalizeType(producthome.type);
+
+    let finalRelated = currentType
+      ? availablePool.filter(p => normalizeType(p.type) === currentType).slice(0, 8)
+      : [];
     // Fallback 1: overlap on title words - runs even when `type` isn't set on this
-    // product (previously skipped in that case), and tries a few words, not just
-    // the first, for better odds of finding a match. Words are regex-escaped so a
-    // title containing ( ) + . etc. can't produce an invalid regex and crash the page.
+    // product, and tries a few words, not just the first, for better odds of finding
+    // a match. Words are regex-escaped so a title containing ( ) + . etc. can't
+    // produce an invalid regex and crash the page.
     if (finalRelated.length < 4) {
+      const usedIds = new Set(finalRelated.map(p => String(p._id)));
       const titleWords = (producthome.title || '').split(' ').filter(w => w.length > 3);
       if (titleWords.length > 0) {
-        const excludeIds = [producthome._id, ...finalRelated.map(p => p._id)];
-        const additionalCandidates = await Producthome.find({
-          _id: { $nin: excludeIds },
-          $or: titleWords.slice(0, 3).map(w => ({ title: { $regex: escapeRegex(w), $options: 'i' } }))
-        }).limit((8 - finalRelated.length) * 3).lean();
-        finalRelated = [...finalRelated, ...additionalCandidates.filter(isAvailable).slice(0, 8 - finalRelated.length)];
+        const wordRegexes = titleWords.slice(0, 3).map(w => new RegExp(escapeRegex(w), 'i'));
+        const matches = availablePool.filter(p =>
+          !usedIds.has(String(p._id)) && wordRegexes.some(r => r.test(p.title || ''))
+        );
+        finalRelated = [...finalRelated, ...matches.slice(0, 8 - finalRelated.length)];
       }
     }
     // Fallback 2: still nothing (no shared type, no title overlap) - show any other
     // available product rather than leaving the cross-sell section empty/hidden.
     if (finalRelated.length === 0) {
-      const anyCandidates = await Producthome.find({
-        _id: { $ne: producthome._id }
-      }).sort({ createdAt: -1 }).limit(12).lean();
-      finalRelated = anyCandidates.filter(isAvailable).slice(0, 4);
+      finalRelated = availablePool.slice(0, 4);
     }
     req.session.preGeneratedEventIds = { cart:eventIdCart, view:eventIdView, page:eventIdPageView, testCode:getTestCode(req) };
     const has3DModel = !!producthome.stlFile;
