@@ -107,8 +107,17 @@ function escapeRegex(str) {
 // `disponible: true` query match would then silently exclude it. Treat anything in
 // this "false-like" list as unavailable; everything else (including a missing field)
 // as available. $nin also matches documents where the field doesn't exist at all.
+// `disponible` is schema-typed as Boolean, and Mongoose casts query condition values
+// against the schema type - so putting string variants like 'non' in a $nin against
+// this field throws a CastError before the query even reaches MongoDB (Mongoose's
+// Boolean caster only recognizes true/'true'/1/'1'/'yes' and false/'false'/0/'0'/'no').
+// If a document was edited directly in the Atlas UI it can still end up with a raw
+// string value despite the schema. Filtering in plain JS after a simple, safe fetch
+// sidesteps Mongoose's query-side casting entirely while still catching those cases.
 const UNAVAILABLE_VALUES = [false, 0, 'false', '0', 'no', 'non'];
-const AVAILABLE_FILTER = { disponible: { $nin: UNAVAILABLE_VALUES } };
+function isAvailable(product) {
+  return !UNAVAILABLE_VALUES.includes(product && product.disponible);
+}
 
 // ===== BLOCK NOISE ROUTES - NO CAPI =====
 router.head('/', (req, res) => res.status(200).end());
@@ -1211,11 +1220,11 @@ router.get("/producthome/:id", async (req, res) => {
       sendFacebookCAPIEvent({ eventName:"ViewContent", eventId:eventIdView, userData, customData:{ content_name:producthome.title, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(producthome.price)}], content_type:"product", value:Number(producthome.price), currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode }).catch(()=>{});
       console.log("✅ PageView + ViewContent queued");
     } else { console.log("🤖 Bot detected – ViewContent skipped", getBotClassification(req)?.botType); }
-    const [relatedProducts, paintellos] = await Promise.all([
-      Producthome.find({ type:producthome.type, _id:{$ne:producthome._id}, ...AVAILABLE_FILTER }).sort({createdAt:-1}).limit(8).lean(),
+    const [typeCandidates, paintellos] = await Promise.all([
+      Producthome.find({ type:producthome.type, _id:{$ne:producthome._id} }).sort({createdAt:-1}).limit(20).lean(),
       Paintello.find({}).limit(20).lean()
     ]);
-    let finalRelated = relatedProducts;
+    let finalRelated = typeCandidates.filter(isAvailable).slice(0, 8);
     // Fallback 1: overlap on title words - runs even when `type` isn't set on this
     // product (previously skipped in that case), and tries a few words, not just
     // the first, for better odds of finding a match. Words are regex-escaped so a
@@ -1224,21 +1233,20 @@ router.get("/producthome/:id", async (req, res) => {
       const titleWords = (producthome.title || '').split(' ').filter(w => w.length > 3);
       if (titleWords.length > 0) {
         const excludeIds = [producthome._id, ...finalRelated.map(p => p._id)];
-        const additional = await Producthome.find({
+        const additionalCandidates = await Producthome.find({
           _id: { $nin: excludeIds },
-          ...AVAILABLE_FILTER,
           $or: titleWords.slice(0, 3).map(w => ({ title: { $regex: escapeRegex(w), $options: 'i' } }))
-        }).limit(8 - finalRelated.length).lean();
-        finalRelated = [...finalRelated, ...additional];
+        }).limit((8 - finalRelated.length) * 3).lean();
+        finalRelated = [...finalRelated, ...additionalCandidates.filter(isAvailable).slice(0, 8 - finalRelated.length)];
       }
     }
     // Fallback 2: still nothing (no shared type, no title overlap) - show any other
     // available product rather than leaving the cross-sell section empty/hidden.
     if (finalRelated.length === 0) {
-      finalRelated = await Producthome.find({
-        _id: { $ne: producthome._id },
-        ...AVAILABLE_FILTER
-      }).sort({ createdAt: -1 }).limit(4).lean();
+      const anyCandidates = await Producthome.find({
+        _id: { $ne: producthome._id }
+      }).sort({ createdAt: -1 }).limit(12).lean();
+      finalRelated = anyCandidates.filter(isAvailable).slice(0, 4);
     }
     req.session.preGeneratedEventIds = { cart:eventIdCart, view:eventIdView, page:eventIdPageView, testCode:getTestCode(req) };
     const has3DModel = !!producthome.stlFile;
