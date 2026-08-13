@@ -101,6 +101,52 @@
       @apply text-xs font-medium text-gray-700 mb-2 uppercase tracking-wide;
     }
 
+    /* Modern field styling: icon prefix + refined focus state, same palette as .input */
+    .field-wrap {
+      position: relative;
+    }
+    .field-wrap > i.field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9ca3af;
+      font-size: 13px;
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+    .field-wrap:focus-within > i.field-icon {
+      color: #000;
+    }
+    .field-wrap > .input {
+      padding-left: 38px;
+    }
+    .field-wrap > select.input {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+
+    /* Numbered section badge, same black/white as .zara-btn */
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #000;
+      color: #fff;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
     /* Payment option selected state */
     .payment-option input:checked + div .check-icon {
       display: block !important;
@@ -163,23 +209,34 @@
               
               <!-- Personal Information -->
               <div>
-                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2">Informations personnelles</h3>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2 flex items-center gap-3">
+                  <span class="section-num">1</span> Informations personnelles
+                </h3>
                 <input type="hidden" id="fullName" name="name" value="">
                 <input type="hidden" name="country" value="Algeria">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="label" for="firstName">Prénom</label>
-                    <input required type="text" id="firstName" name="firstName" value="<%= user && user.firstName ? user.firstName : '' %>" class="input" placeholder="Votre prénom">
+                    <div class="field-wrap">
+                      <i class="fa-regular fa-user field-icon"></i>
+                      <input required type="text" id="firstName" name="firstName" value="<%= user && user.firstName ? user.firstName : '' %>" class="input" placeholder="Votre prénom">
+                    </div>
                   </div>
                   <div>
                     <label class="label" for="lastName">Nom</label>
-                    <input required type="text" id="lastName" name="lastName" value="<%= user && user.lastName ? user.lastName : '' %>" class="input" placeholder="Votre nom">
+                    <div class="field-wrap">
+                      <i class="fa-regular fa-user field-icon"></i>
+                      <input required type="text" id="lastName" name="lastName" value="<%= user && user.lastName ? user.lastName : '' %>" class="input" placeholder="Votre nom">
+                    </div>
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <label class="label" for="numero">Téléphone</label>
-                    <input required type="tel" id="numero" name="numero" pattern="0[5-7][0-9]{8}" placeholder="e.g. 0551234567" value="<%= user && user.numero ? user.numero : '' %>" class="input">
+                    <div class="field-wrap">
+                      <i class="fa-solid fa-phone field-icon"></i>
+                      <input required type="tel" id="numero" name="numero" pattern="0[5-7][0-9]{8}" placeholder="e.g. 0551234567" value="<%= user && user.numero ? user.numero : '' %>" class="input">
+                    </div>
                     <p class="text-xs text-gray-500 mt-2">Format : 0xx xxxxxxx</p>
                   </div>
                 </div>
@@ -187,15 +244,22 @@
 
               <!-- Address -->
               <div>
-                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2">Adresse de livraison</h3>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2 flex items-center gap-3">
+                  <span class="section-num">2</span> Adresse de livraison
+                </h3>
                 <div class="mb-6">
                   <label class="label" for="address">Adresse complète</label>
-                  <input required type="text" id="address" name="address" placeholder="Rue, n°, immeuble..." class="input" value="<%= typeof address !== 'undefined' ? address : '' %>">
+                  <div class="field-wrap">
+                    <i class="fa-solid fa-location-dot field-icon"></i>
+                    <input required type="text" id="address" name="address" placeholder="Rue, n°, immeuble..." class="input" value="<%= typeof address !== 'undefined' ? address : '' %>">
+                  </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label class="label" for="city">Wilaya (province)</label>
-                    <select id="city" name="city" required class="input">
+                    <div class="field-wrap">
+                      <i class="fa-solid fa-map field-icon"></i>
+                      <select id="city" name="city" required class="input">
                       <option value="">Sélectionnez votre wilaya</option>
                       <!-- wilaya options remain the same -->
 <option value="adrar">Adrar</option>
@@ -257,19 +321,25 @@
   <option value="in salah">In Salah</option>
   <option value="in guezzam">In Guezzam</option>
 </select>
+                    </div>
                   </div>
                   <div>
                     <label class="label" for="commune">Commune</label>
-                    <select id="commune" name="commune" required class="input">
-                      <option value="">Sélectionnez d'abord la wilaya</option>
-                    </select>
+                    <div class="field-wrap">
+                      <i class="fa-solid fa-city field-icon"></i>
+                      <select id="commune" name="commune" required class="input">
+                        <option value="">Sélectionnez d'abord la wilaya</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <!-- Payment Method Selection -->
               <div>
-                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2">Mode de paiement</h3>
+                <h3 class="text-sm font-medium uppercase tracking-wide mb-6 border-b pb-2 flex items-center gap-3">
+                  <span class="section-num">3</span> Mode de paiement
+                </h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                   
                   <!-- COD Card (now first & checked) -->
