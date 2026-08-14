@@ -40,7 +40,7 @@ const fs = require('fs');
 const path = require('path');
 const furniteur = require('../models/furniteur');
 const { isBotRequest } = require('../utils/botDetection');
-const WhatsAppMessage = require('./models/whatsappMessage'); // en haut du fichier, avec tes autres require
+const WhatsAppMessage = require('../models/whatsappMessage'); // en haut du fichier, avec tes autres require
 // ===== HELPERS - BOT SAFE & META COMPLIANT =====
 function generateEventId() { return crypto.randomUUID(); }
 
