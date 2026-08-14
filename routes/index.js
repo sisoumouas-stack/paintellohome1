@@ -40,6 +40,7 @@ const fs = require('fs');
 const path = require('path');
 const furniteur = require('../models/furniteur');
 const { isBotRequest } = require('../utils/botDetection');
+const WhatsAppMessage = require('./models/whatsappMessage'); // en haut du fichier, avec tes autres require
 // ===== HELPERS - BOT SAFE & META COMPLIANT =====
 function generateEventId() { return crypto.randomUUID(); }
 
@@ -1323,6 +1324,11 @@ router.post('/webhook', async (req,res) => {
     if(!messages) return res.sendStatus(200);
     const from=messages.from; const text=messages.text?.body?.trim()||'[Message non texte]'; const customerName=changes?.value?.contacts?.[0]?.profile?.name||from;
     const name=customerName; const numero=from.startsWith('213')?'0'+from.slice(3):from; const response=text;
+
+    // NOUVEAU : sauvegarde pour l'historique de conversation
+    WhatsAppMessage.create({ phone: from, customerName: name, direction: 'in', text: response })
+      .catch((e) => console.error('WhatsAppMessage save error:', e.message));
+
     sendClientReplyEmail({name,numero,response}).catch((e)=>console.error('sendClientReplyEmail error:', e.message));
     sendTelegramMessage(`💬 <b>Message WhatsApp</b>\n👤 De: ${name} (${numero})\n📝 Texte: ${response}`).catch((e)=>console.error('sendTelegramMessage error:', e.message));
     return res.sendStatus(200);
