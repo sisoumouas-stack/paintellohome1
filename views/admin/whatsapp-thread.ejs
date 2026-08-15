@@ -33,7 +33,17 @@
       <% messages.forEach(function(m) { %>
         <div class="flex <%= m.direction === 'out' ? 'justify-end' : 'justify-start' %>">
           <div class="<%= m.direction === 'out' ? 'bubble-out' : 'bubble-in' %> px-4 py-2 max-w-[75%] rounded-lg">
-            <p class="text-sm whitespace-pre-wrap"><%= m.text %></p>
+            <% if (m.mediaType === 'image' && m.mediaId) { %>
+              <a href="/user/admin/whatsapp/media/<%= m.mediaId %>" target="_blank" rel="noopener">
+                <img src="/user/admin/whatsapp/media/<%= m.mediaId %>" alt="Photo envoyée par le client" class="rounded max-w-full max-h-64 mb-1">
+              </a>
+            <% } else if (m.mediaId) { %>
+              <a href="/user/admin/whatsapp/media/<%= m.mediaId %>" target="_blank" rel="noopener" class="text-sm underline">
+                <i class="fas fa-paperclip mr-1"></i><%= m.text %>
+              </a>
+            <% } else { %>
+              <p class="text-sm whitespace-pre-wrap"><%= m.text %></p>
+            <% } %>
             <p class="text-[10px] mt-1 <%= m.direction === 'out' ? 'text-gray-300' : 'text-gray-400' %>">
               <%= new Date(m.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) %>
             </p>
