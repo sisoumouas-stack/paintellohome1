@@ -9,6 +9,8 @@ const sendFacebookCAPIEvent = require('../services/facebookCapi');
 const Cart = require('../models/cart');
 const Order = require('../models/order');
 var header = require('../models/header');
+const WhatsAppMessage = require('../models/whatsappMessage');
+const axios = require('axios');
 
 // protect routes using csrf
 var csrfProtection = csrf();
@@ -313,6 +315,8 @@ router.get('/admin/whatsapp/:phone', requireAdmin, async (req, res) => {
       customerName: messages[messages.length - 1].customerName || phone,
       messages,
       withinWindow,
+      csrfToken: req.csrfToken(),
+      flashErrors: req.flash('error'),
       user: req.user
     });
   } catch (err) {
