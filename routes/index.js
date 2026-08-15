@@ -20,6 +20,7 @@ const Producthome = require('../models/producthome');
 const Paintello = require('../models/paintello');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const Order = require('../models/order');
+const WhatsAppMessage = require('../models/whatsappMessage');
 const middleware = require('../middleware');
 const ReturnRequest = require('../models/ReturnRequest');
 const { isLoggedIn } = require('../middleware/index');
@@ -40,7 +41,6 @@ const fs = require('fs');
 const path = require('path');
 const furniteur = require('../models/furniteur');
 const { isBotRequest } = require('../utils/botDetection');
-const WhatsAppMessage = require('../models/whatsappMessage'); // en haut du fichier, avec tes autres require
 // ===== HELPERS - BOT SAFE & META COMPLIANT =====
 function generateEventId() { return crypto.randomUUID(); }
 
@@ -798,6 +798,7 @@ router.post("/checkout", async (req, res) => {
       if (req.session.preGeneratedEventIds) delete req.session.preGeneratedEventIds.initiateCheckout;
 
       req.session.confirmationData = {
+        orderId: order._id.toString(),
         paymentMethod: "cod",
         eventId: eventIdInitiateCheckout,
         eventName: "InitiateCheckout",
@@ -968,6 +969,7 @@ router.get("/payment/success", async (req, res) => {
     req.session.cart = null;
     req.session.pendingOrder = null;
     req.session.confirmationData = {
+      orderId: order._id.toString(),
       paymentMethod: "chargily",
       eventId: eventIdPurchase,
       eventName: "Purchase",
@@ -975,7 +977,7 @@ router.get("/payment/success", async (req, res) => {
       value: pending.finalTotalPrice,
       currency: "DZD",
       content_ids: cart.generateArray().map(p => p.item._id.toString()),
-      contents: cart.generateArray().map(p => ({ id: p.item._id.toString(), quantity: p.qty, item_price: p.item.price })),
+      contents: cart.generateArray().map(p => ({ id: p.item._id.toString(), quantity: p.qty, item_price: p.item.price, item_name: p.item.title })),
       firstName: pending.firstName,
       lastName: pending.lastName,
       numero: cleanNumero,
@@ -1008,6 +1010,7 @@ router.get("/confirmation", async (req, res) => {
       const order = await Order.findById(orderId);
       if (order) {
         data = {
+          orderId: order._id.toString(),
           paymentMethod: order.paymentMethod || "cod",
           eventId: null,
           eventName: null,
@@ -1322,15 +1325,33 @@ router.post('/webhook', async (req,res) => {
     }
     const entry=req.body.entry?.[0]; const changes=entry?.changes?.[0]; const messages=changes?.value?.messages?.[0];
     if(!messages) return res.sendStatus(200);
-    const from=messages.from; const text=messages.text?.body?.trim()||'[Message non texte]'; const customerName=changes?.value?.contacts?.[0]?.profile?.name||from;
-    const name=customerName; const numero=from.startsWith('213')?'0'+from.slice(3):from; const response=text;
+    const from=messages.from; const customerName=changes?.value?.contacts?.[0]?.profile?.name||from;
+    const name=customerName; const numero=from.startsWith('213')?'0'+from.slice(3):from;
 
-    // NOUVEAU : sauvegarde pour l'historique de conversation
-    WhatsAppMessage.create({ phone: from, customerName: name, direction: 'in', text: response })
+    // WhatsApp sends a completely different payload shape per message type - only
+    // 'text' messages have a .text.body field. Media types (image/video/audio/
+    // document/sticker) carry their content as a media ID under messages[type].id,
+    // which has to be resolved separately via the Graph API (see the media proxy
+    // route) - the ID itself isn't a URL and can't be displayed directly.
+    const MEDIA_TYPES = ['image', 'video', 'audio', 'document', 'sticker'];
+    let text, mediaId = null, mediaType = null;
+
+    if (messages.type === 'text') {
+      text = messages.text?.body?.trim() || '[Message vide]';
+    } else if (MEDIA_TYPES.includes(messages.type)) {
+      mediaType = messages.type;
+      mediaId = messages[messages.type]?.id || null;
+      const captionMap = { image: 'Photo', video: 'Vidéo', audio: 'Message vocal / audio', document: 'Document', sticker: 'Sticker' };
+      text = `[${captionMap[messages.type] || messages.type}]`;
+    } else {
+      text = `[Message non pris en charge: ${messages.type}]`;
+    }
+
+    WhatsAppMessage.create({ phone: from, customerName: name, direction: 'in', text, mediaId, mediaType })
       .catch((e) => console.error('WhatsAppMessage save error:', e.message));
 
-    sendClientReplyEmail({name,numero,response}).catch((e)=>console.error('sendClientReplyEmail error:', e.message));
-    sendTelegramMessage(`💬 <b>Message WhatsApp</b>\n👤 De: ${name} (${numero})\n📝 Texte: ${response}`).catch((e)=>console.error('sendTelegramMessage error:', e.message));
+    sendClientReplyEmail({name,numero,response:text}).catch((e)=>console.error('sendClientReplyEmail error:', e.message));
+    sendTelegramMessage(`💬 <b>Message WhatsApp</b>\n👤 De: ${name} (${numero})\n📝 Texte: ${text}`).catch((e)=>console.error('sendTelegramMessage error:', e.message));
     return res.sendStatus(200);
   }catch(err){ console.error(err); return res.sendStatus(500); }
 });
