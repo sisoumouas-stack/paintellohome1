@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= customerName %> - WhatsApp Admin</title>
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #fafafa; }
+    .bubble-in { background: #fff; border: 1px solid #e5e5e5; }
+    .bubble-out { background: #000; color: #fff; }
+    .input { width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; outline: none; }
+    .input:focus { border-color: #000; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-2xl mx-auto py-10 px-4">
+    <a href="/user/admin/whatsapp" class="text-xs text-gray-500 uppercase tracking-wide hover:text-black">&larr; Toutes les conversations</a>
+
+    <h1 class="text-sm font-medium uppercase tracking-wide mt-3 mb-6 border-b border-gray-200 pb-3">
+      <%= customerName %> <span class="text-gray-400 font-normal normal-case">&middot; <%= phone %></span>
+    </h1>
+
+    <% if (!withinWindow) { %>
+      <div class="mb-6 p-4 bg-gray-50 border border-gray-200 text-xs text-gray-700">
+        <i class="fas fa-clock mr-1"></i>
+        Ce client n'a pas écrit depuis plus de 24h. WhatsApp bloque les messages libres passé ce délai —
+        seul un modèle de message pré-approuvé par Meta pourrait passer. Un message classique risque d'échouer.
+      </div>
+    <% } %>
+
+    <div class="space-y-3 mb-8 max-h-[55vh] overflow-y-auto pr-1">
+      <% messages.forEach(function(m) { %>
+        <div class="flex <%= m.direction === 'out' ? 'justify-end' : 'justify-start' %>">
+          <div class="<%= m.direction === 'out' ? 'bubble-out' : 'bubble-in' %> px-4 py-2 max-w-[75%] rounded-lg">
+            <p class="text-sm whitespace-pre-wrap"><%= m.text %></p>
+            <p class="text-[10px] mt-1 <%= m.direction === 'out' ? 'text-gray-300' : 'text-gray-400' %>">
+              <%= new Date(m.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) %>
+            </p>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+
+    <% if (typeof flashErrors !== 'undefined' && flashErrors && flashErrors.length) { %>
+      <div class="mb-4 p-3 bg-red-50 border border-red-200 text-xs text-red-700">
+        <%= flashErrors[0] %>
+      </div>
+    <% } %>
+
+    <form action="/user/admin/whatsapp/<%= phone %>/reply" method="POST" class="flex gap-2">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="text" name="text" required placeholder="Écrire une réponse..." class="input" autocomplete="off">
+      <button type="submit" class="px-6 py-3 bg-black text-white text-sm font-medium uppercase tracking-wide hover:opacity-90 transition-opacity flex-shrink-0">
+        Envoyer
+      </button>
+    </form>
+  </div>
+</body>
+</html>
