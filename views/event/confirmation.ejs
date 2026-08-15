@@ -17,11 +17,11 @@
     'https://connect.facebook.net/en_US/fbevents.js');
 
     var pixelConfig = {};
-    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
-    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
-    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
-    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
-    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
 
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
     fbq('track', 'PageView', {}, {
@@ -59,7 +59,7 @@
     <meta name="theme-color" content="#ffffff">
     
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/tailwind.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -228,9 +228,14 @@
 
             <!-- Order Details -->
             <div class="zara-card p-8 mb-8">
-                <h2 class="text-sm font-medium uppercase tracking-wide mb-6 border-b border-gray-200 pb-3">
-                    Détails de la Commande
-                </h2>
+                <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-6">
+                    <h2 class="text-sm font-medium uppercase tracking-wide">
+                        Détails de la Commande
+                    </h2>
+                    <% if (typeof orderId !== 'undefined' && orderId) { %>
+                        <span class="tracking-badge">N° <%= orderId.toString().slice(-8).toUpperCase() %></span>
+                    <% } %>
+                </div>
                 
                 <div class="grid md:grid-cols-2 gap-6 mb-6">
                     <div class="space-y-4">
@@ -266,6 +271,30 @@
                 <!-- Order Summary -->
                 <div class="border-t border-gray-200 pt-6">
                     <h3 class="text-xs text-gray-500 uppercase tracking-wide mb-4">Résumé de la Commande</h3>
+
+                    <% if (typeof cartItems !== 'undefined' && cartItems && cartItems.length > 0) { %>
+                        <div class="space-y-4 mb-6">
+                            <% cartItems.forEach(function(ci) {
+                                 const product = ci.item || {};
+                                 const img = Array.isArray(product.image) && product.image[0] ? product.image[0] : '/img/logo.png';
+                                 const title = product.title || 'Article';
+                                 const qty = ci.qty || 1;
+                                 const unit = ci.unitPrice || (qty ? (ci.price || 0) / qty : (product.price || 0));
+                            %>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex-shrink-0">
+                                        <img src="<%= img %>" alt="<%= title %>" class="w-14 h-14 object-cover rounded border border-gray-200 bg-gray-50">
+                                        <span class="absolute -top-2 -right-2 bg-black text-white text-[10px] font-medium w-5 h-5 rounded-full flex items-center justify-center"><%= qty %></span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm truncate"><%= title %></p>
+                                    </div>
+                                    <div class="text-sm flex-shrink-0"><%= (unit * qty).toFixed(2) %> DZD</div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    <% } %>
+
                     <div class="space-y-2 text-sm">
                         <div class="flex justify-between">
                             <span>Sous-total</span>
@@ -275,7 +304,7 @@
                             <span>Frais de Livraison</span>
                             <span>
                                 <% if (shippingFee === 0) { %>
-                                    <span class="text-green-600">GRATUIT</span>
+                                    <span class="text-green-600">GRATUIT<% if (typeof isFreeShipping !== 'undefined' && isFreeShipping) { %> <i class="fas fa-check-circle" title="Seuil de livraison gratuite atteint"></i><% } %></span>
                                 <% } else { %>
                                     <%= shippingFee %> DZD
                                 <% } %>
@@ -341,35 +370,35 @@
         </div>
     </footer>
 
-    <% if (typeof eventId !== 'undefined' && eventId) { %>
+    <% if (typeof eventId !== 'undefined' && eventId && typeof paymentMethod !== 'undefined' && paymentMethod === 'chargily') { %>
 <script>
   if (typeof fbq !== 'undefined') {
-    var method = '<%= paymentMethod %>';
-    var eventName = '<%= eventName %>';
-    var id = '<%= eventId %>';
+    var id = <%- JSON.stringify(eventId) %>;
 
-    <% if (paymentMethod === 'chargily') { %>
-      // Online payment – Purchase event with all details
-      fbq('track', 'Purchase', {
-        value: <%= value %>,
-        currency: '<%= currency %>',
-        content_type: 'product',
-        content_ids: <%- JSON.stringify(content_ids) %>,
-        contents: <%- JSON.stringify(contents) %>
-      }, {
-        eventID: id
-      });
-      console.log('Pixel Purchase fired with eventID:', id);
-    <% } else { %>
-      // COD – InitiateCheckout event (no extra data needed)
-      fbq('track', 'InitiateCheckout', {}, {
-        eventID: id
-      });
-      console.log('Pixel InitiateCheckout fired with eventID:', id);
-    <% } %>
+    // Online payment – Purchase event with all details
+    fbq('track', 'Purchase', {
+      value: <%= typeof value !== 'undefined' && value ? value : 0 %>,
+      currency: <%- JSON.stringify(typeof currency !== 'undefined' ? currency : 'DZD') %>,
+      content_type: 'product',
+      content_ids: <%- JSON.stringify(typeof content_ids !== 'undefined' ? content_ids : []) %>,
+      contents: <%- JSON.stringify(typeof contents !== 'undefined' ? contents : []) %>
+    }, {
+      eventID: id
+    });
+    console.log('Pixel Purchase fired with eventID:', id);
   }
 </script>
 <% } %>
+<!--
+  Note: COD orders no longer fire a Pixel InitiateCheckout here. That funnel-entry
+  signal now fires at the correct moment - when the checkout page itself loads
+  (see checkout.ejs) - using the same event_id as the server's CAPI InitiateCheckout
+  call, so they stay deduplicated as one event. Firing it again here, after the
+  order already exists, would have duplicated that same event_id client-side for
+  no added signal. The COD Purchase event itself is still sent manually once you
+  mark the order delivered, as intended.
+-->
+
 
     <!-- GA4 Purchase Event (only for actual purchases, not COD) -->
     <% if (typeof paymentMethod !== 'undefined' && paymentMethod === 'chargily') { %>
@@ -377,12 +406,12 @@
         window.dataLayer = window.dataLayer || [];
         dataLayer.push({
             'event': 'purchase',
-            'value': <%= value %>,
-            'currency': '<%= currency %>',
-            'items': <%- JSON.stringify(contents.map(function(p) {
+            'value': <%= typeof value !== 'undefined' && value ? value : 0 %>,
+            'currency': <%- JSON.stringify(typeof currency !== 'undefined' ? currency : 'DZD') %>,
+            'items': <%- JSON.stringify((typeof contents !== 'undefined' ? contents : []).map(function(p) {
                 return {
                     'item_id': p.id,
-                    'item_name': p.item_name || '', // you may pass product names from server
+                    'item_name': p.item_name || '',
                     'price': p.item_price,
                     'quantity': p.quantity
                 };
