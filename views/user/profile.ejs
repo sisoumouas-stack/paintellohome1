@@ -75,16 +75,9 @@
     letter-spacing: 0.5px;
     color: #666;
 }
-        /* Add to existing styles */
-        .stat-card { background: #f8f8f8; padding: 20px; border-radius: 2px; text-align: center; }
-        .stat-number { font-size: 24px; font-weight: 300; color: #000; margin-bottom: 4px; }
-        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #666; }
-        .order-card { border-bottom: 1px solid #e5e5e5; padding: 16px 0; }
-        .order-card:last-child { border-bottom: none; }
-        .status-badge { font-size: 10px; padding: 2px 8px; border-radius: 1px; text-transform: uppercase; letter-spacing: 0.5px; }
-        .status-pending { background: #fff3cd; color: #856404; }
-        .status-delivered { background: #d4edda; color: #155724; }
-        .status-shipped { background: #cce5ff; color: #004085; }
+
+.order-card { border-bottom: 1px solid #e5e5e5; padding: 16px 0; }
+.order-card:last-child { border-bottom: none; }
     </style>
 <!-- Meta Pixel Code -->
     <% if (process.env.FB_PIXEL_ID) { %>
@@ -99,11 +92,11 @@
     'https://connect.facebook.net/en_US/fbevents.js');
 
     var pixelConfig = {};
-    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
-    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
-    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
-    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
-    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
 
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
     fbq('track', 'PageView', {}, { eventID: '<%= metaEventIdPageView %>' });
@@ -200,9 +193,16 @@
         <p class="text-xs text-gray-400 mt-1">ID Inscription: <%= registrationEventId %></p>
         <% } %>
     </div>
-    <a href="/user/logout" class="zara-btn-secondary text-sm px-6 py-2 mt-4 md:mt-0">
-        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
-    </a>
+    <div class="flex items-center gap-3 mt-4 md:mt-0">
+        <% if (user && user.isAdmin) { %>
+        <a href="/user/admin/whatsapp" class="zara-btn-secondary text-sm px-6 py-2">
+            <i class="fa-brands fa-whatsapp mr-2"></i>WhatsApp Admin
+        </a>
+        <% } %>
+        <a href="/user/logout" class="zara-btn-secondary text-sm px-6 py-2">
+            <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+        </a>
+    </div>
 </div>
 
             <!-- User Stats -->
@@ -330,10 +330,14 @@
                         <div>
                             <p class="text-xs text-gray-500 uppercase tracking-wide mb-1">Articles</p>
                             <div class="space-y-2">
-                                <% order.items.forEach(item => { %>
+                                <% order.items.forEach(item => {
+                                     const product = item.item || {};
+                                     const title = product.title || 'Article indisponible';
+                                     const price = product.price || 0;
+                                %>
                                 <div class="flex items-center justify-between text-sm">
-                                    <span><%= item.item.title %></span>
-                                    <span class="text-gray-600"><%= item.qty %> x <%= item.item.price %> DZD</span>
+                                    <span><%= title %></span>
+                                    <span class="text-gray-600"><%= item.qty %> x <%= price %> DZD</span>
                                 </div>
                                 <% }) %>
                             </div>
