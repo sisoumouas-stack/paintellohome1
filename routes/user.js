@@ -211,6 +211,33 @@ router.post('/admin/whatsapp/:phone/reply', middleware.isLoggedIn, requireAdmin,
   }
 });
 
+// Sert une image/vidéo/document reçu par WhatsApp. L'ID stocké n'est pas une URL :
+// il faut d'abord le résoudre auprès de Meta pour obtenir un lien de téléchargement
+// temporaire, puis récupérer le fichier lui-même - les deux appels nécessitent le
+// même token que pour l'envoi.
+router.get('/admin/whatsapp/media/:mediaId', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const mediaId = req.params.mediaId;
+    const metaRes = await axios.get(`https://graph.facebook.com/v19.0/${mediaId}`, {
+      headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}` }
+    });
+    const { url, mime_type } = metaRes.data;
+    if (!url) return res.status(404).send('Média introuvable');
+
+    const fileRes = await axios.get(url, {
+      headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}` },
+      responseType: 'arraybuffer'
+    });
+
+    res.set('Content-Type', mime_type || 'application/octet-stream');
+    res.set('Cache-Control', 'private, max-age=3600');
+    res.send(fileRes.data);
+  } catch (err) {
+    console.error('❌ WhatsApp media proxy error:', err.response?.data || err.message);
+    res.status(502).send('Impossible de récupérer le média');
+  }
+});
+
 router.use('/', middleware.isNotLoggedIn, function(req, res, next) {
   next();
 });
