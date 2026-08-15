@@ -5,12 +5,22 @@ var bcrypt = require('bcrypt-nodejs');
 
 var userSchema = new Schema({
   email: {type: String, required: true},
-  password: {type: String, required: true},
+  password: {
+    type: String,
+    // Not required for Facebook accounts - they never have one to give.
+    required: function() { return !this.facebookId; }
+  },
   firstName: {type: String, required: true},
   lastName: {type: String, required: true},
   facebookId: { type: String, unique: true, sparse: true },
-  numero: {type: String, required: true},
-  
+  numero: {
+    type: String,
+    // Facebook doesn't provide a phone number at signup - allow it empty for
+    // those accounts; still required for local signups as before.
+    required: function() { return !this.facebookId; }
+  },
+  isAdmin: { type: Boolean, default: false },
+
   // Add registration tracking fields
   registrationEventId: { type: String },
   metaUserId: { type: String } // For Meta tracking if needed
