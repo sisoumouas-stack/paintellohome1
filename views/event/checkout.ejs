@@ -32,8 +32,8 @@
     // using the same event_id the server reuses for its own CAPI InitiateCheckout call
     // at form-submit time, so both stay deduplicated as a single event on Meta's side.
     <%
-      const icItems = typeof cartItems !== 'undefined' && cartItems ? cartItems : [];
-      const icContents = icItems.map(function(ci) {
+      const icCartItems = (session.cart && session.cart.items) ? Object.values(session.cart.items) : [];
+      const icContents = icCartItems.map(function(ci) {
         const p = ci.item || {};
         return { id: p._id ? String(p._id) : '', quantity: ci.qty || 1, item_price: ci.unitPrice || p.price || 0 };
       });
@@ -43,7 +43,7 @@
       content_type: 'product',
       content_ids: <%- JSON.stringify(icIds) %>,
       contents: <%- JSON.stringify(icContents) %>,
-      num_items: <%= icItems.length %>,
+      num_items: <%= icCartItems.length %>,
       value: <%= typeof totalPrice !== 'undefined' && totalPrice ? totalPrice : 0 %>,
       currency: 'DZD'
     }, {
