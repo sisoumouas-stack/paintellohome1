@@ -124,6 +124,93 @@ router.get('/logout', middleware.isLoggedIn, function(req, res, next) {
   });
 });
 
+// ⚠️ requireAdmin est un PLACEHOLDER — à ajuster une fois que j'ai vu ton models/user.js.
+// Par défaut ça vérifie req.user.isAdmin, ce qui ne bloquera RIEN si ce champ n'existe pas.
+function requireAdmin(req, res, next) {
+  if (req.isAuthenticated() && req.user && req.user.isAdmin) return next();
+  return res.status(403).send("Accès refusé");
+}
+
+const WINDOW_MS = 24 * 60 * 60 * 1000;
+
+// Liste des conversations (une ligne par numéro, dernier message en premier)
+router.get('/admin/whatsapp', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const conversations = await WhatsAppMessage.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $group: {
+          _id: '$phone',
+          customerName: { $first: '$customerName' },
+          lastText: { $first: '$text' },
+          lastDirection: { $first: '$direction' },
+          lastAt: { $first: '$createdAt' },
+          unread: { $sum: { $cond: [{ $and: [{ $eq: ['$direction','in'] }, { $eq: ['$read', false] }] }, 1, 0] } }
+      }},
+      { $sort: { lastAt: -1 } }
+    ]);
+    res.render('admin/whatsapp-inbox', { conversations, user: req.user });
+  } catch (err) {
+    console.error("❌ WhatsApp inbox error:", err);
+    res.status(500).send("Server Error");
+  }
+});
+
+// Thread d'une conversation + formulaire de réponse
+router.get('/admin/whatsapp/:phone', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const phone = req.params.phone;
+    const messages = await WhatsAppMessage.find({ phone }).sort({ createdAt: 1 }).lean();
+    if (messages.length === 0) return res.status(404).send("Conversation introuvable");
+
+    await WhatsAppMessage.updateMany({ phone, direction: 'in', read: false }, { $set: { read: true } });
+
+    const lastInbound = [...messages].reverse().find(m => m.direction === 'in');
+    const withinWindow = lastInbound ? (Date.now() - new Date(lastInbound.createdAt).getTime()) < WINDOW_MS : false;
+
+    res.render('admin/whatsapp-thread', {
+      phone,
+      customerName: messages[messages.length - 1].customerName || phone,
+      messages,
+      withinWindow,
+      csrfToken: req.csrfToken(),
+      flashErrors: req.flash('error'),
+      user: req.user
+    });
+  } catch (err) {
+    console.error("❌ WhatsApp thread error:", err);
+    res.status(500).send("Server Error");
+  }
+});
+
+// Envoi de la réponse
+router.post('/admin/whatsapp/:phone/reply', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const phone = req.params.phone;
+    const text = (req.body.text || '').trim();
+    if (!text) {
+      req.flash('error', 'Message vide.');
+      return res.redirect(`/user/admin/whatsapp/${phone}`);
+    }
+
+    await axios.post(`https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`, {
+      messaging_product: "whatsapp",
+      to: phone,
+      type: "text",
+      text: { body: text }
+    }, {
+      headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}`, 'Content-Type': 'application/json' }
+    });
+
+    await WhatsAppMessage.create({ phone, direction: 'out', text });
+    res.redirect(`/user/admin/whatsapp/${phone}`);
+  } catch (err) {
+    console.error("❌ WhatsApp reply error:", err.response?.data || err.message);
+    // Cas le plus probable : la fenêtre de 24h est dépassée, WhatsApp refuse les messages libres
+    req.flash('error', "Échec de l'envoi — le client n'a peut-être pas écrit depuis plus de 24h (WhatsApp bloque alors les messages libres, seuls les modèles pré-approuvés passent).");
+    res.redirect(`/user/admin/whatsapp/${req.params.phone}`);
+  }
+});
+
 router.use('/', middleware.isNotLoggedIn, function(req, res, next) {
   next();
 });
@@ -267,90 +354,5 @@ router.post('/signin', passport.authenticate('local-signin', {
       res.redirect('/user/profile');
     }
 });
-// ⚠️ requireAdmin est un PLACEHOLDER — à ajuster une fois que j'ai vu ton models/user.js.
-// Par défaut ça vérifie req.user.isAdmin, ce qui ne bloquera RIEN si ce champ n'existe pas.
-function requireAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user && req.user.isAdmin) return next();
-  return res.status(403).send("Accès refusé");
-}
 
-const WINDOW_MS = 24 * 60 * 60 * 1000;
-
-// Liste des conversations (une ligne par numéro, dernier message en premier)
-router.get('/admin/whatsapp', requireAdmin, async (req, res) => {
-  try {
-    const conversations = await WhatsAppMessage.aggregate([
-      { $sort: { createdAt: -1 } },
-      { $group: {
-          _id: '$phone',
-          customerName: { $first: '$customerName' },
-          lastText: { $first: '$text' },
-          lastDirection: { $first: '$direction' },
-          lastAt: { $first: '$createdAt' },
-          unread: { $sum: { $cond: [{ $and: [{ $eq: ['$direction','in'] }, { $eq: ['$read', false] }] }, 1, 0] } }
-      }},
-      { $sort: { lastAt: -1 } }
-    ]);
-    res.render('admin/whatsapp-inbox', { conversations, user: req.user });
-  } catch (err) {
-    console.error("❌ WhatsApp inbox error:", err);
-    res.status(500).send("Server Error");
-  }
-});
-
-// Thread d'une conversation + formulaire de réponse
-router.get('/admin/whatsapp/:phone', requireAdmin, async (req, res) => {
-  try {
-    const phone = req.params.phone;
-    const messages = await WhatsAppMessage.find({ phone }).sort({ createdAt: 1 }).lean();
-    if (messages.length === 0) return res.status(404).send("Conversation introuvable");
-
-    await WhatsAppMessage.updateMany({ phone, direction: 'in', read: false }, { $set: { read: true } });
-
-    const lastInbound = [...messages].reverse().find(m => m.direction === 'in');
-    const withinWindow = lastInbound ? (Date.now() - new Date(lastInbound.createdAt).getTime()) < WINDOW_MS : false;
-
-    res.render('admin/whatsapp-thread', {
-      phone,
-      customerName: messages[messages.length - 1].customerName || phone,
-      messages,
-      withinWindow,
-      csrfToken: req.csrfToken(),
-      flashErrors: req.flash('error'),
-      user: req.user
-    });
-  } catch (err) {
-    console.error("❌ WhatsApp thread error:", err);
-    res.status(500).send("Server Error");
-  }
-});
-
-// Envoi de la réponse
-router.post('/admin/whatsapp/:phone/reply', requireAdmin, async (req, res) => {
-  try {
-    const phone = req.params.phone;
-    const text = (req.body.text || '').trim();
-    if (!text) {
-      req.flash('error', 'Message vide.');
-      return res.redirect(`/admin/whatsapp/${phone}`);
-    }
-
-    await axios.post(`https://graph.facebook.com/v19.0/${process.env.META_PHONE_ID}/messages`, {
-      messaging_product: "whatsapp",
-      to: phone,
-      type: "text",
-      text: { body: text }
-    }, {
-      headers: { Authorization: `Bearer ${process.env.META_WA_TOKEN}`, 'Content-Type': 'application/json' }
-    });
-
-    await WhatsAppMessage.create({ phone, direction: 'out', text });
-    res.redirect(`/admin/whatsapp/${phone}`);
-  } catch (err) {
-    console.error("❌ WhatsApp reply error:", err.response?.data || err.message);
-    // Cas le plus probable : la fenêtre de 24h est dépassée, WhatsApp refuse les messages libres
-    req.flash('error', "Échec de l'envoi — le client n'a peut-être pas écrit depuis plus de 24h (WhatsApp bloque alors les messages libres, seuls les modèles pré-approuvés passent).");
-    res.redirect(`/admin/whatsapp/${req.params.phone}`);
-  }
-});
 module.exports = router;
