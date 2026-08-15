@@ -27,6 +27,29 @@
     fbq('track', 'PageView', {}, {
       eventID: '<%= metaEventIdPageView %>'
     });
+    <% if (typeof metaEventIdInitiateCheckout !== 'undefined' && metaEventIdInitiateCheckout) { %>
+    // Fires when the checkout page itself is reached (standard timing for this event),
+    // using the same event_id the server reuses for its own CAPI InitiateCheckout call
+    // at form-submit time, so both stay deduplicated as a single event on Meta's side.
+    <%
+      const icItems = typeof cartItems !== 'undefined' && cartItems ? cartItems : [];
+      const icContents = icItems.map(function(ci) {
+        const p = ci.item || {};
+        return { id: p._id ? String(p._id) : '', quantity: ci.qty || 1, item_price: ci.unitPrice || p.price || 0 };
+      });
+      const icIds = icContents.map(function(c) { return c.id; }).filter(Boolean);
+    %>
+    fbq('track', 'InitiateCheckout', {
+      content_type: 'product',
+      content_ids: <%- JSON.stringify(icIds) %>,
+      contents: <%- JSON.stringify(icContents) %>,
+      num_items: <%= icItems.length %>,
+      value: <%= typeof totalPrice !== 'undefined' && totalPrice ? totalPrice : 0 %>,
+      currency: 'DZD'
+    }, {
+      eventID: '<%= metaEventIdInitiateCheckout %>'
+    });
+    <% } %>
   } catch (e) { console.warn('fbq init error', e); }
   </script>
   <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=<%= process.env.FB_PIXEL_ID %>&ev=PageView&noscript=1"/></noscript>
