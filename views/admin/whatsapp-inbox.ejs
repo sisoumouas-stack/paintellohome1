@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp - Admin</title>
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #fafafa; }
+    .zara-card { background: #fff; border: 1px solid #e5e5e5; }
+    .unread-dot { width: 8px; height: 8px; border-radius: 999px; background: #000; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-2xl mx-auto py-10 px-4">
+    <h1 class="text-sm font-medium uppercase tracking-wide mb-6 border-b border-gray-200 pb-3">
+      Messages WhatsApp
+    </h1>
+
+    <% if (!conversations || conversations.length === 0) { %>
+      <p class="text-sm text-gray-500 text-center py-12">Aucune conversation pour le moment.</p>
+    <% } else { %>
+      <div class="zara-card divide-y divide-gray-100">
+        <% conversations.forEach(function(c) { %>
+          <a href="/user/admin/whatsapp/<%= c._id %>" class="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
+            <% if (c.unread > 0) { %>
+              <span class="unread-dot flex-shrink-0" title="<%= c.unread %> non lu(s)"></span>
+            <% } else { %>
+              <span class="w-2 flex-shrink-0"></span>
+            <% } %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm <%= c.unread > 0 ? 'font-semibold' : 'font-medium' %> truncate">
+                  <%= c.customerName || c._id %>
+                </p>
+                <span class="text-xs text-gray-400 flex-shrink-0">
+                  <%= new Date(c.lastAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) %>
+                </span>
+              </div>
+              <p class="text-xs text-gray-500 truncate mt-0.5">
+                <%= c.lastDirection === 'out' ? 'Vous : ' : '' %><%= c.lastText %>
+              </p>
+            </div>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>
