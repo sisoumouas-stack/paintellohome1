@@ -3453,6 +3453,7 @@ if (addForm) {
     const MAX_QTY = 50;
     const qtyInput = document.getElementById('qtyInput');
     const mainQty = qtyInput ? Math.min(MAX_QTY, Math.max(1, parseInt(qtyInput.value) || 1)) : 1;
+    const mainProductId = '<%= producthome._id %>';
     const mainPrice = <%= producthome.price %>;
 
     // SECOND PRODUCT (FIXED QTY = 1)
