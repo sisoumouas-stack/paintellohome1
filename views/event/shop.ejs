@@ -16,11 +16,11 @@
     'https://connect.facebook.net/en_US/fbevents.js');
 
     var pixelConfig = {};
-    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
-    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
-    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
-    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
-    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
 
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
     fbq('track', 'PageView', {}, {
@@ -45,7 +45,7 @@
   <title>Paintello | Panier</title>
 
   <!-- Tailwind CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/tailwind.css">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -216,7 +216,7 @@
                 Votre Sélection (<%= cartSummary.totalQty %> articles)
               </h2>
               <span class="text-xs text-gray-500 uppercase tracking-wide">
-                Total: <span id="total-price" class="font-medium"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+                Total: <span id="total-price" class="font-medium"><%= (cartSummary.totalPrice || 0).toFixed(2) %> DA</span>
               </span>
             </div>
 
@@ -226,24 +226,29 @@
               <div class="flex items-center gap-2 text-green-700">
                 <i class="fas fa-tag"></i>
                 <span class="font-medium">🎉 Promotion appliquée!</span>
-                <span>Vous économisez <%= cartSummary.savings.toFixed(2) %> DA avec l'offre -10%</span>
+                <span>Vous économisez <%= (cartSummary.savings || 0).toFixed(2) %> DA avec l'offre -10%</span>
               </div>
             </div>
             <% } %>
 
             <div class="space-y-8">
-              <% cartSummary.items.forEach(function(product){ %>
+              <% cartSummary.items.forEach(function(product){
+                   const p = product.item || {};
+                   const pImage = Array.isArray(p.image) && p.image[0] ? p.image[0] : '/img/logo.png';
+                   const pTitle = p.title || 'Article indisponible';
+                   const pId = p._id ? p._id.toString() : '';
+              %>
               <div class="flex flex-col sm:flex-row gap-6 pb-8 border-b border-gray-100 last:border-b-0">
                 <!-- Product Image -->
                 <div class="flex-shrink-0">
-                  <img src="<%= product.item.image[0] %>" alt="<%= product.item.title %>" 
+                  <img src="<%= pImage %>" alt="<%= pTitle %>" 
                        class="w-24 h-24 object-cover">
                 </div>
 
                 <!-- Product Details -->
                 <div class="flex-grow">
                   <div class="flex items-start justify-between">
-                    <h3 class="text-sm font-medium mb-2"><%= product.item.title %></h3>
+                    <h3 class="text-sm font-medium mb-2"><%= pTitle %></h3>
                     
                     <!-- Discount Badge -->
                     <% if (product.isDiscounted) { %>
@@ -252,39 +257,39 @@
                   </div>
                   
                   <p class="text-xs text-gray-600 mb-4 leading-relaxed">
-                    <%= product.item.description?.slice(0, 80) || 'Produit de qualité supérieure' %>...
+                    <%= p.description?.slice(0, 80) || 'Produit de qualité supérieure' %>...
                   </p>
                   
                   <!-- Price Display -->
                   <div class="mb-4">
                     <% if (product.isDiscounted) { %>
                       <div class="flex items-center gap-2">
-                        <span class="original-price"><%= product.originalPrice.toFixed(2) %> DA</span>
-                        <span class="discounted-price text-lg font-bold"><%= product.unitPrice.toFixed(2) %> DA</span>
+                        <span class="original-price"><%= (product.originalPrice || 0).toFixed(2) %> DA</span>
+                        <span class="discounted-price text-lg font-bold"><%= (product.unitPrice || 0).toFixed(2) %> DA</span>
                         <span class="text-xs text-green-600">
-                          (Économie: <%= ((product.originalPrice - product.unitPrice) * product.qty).toFixed(2) %> DA)
+                          (Économie: <%= (((product.originalPrice || 0) - (product.unitPrice || 0)) * product.qty).toFixed(2) %> DA)
                         </span>
                       </div>
                     <% } else { %>
-                      <span class="text-sm font-medium"><%= product.unitPrice.toFixed(2) %> DA</span>
+                      <span class="text-sm font-medium"><%= (product.unitPrice || 0).toFixed(2) %> DA</span>
                     <% } %>
                   </div>
                   
                   <!-- Quantity Controls -->
                   <div class="flex items-center gap-4">
                     <div class="flex items-center">
-                      <button class="quantity-btn btn-decrease" data-id="<%= product.item._id %>">
+                      <button class="quantity-btn btn-decrease" data-id="<%= pId %>">
                         <i class="fas fa-minus text-xs"></i>
                       </button>
                       <input type="text" value="<%= product.qty %>" readonly 
-                             class="quantity-input item-qty" data-id="<%= product.item._id %>">
-                      <button class="quantity-btn btn-increase" data-id="<%= product.item._id %>">
+                             class="quantity-input item-qty" data-id="<%= pId %>">
+                      <button class="quantity-btn btn-increase" data-id="<%= pId %>">
                         <i class="fas fa-plus text-xs"></i>
                       </button>
                     </div>
                     
-                    <span class="text-sm font-medium product-subtotal" data-id="<%= product.item._id %>">
-                      <%= product.price.toFixed(2) %> DA
+                    <span class="text-sm font-medium product-subtotal" data-id="<%= pId %>">
+                      <%= (product.price || 0).toFixed(2) %> DA
                     </span>
                   </div>
                 </div>
@@ -292,13 +297,13 @@
                 <!-- Remove Button -->
                 <div class="flex sm:flex-col sm:items-end justify-between">
                   <button class="text-gray-400 hover:text-gray-600 transition-colors remove-item" 
-                          data-id="<%= product.item._id %>">
+                          data-id="<%= pId %>">
                     <i class="fas fa-times text-sm"></i>
                   </button>
 <% if (product.discountedWith) { %>
   <button class="text-gray-400 hover:text-gray-600 transition-colors remove-both" 
           data-main-id="<%= product.discountedWith %>" 
-          data-discounted-id="<%= product.item._id %>"
+          data-discounted-id="<%= pId %>"
           title="Remove both items">
     <i class="fas fa-trash-alt text-sm"></i> Remove Both
   </button>
@@ -333,14 +338,14 @@
             <div class="space-y-4 mb-6">
               <div class="flex justify-between items-center">
                 <span class="text-xs text-gray-600 uppercase tracking-wide">Sous-total</span>
-                <span class="text-sm font-medium"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+                <span class="text-sm font-medium"><%= (cartSummary.totalPrice || 0).toFixed(2) %> DA</span>
               </div>
               
               <!-- Display Savings -->
               <% if (cartSummary.hasDiscount) { %>
               <div class="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span class="text-xs text-green-600 uppercase">Économies</span>
-                <span class="text-sm font-medium text-green-600">-<%= cartSummary.savings.toFixed(2) %> DA</span>
+                <span class="text-sm font-medium text-green-600">-<%= (cartSummary.savings || 0).toFixed(2) %> DA</span>
               </div>
               <% } %>
             </div>
@@ -357,7 +362,7 @@
             <div class="border-t border-gray-200 pt-4 mb-6">
               <div class="flex justify-between items-center">
                 <span class="text-sm font-medium uppercase tracking-wide">Total</span>
-                <span class="text-lg font-medium" id="btn-total"><%= cartSummary.totalPrice.toFixed(2) %> DA</span>
+                <span class="text-lg font-medium" id="btn-total"><%= (cartSummary.totalPrice || 0).toFixed(2) %> DA</span>
               </div>
               <% if (cartSummary.hasDiscount) { %>
                 <p class="text-xs text-green-600 mt-2">
@@ -404,7 +409,7 @@
           </div>
           <h2 class="text-lg font-light tracking-wide uppercase mb-4">Panier Vide</h2>
           <p class="text-sm text-gray-600 mb-6">Votre panier est actuellement vide</p>
-          <a href="/paintello" class="zara-btn inline-block text-sm">
+          <a href="/shop" class="zara-btn inline-block text-sm">
             <i class="fas fa-bag-shopping mr-2"></i>Découvrir la Boutique
           </a>
         </div>
