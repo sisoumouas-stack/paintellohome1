@@ -105,7 +105,18 @@ setTimeout(function() {
 }
 
 .hero-content-zara {
-  position: relative;
+  /* Previously relied on the Tailwind classes on this element (absolute inset-0
+     flex flex-col items-center justify-center) to actually center this block -
+     that only worked because the old Play CDN injected its styles last, letting
+     Tailwind win the cascade over this same-specificity custom rule. Now that
+     Tailwind is a normal stylesheet loaded earlier in <head>, this rule must not
+     depend on winning that race - so its own positioning is spelled out here. */
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   z-index: 3;
   color: white;
   padding: 0 20px;
