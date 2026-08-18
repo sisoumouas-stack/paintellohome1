@@ -18,11 +18,11 @@
     'https://connect.facebook.net/en_US/fbevents.js');
 
     var pixelConfig = {};
-    <% if (user && user.email) { %> pixelConfig.em = '<%= user.email %>'; <% } %>
-    <% if (user && user.firstName) { %> pixelConfig.fn = '<%= user.firstName %>'; <% } %>
-    <% if (user && user.lastName) { %> pixelConfig.ln = '<%= user.lastName %>'; <% } %>
-    <% if (user && user.numero) { %> pixelConfig.ph = '<%= user.numero %>'; <% } %>
-    <% if (user && user._id) { %> pixelConfig.external_id = '<%= user._id %>'; <% } %>
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
 
     fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
    fbq('track', 'PageView', {}, {
@@ -46,13 +46,11 @@
   </script>
   <title>Paintello Home</title>
 
-  <!-- Bootstrap CSS for navbar -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- FontAwesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <!-- Tailwind (CDN for prototyping) -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/css/tailwind.css">
 
   <style>
     /* ===== ZARA HOME INSPIRED STYLES ===== */
@@ -104,7 +102,16 @@
     }
 
     .hero-content-zara {
-      position: relative;
+      /* Made self-sufficient (doesn't rely on the Tailwind classes on this element
+         winning the cascade over this same-specificity custom rule) - see the same
+         issue found and fixed on producthome.ejs. Matters here too since this page's
+         Tailwind CDN will eventually move to a compiled build like the others. */
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       z-index: 2;
       color: white;
       padding: 0 20px;
@@ -505,6 +512,25 @@
       justify-content: center;
       gap: 8px;
       z-index: 2;
+    }
+
+    /* Core slide show/hide - previously relied on Bootstrap's CSS for this even
+       though the slide-switching logic itself is custom JS (initCarousel below).
+       Written out here so Bootstrap can be removed without breaking the carousel. */
+    .carousel-inner {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .carousel-item {
+      position: relative;
+      display: none;
+      width: 100%;
+    }
+
+    .carousel-item.active {
+      display: block;
     }
 
     .carousel-indicator-zara {
@@ -963,8 +989,6 @@
    
   </script>
 
-  <!-- Bootstrap JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- FontAwesome -->
   <script src="https://kit.fontawesome.com/a2d9b6b9f4.js" crossorigin="anonymous"></script>
 </body>
