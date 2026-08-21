@@ -45,6 +45,11 @@ async function sendPurchaseForDeliveredCOD(order) {
       eventName: "Purchase",
       eventId: eventId,
       userData: userData,
+      // This fires when an admin marks the order delivered - potentially days
+      // after the customer's actual site visit - so it's not a real-time website
+      // event. Meta's own guidance: CRM/backend-triggered events should use
+      // "system_generated", not "website".
+      actionSource: "system_generated",
       customData: {
         value: order.totalWithShipping || order.cart.totalPrice,
         currency: "DZD",
