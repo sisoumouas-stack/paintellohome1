@@ -93,6 +93,7 @@ async function sendMetaCAPIEvent({
   customData = {},
   eventSourceUrl = null,
   testEventCode = null,
+  actionSource = "website",
 }) {
   const PIXEL_ID = process.env.FB_PIXEL_ID;
   const ACCESS_TOKEN = process.env.FB_ACCESS_TOKEN;
@@ -142,7 +143,7 @@ async function sendMetaCAPIEvent({
     event_time: Math.floor(Date.now() / 1000),
     event_id: eventId,
     event_source_url: eventSourceUrl,
-    action_source: "website",
+    action_source: actionSource,
     user_data: metaUserData,
     custom_data: Object.keys(enhancedCustomData).length > 0 ? enhancedCustomData : undefined,
   });
