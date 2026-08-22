@@ -2633,6 +2633,40 @@ input:focus, select:focus, textarea:focus {
        
       </aside>
     </div>
+
+    <!-- ===================== AVIS CLIENTS ===================== -->
+    <% if (typeof reviews !== 'undefined' && reviews && reviews.length > 0) { %>
+    <section class="max-w-4xl mx-auto px-6 lg:px-8 mt-20 mb-20">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-4 mb-8">
+        <h2 class="text-lg font-light uppercase tracking-widest">Avis clients</h2>
+        <div class="flex items-center gap-2">
+          <span class="text-black text-lg">
+            <%= '★'.repeat(Math.round(avgRating)) %><span class="text-gray-300"><%= '★'.repeat(5 - Math.round(avgRating)) %></span>
+          </span>
+          <span class="text-sm text-gray-500"><%= avgRating.toFixed(1) %> / 5 (<%= reviews.length %> avis)</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <% reviews.forEach(function(r) { %>
+          <div class="flex gap-4">
+            <% if (r.imageUrl) { %>
+              <img src="<%= r.imageUrl %>" alt="Photo envoyée par <%= r.customerName %>" class="w-20 h-20 object-cover rounded-lg flex-shrink-0 bg-gray-50">
+            <% } %>
+            <div class="flex-1 min-w-0">
+              <div class="text-black text-sm mb-1">
+                <%= '★'.repeat(r.rating) %><span class="text-gray-300"><%= '★'.repeat(5 - r.rating) %></span>
+              </div>
+              <p class="text-sm font-medium mb-1"><%= r.customerName %></p>
+              <% if (r.comment) { %>
+                <p class="text-sm text-gray-600 leading-relaxed"><%= r.comment %></p>
+              <% } %>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </section>
+    <% } %>
 <% if (producthome && producthome.videoFile) { %>
 <!-- ===================== ZARA-STYLE PRODUCT VIDEO (FULL BLEED) ===================== -->
 
