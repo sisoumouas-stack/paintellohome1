@@ -21,6 +21,7 @@ const Paintello = require('../models/paintello');
 const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const Order = require('../models/order');
 const WhatsAppMessage = require('../models/whatsappMessage');
+const Review = require('../models/review');
 const middleware = require('../middleware');
 const ReturnRequest = require('../models/ReturnRequest');
 const { isLoggedIn } = require('../middleware/index');
@@ -316,6 +317,7 @@ router.get("/", async (req, res) => {
 
   try {
     const successMsg = req.flash("success")[0];
+    const errorMsg = req.flash("error")[0];
     const eventIdPageView = generateEventId();
     const userData = getCleanUserData(req);
     if (userData) {
@@ -326,7 +328,7 @@ router.get("/", async (req, res) => {
       console.log("🤖 Bot detected – Home PageView skipped");
     }
     const headers = await header.find({}).lean();
-    res.render("event/home", { headers, req, successMsg, metaEventIdPageView:eventIdPageView, user:req.user });
+    res.render("event/home", { headers, req, successMsg, errorMsg, metaEventIdPageView:eventIdPageView, user:req.user });
   } catch (err) { console.error(err); res.status(500).send("Error"); }
 });
 
@@ -1217,6 +1219,8 @@ router.get("/producthome/:id", async (req, res) => {
     if (!isValidObjectId(cleanId)) return res.status(404).send("Product not found");
     const producthome = await Producthome.findById(cleanId).lean();
     if (!producthome) return res.status(404).send("Product not found");
+    const reviews = await Review.find({ productId: producthome._id, published: true }).sort({ createdAt: -1 }).lean();
+    const avgRating = reviews.length ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) : 0;
     const eventIdPageView = generateEventId(); const eventIdView = generateEventId(); const eventIdCart = generateEventId();
     const userData = getCleanUserData(req);
     if (userData) {
@@ -1268,7 +1272,7 @@ router.get("/producthome/:id", async (req, res) => {
     req.session.preGeneratedEventIds = { cart:eventIdCart, view:eventIdView, page:eventIdPageView, testCode:getTestCode(req) };
     const has3DModel = !!producthome.stlFile;
     const defaultColor = producthome.model3D?.defaultColor?.startsWith("#") ? producthome.model3D.defaultColor : `#${producthome.model3D?.defaultColor || "8CAAE6"}`;
-    res.render("event/producthome", { producthome, relatedProducts:finalRelated, paintellos, req, metaEventIdView:eventIdView, metaEventIdCart:eventIdCart, metaEventIdPageView:eventIdPageView, has3DModel, model3DSettings:{enabled:has3DModel,stlFile:producthome.stlFile,autoRotate:producthome.model3D?.autoRotate??true,defaultColor}, user:req.user, login:req.isAuthenticated() });
+    res.render("event/producthome", { producthome, relatedProducts:finalRelated, paintellos, reviews, avgRating, req, metaEventIdView:eventIdView, metaEventIdCart:eventIdCart, metaEventIdPageView:eventIdPageView, has3DModel, model3DSettings:{enabled:has3DModel,stlFile:producthome.stlFile,autoRotate:producthome.model3D?.autoRotate??true,defaultColor}, user:req.user, login:req.isAuthenticated() });
   } catch (error) { console.error(error); res.status(500).send("Server Error"); }
 });
 
