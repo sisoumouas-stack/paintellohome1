@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avis clients - Admin</title>
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #fafafa; }
+    .zara-card { background: #fff; border: 1px solid #e5e5e5; }
+    .input { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid #d1d5db; outline: none; font-size: 0.875rem; }
+    .input:focus { border-color: #000; }
+    .label { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b7280; margin-bottom: 0.35rem; }
+    .stars { color: #000; letter-spacing: 2px; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-3xl mx-auto py-10 px-4">
+    <a href="/user/admin/whatsapp" class="text-xs text-gray-500 uppercase tracking-wide hover:text-black">&larr; Admin WhatsApp</a>
+
+    <h1 class="text-sm font-medium uppercase tracking-wide mt-3 mb-6 border-b border-gray-200 pb-3">
+      Avis clients
+    </h1>
+
+    <% if (typeof flashErrors !== 'undefined' && flashErrors && flashErrors.length) { %>
+      <div class="mb-6 p-3 bg-red-50 border border-red-200 text-xs text-red-700"><%= flashErrors[0] %></div>
+    <% } %>
+
+    <!-- Formulaire d'ajout -->
+    <div class="zara-card p-6 mb-10">
+      <h2 class="text-xs font-medium uppercase tracking-wide mb-4 text-gray-500">Ajouter un avis</h2>
+      <form action="/user/admin/reviews" method="POST" class="space-y-4">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div>
+          <label class="label" for="productId">Produit</label>
+          <select id="productId" name="productId" required class="input">
+            <option value="">Sélectionnez un produit</option>
+            <% products.forEach(function(p) { %>
+              <option value="<%= p._id %>"><%= p.title %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="label" for="customerName">Nom du client</label>
+            <input type="text" id="customerName" name="customerName" required class="input" placeholder="Ex: Amel B.">
+          </div>
+          <div>
+            <label class="label" for="rating">Note</label>
+            <select id="rating" name="rating" required class="input">
+              <option value="5">★★★★★ (5)</option>
+              <option value="4">★★★★☆ (4)</option>
+              <option value="3">★★★☆☆ (3)</option>
+              <option value="2">★★☆☆☆ (2)</option>
+              <option value="1">★☆☆☆☆ (1)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="comment">Commentaire</label>
+          <textarea id="comment" name="comment" rows="3" class="input" placeholder="Ce que le client a dit..."></textarea>
+        </div>
+
+        <div>
+          <label class="label" for="imageUrl">Lien de la photo (Cloudinary, Flickr...)</label>
+          <input type="url" id="imageUrl" name="imageUrl" class="input" placeholder="https://...">
+          <p class="text-xs text-gray-400 mt-1">Optionnel - laisse vide pour un avis texte seul.</p>
+        </div>
+
+        <button type="submit" class="px-8 py-3 bg-black text-white text-sm font-medium uppercase tracking-wide hover:opacity-90 transition-opacity">
+          Publier l'avis
+        </button>
+      </form>
+    </div>
+
+    <!-- Liste des avis existants -->
+    <h2 class="text-xs font-medium uppercase tracking-wide mb-4 text-gray-500">
+      Tous les avis (<%= reviews.length %>)
+    </h2>
+
+    <% if (reviews.length === 0) { %>
+      <p class="text-sm text-gray-500">Aucun avis pour le moment.</p>
+    <% } else { %>
+      <div class="space-y-3">
+        <% reviews.forEach(function(r) { %>
+          <div class="zara-card p-4 flex items-start gap-4 <%= !r.published ? 'opacity-50' : '' %>">
+            <% if (r.imageUrl) { %>
+              <img src="<%= r.imageUrl %>" alt="" class="w-16 h-16 object-cover rounded flex-shrink-0 bg-gray-50">
+            <% } %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <p class="text-sm font-medium"><%= r.customerName %> <span class="text-gray-400 font-normal">&middot; <%= r.productId ? r.productId.title : 'Produit supprimé' %></span></p>
+                <span class="stars text-xs"><%= '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating) %></span>
+              </div>
+              <% if (r.comment) { %><p class="text-xs text-gray-600 mt-1"><%= r.comment %></p><% } %>
+              <p class="text-xs mt-2 <%= r.published ? 'text-green-600' : 'text-gray-400' %>">
+                <%= r.published ? 'Publié' : 'Masqué' %>
+              </p>
+            </div>
+            <div class="flex flex-col gap-2 flex-shrink-0">
+              <form action="/user/admin/reviews/<%= r._id %>/toggle" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="text-xs uppercase tracking-wide underline text-gray-600 hover:text-black">
+                  <%= r.published ? 'Masquer' : 'Publier' %>
+                </button>
+              </form>
+              <form action="/user/admin/reviews/<%= r._id %>/delete" method="POST" onsubmit="return confirm('Supprimer cet avis ?');">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button type="submit" class="text-xs uppercase tracking-wide underline text-red-500 hover:text-red-700">
+                  Supprimer
+                </button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>
