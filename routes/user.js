@@ -10,6 +10,8 @@ const Cart = require('../models/cart');
 const Order = require('../models/order');
 var header = require('../models/header');
 const WhatsAppMessage = require('../models/whatsappMessage');
+const Review = require('../models/review');
+const Producthome = require('../models/producthome');
 const axios = require('axios');
 
 // protect routes using csrf
@@ -235,6 +237,65 @@ router.get('/admin/whatsapp/media/:mediaId', middleware.isLoggedIn, requireAdmin
   } catch (err) {
     console.error('❌ WhatsApp media proxy error:', err.response?.data || err.message);
     res.status(502).send('Impossible de récupérer le média');
+  }
+});
+
+// ===================== AVIS CLIENTS =====================
+// Liste + formulaire d'ajout (ajoutés manuellement par l'admin depuis de vrais
+// échanges WhatsApp, donc pas de file de modération séparée - juste publié/masqué)
+router.get('/admin/reviews', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const [reviews, products] = await Promise.all([
+      Review.find({}).populate('productId', 'title').sort({ createdAt: -1 }).lean(),
+      Producthome.find({}).select('title').sort({ title: 1 }).lean()
+    ]);
+    res.render('admin/reviews', { reviews, products, csrfToken: req.csrfToken(), flashErrors: req.flash('error'), user: req.user });
+  } catch (err) {
+    console.error('❌ Reviews list error:', err);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.post('/admin/reviews', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const { productId, customerName, rating, comment, imageUrl } = req.body;
+    if (!productId || !customerName?.trim() || !rating) {
+      req.flash('error', 'Produit, nom du client et note sont obligatoires.');
+      return res.redirect('/user/admin/reviews');
+    }
+    await Review.create({
+      productId,
+      customerName: customerName.trim(),
+      rating: Math.min(5, Math.max(1, parseInt(rating) || 5)),
+      comment: (comment || '').trim(),
+      imageUrl: (imageUrl || '').trim() || null,
+    });
+    res.redirect('/user/admin/reviews');
+  } catch (err) {
+    console.error('❌ Review create error:', err);
+    req.flash('error', "Erreur lors de l'ajout de l'avis.");
+    res.redirect('/user/admin/reviews');
+  }
+});
+
+router.post('/admin/reviews/:id/toggle', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const review = await Review.findById(req.params.id);
+    if (review) { review.published = !review.published; await review.save(); }
+    res.redirect('/user/admin/reviews');
+  } catch (err) {
+    console.error('❌ Review toggle error:', err);
+    res.redirect('/user/admin/reviews');
+  }
+});
+
+router.post('/admin/reviews/:id/delete', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    await Review.findByIdAndDelete(req.params.id);
+    res.redirect('/user/admin/reviews');
+  } catch (err) {
+    console.error('❌ Review delete error:', err);
+    res.redirect('/user/admin/reviews');
   }
 });
 
