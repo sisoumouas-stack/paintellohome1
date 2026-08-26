@@ -65,9 +65,9 @@
         </div>
 
         <div>
-          <label class="label" for="imageUrl">Lien de la photo (Cloudinary, Flickr...)</label>
-          <input type="url" id="imageUrl" name="imageUrl" class="input" placeholder="https://...">
-          <p class="text-xs text-gray-400 mt-1">Optionnel - laisse vide pour un avis texte seul.</p>
+          <label class="label" for="imageUrls">Liens des photos (Cloudinary, Flickr...)</label>
+          <textarea id="imageUrls" name="imageUrls" rows="3" class="input" placeholder="https://...&#10;https://... (un lien par ligne)"></textarea>
+          <p class="text-xs text-gray-400 mt-1">Un lien par ligne - 0, 1 ou plusieurs photos selon ce que le client a envoyé.</p>
         </div>
 
         <button type="submit" class="px-8 py-3 bg-black text-white text-sm font-medium uppercase tracking-wide hover:opacity-90 transition-opacity">
@@ -87,8 +87,15 @@
       <div class="space-y-3">
         <% reviews.forEach(function(r) { %>
           <div class="zara-card p-4 flex items-start gap-4 <%= !r.published ? 'opacity-50' : '' %>">
-            <% if (r.imageUrl) { %>
-              <img src="<%= r.imageUrl %>" alt="" class="w-16 h-16 object-cover rounded flex-shrink-0 bg-gray-50">
+            <% if (r.imageUrls && r.imageUrls.length > 0) { %>
+              <div class="flex gap-1 flex-shrink-0">
+                <% r.imageUrls.slice(0, 3).forEach(function(url) { %>
+                  <img src="<%= url %>" alt="" class="w-12 h-12 object-cover rounded flex-shrink-0 bg-gray-50">
+                <% }); %>
+                <% if (r.imageUrls.length > 3) { %>
+                  <span class="w-12 h-12 flex items-center justify-center text-xs text-gray-500 bg-gray-100 rounded flex-shrink-0">+<%= r.imageUrls.length - 3 %></span>
+                <% } %>
+              </div>
             <% } %>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between gap-2">
