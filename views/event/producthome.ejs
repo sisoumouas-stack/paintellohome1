@@ -2132,6 +2132,66 @@ input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: #000;
 }
+
+/* Review photo lightbox - standalone, separate from the main product gallery's */
+.review-lightbox-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.review-lightbox-backdrop.active {
+  display: flex;
+}
+
+.review-lightbox-img {
+  max-width: 90vw;
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.review-lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #fff;
+  font-size: 32px;
+  line-height: 1;
+  cursor: pointer;
+  background: none;
+  border: none;
+  z-index: 2;
+}
+
+.review-lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.review-lightbox-nav:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.review-lightbox-prev { left: 20px; }
+.review-lightbox-next { right: 20px; }
   </style>
 
   <!-- THREE.js assets (deferred) -->
@@ -2649,23 +2709,39 @@ input:focus, select:focus, textarea:focus {
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
         <% reviews.forEach(function(r) { %>
-          <div class="flex gap-4">
-            <% if (r.imageUrl) { %>
-              <img src="<%= r.imageUrl %>" alt="Photo envoyée par <%= r.customerName %>" class="w-20 h-20 object-cover rounded-lg flex-shrink-0 bg-gray-50">
-            <% } %>
-            <div class="flex-1 min-w-0">
-              <div class="text-black text-sm mb-1">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <p class="text-sm font-medium"><%= r.customerName %></p>
+              <span class="text-black text-sm">
                 <%= '★'.repeat(r.rating) %><span class="text-gray-300"><%= '★'.repeat(5 - r.rating) %></span>
-              </div>
-              <p class="text-sm font-medium mb-1"><%= r.customerName %></p>
-              <% if (r.comment) { %>
-                <p class="text-sm text-gray-600 leading-relaxed"><%= r.comment %></p>
-              <% } %>
+              </span>
             </div>
+            <% if (r.comment) { %>
+              <p class="text-sm text-gray-600 leading-relaxed"><%= r.comment %></p>
+            <% } %>
+            <% if (r.imageUrls && r.imageUrls.length > 0) { %>
+              <div class="flex gap-2 mt-3 flex-wrap" data-review-images="<%= JSON.stringify(r.imageUrls) %>">
+                <% r.imageUrls.forEach(function(url, idx) { %>
+                  <img src="<%= url %>" alt="Photo envoyée par <%= r.customerName %>"
+                       class="review-thumb w-16 h-16 object-cover rounded-lg cursor-pointer bg-gray-50 hover:opacity-80 transition-opacity"
+                       data-index="<%= idx %>">
+                <% }); %>
+              </div>
+            <% } %>
           </div>
         <% }); %>
       </div>
     </section>
+
+    <!-- Standalone lightbox for review photos - separate from the main product
+         gallery lightbox above, since these navigate within one review's own
+         photos rather than the product's image set. -->
+    <div id="reviewLightbox" class="review-lightbox-backdrop">
+      <button type="button" id="reviewLightboxClose" class="review-lightbox-close" aria-label="Fermer">&times;</button>
+      <button type="button" id="reviewLightboxPrev" class="review-lightbox-nav review-lightbox-prev" aria-label="Photo précédente">&#8249;</button>
+      <img id="reviewLightboxImg" class="review-lightbox-img" src="" alt="">
+      <button type="button" id="reviewLightboxNext" class="review-lightbox-nav review-lightbox-next" aria-label="Photo suivante">&#8250;</button>
+    </div>
     <% } %>
 <% if (producthome && producthome.videoFile) { %>
 <!-- ===================== ZARA-STYLE PRODUCT VIDEO (FULL BLEED) ===================== -->
@@ -3395,6 +3471,64 @@ input:focus, select:focus, textarea:focus {
           }
         });
       }
+
+      // ---------- Review photo lightbox (standalone, separate from the product gallery one) ----------
+      (function() {
+        const backdrop = document.getElementById('reviewLightbox');
+        if (!backdrop) return; // no reviews on this page - nothing to wire up
+
+        const imgEl = document.getElementById('reviewLightboxImg');
+        const closeBtn = document.getElementById('reviewLightboxClose');
+        const prevBtn = document.getElementById('reviewLightboxPrev');
+        const nextBtn = document.getElementById('reviewLightboxNext');
+
+        let currentImages = [];
+        let currentIndex = 0;
+
+        function show(index) {
+          if (!currentImages.length) return;
+          currentIndex = (index + currentImages.length) % currentImages.length;
+          imgEl.src = currentImages[currentIndex];
+          const multi = currentImages.length > 1;
+          prevBtn.style.display = multi ? 'flex' : 'none';
+          nextBtn.style.display = multi ? 'flex' : 'none';
+        }
+
+        function openLightbox(images, startIndex) {
+          currentImages = images;
+          show(startIndex);
+          backdrop.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+          backdrop.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+
+        document.querySelectorAll('.review-thumb').forEach(function(thumb) {
+          thumb.addEventListener('click', function() {
+            const wrap = thumb.closest('[data-review-images]');
+            if (!wrap) return;
+            let images = [];
+            try { images = JSON.parse(wrap.getAttribute('data-review-images')); } catch (e) { return; }
+            const idx = parseInt(thumb.getAttribute('data-index')) || 0;
+            openLightbox(images, idx);
+          });
+        });
+
+        closeBtn.addEventListener('click', closeLightbox);
+        backdrop.addEventListener('click', function(e) { if (e.target === backdrop) closeLightbox(); });
+        prevBtn.addEventListener('click', function() { show(currentIndex - 1); });
+        nextBtn.addEventListener('click', function() { show(currentIndex + 1); });
+
+        document.addEventListener('keydown', function(e) {
+          if (!backdrop.classList.contains('active')) return;
+          if (e.key === 'Escape') closeLightbox();
+          else if (e.key === 'ArrowLeft') show(currentIndex - 1);
+          else if (e.key === 'ArrowRight') show(currentIndex + 1);
+        });
+      })();
 
     // ---------- Tabs ----------
 function initializeTabs() {
