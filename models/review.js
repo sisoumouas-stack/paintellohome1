@@ -5,9 +5,9 @@ const reviewSchema = new mongoose.Schema({
   customerName: { type: String, required: true },
   rating: { type: Number, required: true, min: 1, max: 5 },
   comment: { type: String, default: '' },
-  // Just a URL string - hosted wherever the admin chooses (Cloudinary, Flickr, etc.),
-  // never uploaded to or stored as binary data in this app.
-  imageUrl: { type: String, default: null },
+  // Array since a client may send anywhere from zero to several photos over
+  // WhatsApp - each just a URL string, hosted wherever the admin chooses.
+  imageUrls: { type: [String], default: [] },
   // Admin adds these manually from real WhatsApp exchanges, so there's no public
   // submission form to worry about spam on - this is just a quick show/hide toggle
   // rather than a moderation queue.
