@@ -258,17 +258,22 @@ router.get('/admin/reviews', middleware.isLoggedIn, requireAdmin, async (req, re
 
 router.post('/admin/reviews', middleware.isLoggedIn, requireAdmin, async (req, res) => {
   try {
-    const { productId, customerName, rating, comment, imageUrl } = req.body;
+    const { productId, customerName, rating, comment, imageUrls } = req.body;
     if (!productId || !customerName?.trim() || !rating) {
       req.flash('error', 'Produit, nom du client et note sont obligatoires.');
       return res.redirect('/user/admin/reviews');
     }
+    // One URL per line in the textarea - split, trim, and drop blank lines.
+    const urls = (imageUrls || '')
+      .split('\n')
+      .map(u => u.trim())
+      .filter(Boolean);
     await Review.create({
       productId,
       customerName: customerName.trim(),
       rating: Math.min(5, Math.max(1, parseInt(rating) || 5)),
       comment: (comment || '').trim(),
-      imageUrl: (imageUrl || '').trim() || null,
+      imageUrls: urls,
     });
     res.redirect('/user/admin/reviews');
   } catch (err) {
