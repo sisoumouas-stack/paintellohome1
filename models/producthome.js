@@ -44,6 +44,14 @@ const producthomeSchema = new mongoose.Schema({
     defaultColor: {
       type: String
     }
+  },
+  // Links a lighting product (type: "lighting") to the vase it's built on top of,
+  // so the vase page can offer "also available as a lamp" and vice versa. Left
+  // null for vases themselves and for standalone lighting products with no vase base.
+  baseVaseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Producthome',
+    default: null
   }
   // ❌ REMOVE relatedProducts array - we don't need it!
 }, {
