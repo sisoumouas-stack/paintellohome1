@@ -41,7 +41,7 @@
       height: 70vh;
       min-height: 400px;
       overflow: hidden;
-      margin-top: -80px;   /* adjust if you have fixed navbar */
+      margin-top: 0;               /* <-- FIXED: no negative margin, header is visible */
     }
     .lighting-banner-image {
       position: absolute;
@@ -209,7 +209,6 @@
       .lighting-banner {
         height: 50vh;
         min-height: 300px;
-        margin-top: -70px;
       }
       .lighting-banner-title { font-size: 1.8rem; }
       .lighting-banner-subtitle { font-size: 0.85rem; margin-bottom: 1.5rem; }
