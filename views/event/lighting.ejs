@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Éclairage — Paintello Home</title>
+  <meta name="description" content="Découvrez notre collection d'éclairage — des lampes nées de nos vases, et des créations lumineuses uniques.">
+
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <% if (process.env.FB_PIXEL_ID) { %>
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+
+    var pixelConfig = {};
+    <% if (user && user.email) { %> pixelConfig.em = <%- JSON.stringify(user.email) %>; <% } %>
+    <% if (user && user.firstName) { %> pixelConfig.fn = <%- JSON.stringify(user.firstName) %>; <% } %>
+    <% if (user && user.lastName) { %> pixelConfig.ln = <%- JSON.stringify(user.lastName) %>; <% } %>
+    <% if (user && user.numero) { %> pixelConfig.ph = <%- JSON.stringify(user.numero) %>; <% } %>
+    <% if (user && user._id) { %> pixelConfig.external_id = <%- JSON.stringify(String(user._id)) %>; <% } %>
+
+    fbq('init', '<%= process.env.FB_PIXEL_ID %>', pixelConfig);
+    fbq('track', 'PageView', {}, { eventID: '<%= metaEventIdPageView %>' });
+  </script>
+  <% } %>
+
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #111; }
+
+    .site-nav a { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: #333; }
+    .site-nav a:hover { color: #000; }
+
+    .lighting-hero {
+      padding: 80px 20px 50px;
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .lighting-hero h1 {
+      font-size: 2.25rem;
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .lighting-hero p {
+      font-size: 0.9rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    /* Product card - hover swaps to a second "lifestyle" shot, same idea as
+       Urban Barn's lighting grid: clean studio shot by default, in-context
+       shot on hover. Falls back gracefully if there's no second image. */
+    .light-card { display: block; }
+    .light-card-img-wrap {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      overflow: hidden;
+      background: #f7f7f5;
+      border-radius: 2px;
+    }
+    .light-card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.4s ease;
+    }
+    .light-card-img.secondary { opacity: 0; }
+    .light-card:hover .light-card-img.primary { opacity: 0; }
+    .light-card:hover .light-card-img.secondary { opacity: 1; }
+
+    .light-card-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #000;
+      color: #fff;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 4px 10px;
+      border-radius: 2px;
+      z-index: 2;
+    }
+
+    .light-card-title {
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-top: 14px;
+      margin-bottom: 4px;
+    }
+    .light-card-price { font-size: 0.85rem; color: #444; }
+    .light-card-price .old { text-decoration: line-through; color: #aaa; margin-right: 6px; }
+  </style>
+</head>
+<body class="bg-white">
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+      <a href="/"><img src="/img/logo.png" alt="Paintello Home" class="h-8"></a>
+      <nav class="site-nav hidden md:flex items-center gap-8">
+        <a href="/">Accueil</a>
+        <a href="/shop">Boutique</a>
+        <a href="/eclairage" class="text-black font-medium">Éclairage</a>
+        <a href="/contact">Contact</a>
+      </nav>
+      <a href="/shop" aria-label="Panier"><i class="fas fa-shopping-bag text-lg"></i></a>
+    </div>
+  </header>
+
+  <!-- ===================== INTRO ===================== -->
+  <section class="lighting-hero">
+    <h1>Éclairage</h1>
+    <p>
+      Nos vases prennent une nouvelle forme — des lampes nées d'un chapeau posé sur nos pièces
+      les plus emblématiques, aux côtés de créations lumineuses uniques.
+    </p>
+  </section>
+
+  <!-- ===================== GRID ===================== -->
+  <section class="max-w-7xl mx-auto px-6 pb-24">
+    <% if (!lightingProducts || lightingProducts.length === 0) { %>
+      <div class="text-center py-20">
+        <p class="text-sm text-gray-500">Notre collection d'éclairage arrive bientôt.</p>
+        <a href="/shop" class="inline-block mt-4 text-xs uppercase tracking-widest underline">Voir la boutique</a>
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-12">
+        <% lightingProducts.forEach(function(p) { %>
+          <a href="/producthome/<%= p._id %>" class="light-card">
+            <div class="light-card-img-wrap">
+              <% if (p.baseVaseId) { %>
+                <span class="light-card-badge">Née d'un vase</span>
+              <% } %>
+              <img class="light-card-img primary"
+                   src="<%= (p.image && p.image[0]) || '/img/logo.png' %>"
+                   alt="<%= p.title %>">
+              <% if (p.image && p.image[1]) { %>
+                <img class="light-card-img secondary" src="<%= p.image[1] %>" alt="<%= p.title %> — en situation">
+              <% } %>
+            </div>
+            <p class="light-card-title"><%= p.title %></p>
+            <p class="light-card-price">
+              <% if (p.oldPrice) { %><span class="old"><%= p.oldPrice %> DZD</span><% } %>
+              <%= p.price %> DZD
+            </p>
+          </a>
+        <% }); %>
+      </div>
+    <% } %>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer class="footer-zara">
+    <div class="max-w-7xl mx-auto">
+      <p>© <%= new Date().getFullYear() %> Paintello Home — All rights reserved</p>
+    </div>
+  </footer>
+
+</body>
+</html>
