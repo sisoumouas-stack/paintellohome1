@@ -1213,6 +1213,35 @@ router.get('/track-order', async (req,res) => {
 });
 
 // ===== PRODUCTHOME - ALREADY FIXED, KEEPING IT =====
+// Lighting category page - lists all lighting products (both vase-based lamps
+// via baseVaseId and standalone lighting designs), grid style matching the rest
+// of the site.
+router.get("/eclairage", async (req, res) => {
+  try {
+    const lightingProducts = await Producthome.find({ type: "lighting", disponible: true })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const eventIdPageView = generateEventId();
+    const userData = getCleanUserData(req);
+    if (userData) {
+      setFbcCookieIfNeeded(req, res, userData);
+      sendFacebookCAPIEvent({ eventName: "PageView", eventId: eventIdPageView, userData, eventSourceUrl: getEventSourceUrl(req), customData: {}, testEventCode: getTestCode(req) }).catch(() => {});
+    }
+
+    res.render("event/lighting", {
+      lightingProducts,
+      req,
+      metaEventIdPageView: eventIdPageView,
+      user: req.user,
+      login: req.isAuthenticated()
+    });
+  } catch (error) {
+    console.error("❌ Lighting page error:", error);
+    res.status(500).send("Server Error");
+  }
+});
+
 router.get("/producthome/:id", async (req, res) => {
   try {
     const rawId = req.params.id; const cleanId = rawId.replace(/\.\w+$/, '');
