@@ -208,9 +208,10 @@ async function handleProductPage(req, res, Model, viewPath, logPrefix) {
       if (req.query.test_event_code) req.session.preGeneratedEventIds = { ...(req.session.preGeneratedEventIds||{}), testCode };
 
       sendFacebookCAPIEvent({ eventName:"PageView", eventId:eventIdPageView, userData, eventSourceUrl:getEventSourceUrl(req), customData:{}, testEventCode:testCode }).catch(()=>{});
+      const productCategory = product.category || product.type || 'vases';
       sendFacebookCAPIEvent({ 
         eventName:"ViewContent", eventId:eventIdView, userData, 
-        customData:{ content_name:product.title, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(product.price)}], content_type:"product", value:Number(product.price), currency:"DZD" },
+        customData:{ content_name:product.title, content_category:productCategory, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(product.price)}], content_type:"product", value:Number(product.price), currency:"DZD" },
         eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode
       }).catch(()=>{});
       console.log(`✅ ${logPrefix} PageView + ViewContent queued`);
@@ -259,9 +260,10 @@ async function handleAddToCart(req, res, Model, logPrefix) {
     const testCode = getTestCode(req);
     const productIdStr = product._id.toString();
 
+    const productCategory = product.category || product.type || 'vases';
     await sendFacebookCAPIEvent({
       eventName:"AddToCart", eventId:eventIdCart, userData,
-      customData:{ content_name:product.title, content_ids:[productIdStr], contents:[{id:productIdStr, quantity, item_price:Number(product.price)}], content_type:"product", value:Number(product.price)*quantity, currency:"DZD" },
+      customData:{ content_name:product.title, content_category:productCategory, content_ids:[productIdStr], contents:[{id:productIdStr, quantity, item_price:Number(product.price)}], content_type:"product", value:Number(product.price)*quantity, currency:"DZD" },
       eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode
     });
 
@@ -1256,7 +1258,8 @@ router.get("/producthome/:id", async (req, res) => {
       setFbcCookieIfNeeded(req,res,userData);
       const productIdStr = producthome._id.toString(); const testCode = getTestCode(req);
       sendFacebookCAPIEvent({ eventName:"PageView", eventId:eventIdPageView, userData, eventSourceUrl:getEventSourceUrl(req), customData:{}, testEventCode:testCode }).catch(()=>{});
-      sendFacebookCAPIEvent({ eventName:"ViewContent", eventId:eventIdView, userData, customData:{ content_name:producthome.title, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(producthome.price)}], content_type:"product", value:Number(producthome.price), currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode }).catch(()=>{});
+      const phCategory = producthome.type || 'vases';
+      sendFacebookCAPIEvent({ eventName:"ViewContent", eventId:eventIdView, userData, customData:{ content_name:producthome.title, content_category:phCategory, content_ids:[productIdStr], contents:[{id:productIdStr, quantity:1, item_price:Number(producthome.price)}], content_type:"product", value:Number(producthome.price), currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode }).catch(()=>{});
       console.log("✅ PageView + ViewContent queued");
     } else { console.log("🤖 Bot detected – ViewContent skipped", getBotClassification(req)?.botType); }
     // Fetch a bounded pool of candidates once, then do all matching in JS below rather
@@ -1319,7 +1322,8 @@ router.get("/add-to-cart-producthome/:id", async (req, res) => {
     const eventIds=req.session.preGeneratedEventIds||{}; const eventIdCart=eventIds.cart||generateEventId(); const testCode=getTestCode(req);
     const mainIdStr=producthome._id.toString(); const contents=[{id:mainIdStr,quantity,item_price:Number(producthome.price)}]; let totalValue=Number(producthome.price)*quantity;
     if(secondProduct){ const secondIdStr=secondProduct._id.toString(); if(secondIdStr===mainIdStr){ contents[0].quantity+=1; contents.push({id:`${secondIdStr}-discount`,quantity:1,item_price:secondProductDiscountedPrice}); } else { contents.push({id:secondIdStr,quantity:1,item_price:secondProductDiscountedPrice}); } totalValue+=secondProductDiscountedPrice; }
-    await sendFacebookCAPIEvent({ eventName:"AddToCart", eventId:eventIdCart, userData, customData:{ content_name:producthome.title, content_ids:[...new Set(contents.map(c=>c.id.replace('-discount','').replace('-discounted','')))], contents, content_type:"product", value:totalValue, currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode });
+    const phCategory = producthome.type || 'vases';
+    await sendFacebookCAPIEvent({ eventName:"AddToCart", eventId:eventIdCart, userData, customData:{ content_name:producthome.title, content_category:phCategory, content_ids:[...new Set(contents.map(c=>c.id.replace('-discount','').replace('-discounted','')))], contents, content_type:"product", value:totalValue, currency:"DZD" }, eventSourceUrl:getEventSourceUrl(req), testEventCode:testCode });
     console.log("✅ AddToCart sent"); if(req.session.preGeneratedEventIds) delete req.session.preGeneratedEventIds.cart;
     res.redirect(redirectTo==="checkout"?"/checkout":"/shop");
   } catch(error){ console.error(error); res.status(500).send("Server Error"); }

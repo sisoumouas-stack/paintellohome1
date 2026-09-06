@@ -6,6 +6,27 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="facebook-domain-verification" content="yb7g1gekm0w90kxdm7yjazn8df8ad0" />
   <meta name="msvalidate.01" content="3E25742DD0A4CACC80E866B477A5CC04" />
+
+  <!-- DYNAMIC OPENGRAPH META TAGS -->
+  <%
+    let ogTitle = "Paintello Home — Sustainable Paint & Décor";
+    let ogDesc = "Crafted in Algeria for homes that inspire. Discover our handcrafted vases and lampshades.";
+    let ogImg = "https://www.paintello.uk/img/paintellohome.png";
+
+    if (typeof selectedCategory !== 'undefined') {
+      if (selectedCategory === 'vases') {
+        ogTitle = "Paintello Home Vases Collection";
+        ogDesc = "Explore our handcrafted artisan ceramic and painted vases collection.";
+      } else if (selectedCategory === 'lampshades') {
+        ogTitle = "Paintello Home Lampshades Collection";
+        ogDesc = "Discover handcrafted lampshades and lighting décor for inspiring homes.";
+      }
+    }
+  %>
+  <meta property="og:title" content="<%= ogTitle %>" />
+  <meta property="og:description" content="<%= ogDesc %>" />
+  <meta property="og:image" content="<%= ogImg %>" />
+  <meta property="og:type" content="website" />
  <!-- Pixel, GTM, Clarity -->
   <% if (process.env.FB_PIXEL_ID) { %>
   <script>
@@ -641,6 +662,12 @@
 
       <!-- Right: Icons -->
       <div class="flex items-center gap-5">
+        <!-- Wishlist -->
+        <button id="wishlistBtn" class="relative flex items-center justify-center hover:opacity-70 transition text-gray-800 text-lg" title="Wishlist">
+          <i class="fa-regular fa-heart"></i>
+          <span id="wishlistBadge" class="hidden absolute -top-2 -right-2 bg-black text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+
         <!-- Cart -->
         <a href="/shop" class="relative flex items-center justify-center hover:opacity-70 transition" title="Cart">
           <i class="fa-solid fa-bag-shopping text-gray-800 text-lg"></i>
@@ -749,17 +776,38 @@
   <section class="bg-white">
     <h2 class="section-title-zara">New Arrivals</h2>
 
-    <!-- CATEGORY FILTER SWITCHER -->
-    <div class="filter-switcher-zara">
-      <button type="button" class="filter-btn-zara <%= (typeof selectedCategory !== 'undefined' && selectedCategory === 'all') || typeof selectedCategory === 'undefined' ? 'active' : '' %>" data-filter="all">
-        All
-      </button>
-      <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'vases' ? 'active' : '' %>" data-filter="vases">
-        Vases
-      </button>
-      <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'lampshades' ? 'active' : '' %>" data-filter="lampshades">
-        Lampshades
-      </button>
+    <!-- CATEGORY FILTER SWITCHER & CONTROLS BAR -->
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-7xl mx-auto px-6 mt-6 mb-4">
+      <div class="filter-switcher-zara !mt-0 !mb-0">
+        <button type="button" class="filter-btn-zara <%= (typeof selectedCategory !== 'undefined' && selectedCategory === 'all') || typeof selectedCategory === 'undefined' ? 'active' : '' %>" data-filter="all">
+          All
+        </button>
+        <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'vases' ? 'active' : '' %>" data-filter="vases">
+          Vases
+        </button>
+        <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'lampshades' ? 'active' : '' %>" data-filter="lampshades">
+          Lampshades
+        </button>
+      </div>
+
+      <!-- SEARCH & SORT CONTROLS -->
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- SEARCH BAR -->
+        <div class="relative w-64">
+          <input type="text" id="searchInput" placeholder="Search products..." class="w-full text-xs border border-black px-3 py-2 text-black focus:outline-none placeholder-gray-400 uppercase tracking-wider">
+          <div id="searchSuggest" class="hidden absolute left-0 right-0 top-full bg-white border border-black z-30 max-h-60 overflow-y-auto shadow-lg"></div>
+        </div>
+
+        <!-- SORTING DROPDOWN -->
+        <div class="flex items-center gap-2">
+          <label for="sortDropdown" class="text-xs uppercase font-semibold tracking-wider text-gray-500">Sort By:</label>
+          <select id="sortDropdown" class="text-xs font-medium uppercase tracking-wider border border-black bg-white px-3 py-2 text-black focus:outline-none cursor-pointer">
+            <option value="default">Featured / Newest</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
     </div>
     
     <div class="products-grid-zara">
@@ -780,7 +828,7 @@
           pCategory = 'vases';
         }
       %>
-        <article class="product-card-zara fade-in" data-category="<%= pCategory %>" style="animation-delay: <%= (index % 6) * 0.1 %>s">
+        <article class="product-card-zara fade-in" data-category="<%= pCategory %>" data-price="<%= typeof product.price === 'number' ? product.price : 0 %>" data-order="<%= index %>" style="animation-delay: <%= (index % 6) * 0.1 %>s">
           <div class="product-image-container-zara">
             <!-- STATUS BADGES - ON IMAGE (Based on product.status) -->
             <div class="product-badges-zara">
@@ -862,11 +910,16 @@
           </div>
 
           <div class="product-info-zara">
-            <h3 class="product-title-zara">
-              <a href="<%= product.href || '/product/' + product._id %>" class="hover:opacity-70 transition">
-                <%= product.title %>
-              </a>
-            </h3>
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <h3 class="product-title-zara !mb-0">
+                <a href="<%= product.href || '/product/' + product._id %>" class="hover:opacity-70 transition">
+                  <%= product.title %>
+                </a>
+              </h3>
+              <button type="button" class="wishlist-toggle text-gray-400 hover:text-black transition" data-id="<%= product._id %>" data-title="<%= product.title %>" title="Add to Wishlist">
+                <i class="fa-regular fa-heart text-sm"></i>
+              </button>
+            </div>
             
             <div class="product-price-zara">
               <span><%= typeof product.price === 'number' ? product.price.toFixed(2) : product.price %> DA</span>
@@ -1042,16 +1095,30 @@
         });
       });
 
-      // Category Filter Switcher Logic
+      // Category Filter, Search & Sorting Switcher Logic
       const filterBtns = document.querySelectorAll('.filter-btn-zara');
-      const productCards = document.querySelectorAll('.product-card-zara');
+      const productCards = Array.from(document.querySelectorAll('.product-card-zara'));
+      const gridContainer = document.querySelector('.products-grid-zara');
+      const sortSelect = document.getElementById('sortDropdown');
+      const searchInput = document.getElementById('searchInput');
+      const searchSuggest = document.getElementById('searchSuggest');
       const emptyStateMsg = document.getElementById('noProductsMsg');
 
-      function filterProducts(filter) {
+      function filterAndSortProducts() {
+        const activeFilterBtn = document.querySelector('.filter-btn-zara.active');
+        const filter = activeFilterBtn ? activeFilterBtn.getAttribute('data-filter') : 'all';
+        const sortVal = sortSelect ? sortSelect.value : 'default';
+        const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
         let visibleCount = 0;
         productCards.forEach(card => {
           const cardCat = card.getAttribute('data-category');
-          if (filter === 'all' || cardCat === filter) {
+          const titleText = card.querySelector('.product-title-zara')?.innerText?.toLowerCase() || '';
+
+          const matchesCategory = (filter === 'all' || cardCat === filter);
+          const matchesSearch = (!query || titleText.includes(query) || cardCat.includes(query));
+
+          if (matchesCategory && matchesSearch) {
             card.style.display = 'block';
             visibleCount++;
           } else {
@@ -1066,27 +1133,125 @@
             emptyStateMsg.classList.add('hidden');
           }
         }
+
+        // Sorting
+        productCards.sort((a, b) => {
+          const priceA = parseFloat(a.getAttribute('data-price')) || 0;
+          const priceB = parseFloat(b.getAttribute('data-price')) || 0;
+          const orderA = parseInt(a.getAttribute('data-order')) || 0;
+          const orderB = parseInt(b.getAttribute('data-order')) || 0;
+
+          if (sortVal === 'price-asc') return priceA - priceB;
+          if (sortVal === 'price-desc') return priceB - priceA;
+          return orderA - orderB;
+        });
+
+        productCards.forEach(card => gridContainer.appendChild(card));
+      }
+
+      // Auto-suggest handler
+      if (searchInput && searchSuggest) {
+        searchInput.addEventListener('input', function() {
+          const query = this.value.trim().toLowerCase();
+          filterAndSortProducts();
+
+          if (!query) {
+            searchSuggest.classList.add('hidden');
+            searchSuggest.innerHTML = '';
+            return;
+          }
+
+          const matches = productCards.filter(card => {
+            const title = card.querySelector('.product-title-zara')?.innerText || '';
+            return title.toLowerCase().includes(query);
+          }).slice(0, 5);
+
+          if (matches.length > 0) {
+            searchSuggest.innerHTML = matches.map(m => {
+              const title = m.querySelector('.product-title-zara')?.innerText || 'Product';
+              const price = m.querySelector('.product-price-zara')?.innerText || '';
+              const link = m.querySelector('a')?.getAttribute('href') || '#';
+              return `<a href="${link}" class="block px-3 py-2 border-b border-gray-100 hover:bg-gray-50 flex items-center justify-between text-xs uppercase font-medium"><span>${title}</span> <span class="text-gray-500">${price}</span></a>`;
+            }).join('');
+            searchSuggest.classList.remove('hidden');
+          } else {
+            searchSuggest.classList.add('hidden');
+          }
+        });
+
+        document.addEventListener('click', function(e) {
+          if (!searchInput.contains(e.target) && !searchSuggest.contains(e.target)) {
+            searchSuggest.classList.add('hidden');
+          }
+        });
+      }
+
+      if (sortSelect) {
+        sortSelect.addEventListener('change', filterAndSortProducts);
       }
 
       filterBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-          const filter = this.getAttribute('data-filter');
-
           filterBtns.forEach(b => b.classList.remove('active'));
           this.classList.add('active');
-
-          filterProducts(filter);
+          filterAndSortProducts();
         });
       });
 
-      // Initial filter check if selectedCategory query parameter was provided
-      const activeBtn = document.querySelector('.filter-btn-zara.active');
-      if (activeBtn) {
-        const initialFilter = activeBtn.getAttribute('data-filter');
-        if (initialFilter && initialFilter !== 'all') {
-          filterProducts(initialFilter);
+      // Wishlist / Favorites Logic
+      function getWishlist() {
+        try {
+          return JSON.parse(localStorage.getItem('paintello_wishlist')) || [];
+        } catch (e) {
+          return [];
         }
       }
+
+      function saveWishlist(list) {
+        localStorage.setItem('paintello_wishlist', JSON.stringify(list));
+        updateWishlistUI();
+      }
+
+      function updateWishlistUI() {
+        const list = getWishlist();
+        const badge = document.getElementById('wishlistBadge');
+        if (badge) {
+          badge.innerText = list.length;
+          if (list.length > 0) badge.classList.remove('hidden');
+          else badge.classList.add('hidden');
+        }
+
+        document.querySelectorAll('.wishlist-toggle').forEach(btn => {
+          const id = btn.getAttribute('data-id');
+          const icon = btn.querySelector('i');
+          if (list.includes(id)) {
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid', 'text-red-500');
+          } else {
+            icon.classList.remove('fa-solid', 'text-red-500');
+            icon.classList.add('fa-regular');
+          }
+        });
+      }
+
+      document.querySelectorAll('.wishlist-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const id = this.getAttribute('data-id');
+          let list = getWishlist();
+          if (list.includes(id)) {
+            list = list.filter(item => item !== id);
+          } else {
+            list.push(id);
+          }
+          saveWishlist(list);
+        });
+      });
+
+      updateWishlistUI();
+
+      // Initial run
+      filterAndSortProducts();
     });
 
    

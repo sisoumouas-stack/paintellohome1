@@ -2593,11 +2593,27 @@ input:focus, select:focus, textarea:focus {
   </div>
 
   <div class="mt-6">
-    <!-- 3D Model Tab (Now First) -->
+    <!-- 3D Model Tab (With Live Color Picker) -->
     <% if (has3DModel) { %>
       <div id="model3d" class="tab-panel">
         <div class="bg-gray-50 rounded-xl p-4">
           <div id="modelViewer" class="model-viewer-container w-full h-96 rounded-lg overflow-hidden"></div>
+
+          <!-- LIVE COLOR PICKER PALETTE -->
+          <div class="mt-4 pt-4 border-t border-gray-200 text-center">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 mb-2">
+              Preview Custom Paint Shade:
+            </label>
+            <div class="flex items-center justify-center gap-3 flex-wrap" id="colorPickerPalette">
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #8CAAE6;" data-color="#8CAAE6" title="Soft Blue"></button>
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #c9b59a;" data-color="#c9b59a" title="Zara Beige"></button>
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #e65540;" data-color="#e65540" title="Terracotta Red"></button>
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #4a6b5d;" data-color="#4a6b5d" title="Sage Green"></button>
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #2b2b2b;" data-color="#2b2b2b" title="Matte Black"></button>
+              <button type="button" class="w-7 h-7 rounded-full border border-gray-300 shadow-sm transition transform hover:scale-110 focus:outline-none" style="background-color: #f5f5f5;" data-color="#f5f5f5" title="Pure White"></button>
+            </div>
+          </div>
+
           <p class="text-xs text-gray-500 text-center mt-3">Drag to rotate • Scroll to zoom</p>
         </div>
       </div>
@@ -3046,6 +3062,7 @@ input:focus, select:focus, textarea:focus {
 
               const material = new THREE.MeshPhongMaterial({ color: new THREE.Color(defaultColor || '#c9b59a'), shininess: 60, specular: 0x222222 });
               const mesh = new THREE.Mesh(geometry, material);
+              window.active3DMesh = mesh;
 
               const group = new THREE.Group();
               mesh.position.set(-center.x, -center.y, -center.z);
@@ -3093,6 +3110,19 @@ input:focus, select:focus, textarea:focus {
             init3DViewer('<%= model3DSettings && model3DSettings.stlFile ? model3DSettings.stlFile : '' %>', '<%= model3DSettings && model3DSettings.defaultColor ? model3DSettings.defaultColor : '#c9b59a' %>', <%= model3DSettings && typeof model3DSettings.autoRotate !== 'undefined' ? model3DSettings.autoRotate : false %>);
           } catch(e) { console.error('init3DViewer call failed', e); }
         }, 8000);
+
+        // Color picker palette handler
+        const palette = document.getElementById('colorPickerPalette');
+        if (palette) {
+          palette.addEventListener('click', function(e) {
+            const btn = e.target.closest('button[data-color]');
+            if (!btn) return;
+            const hexColor = btn.getAttribute('data-color');
+            if (window.active3DMesh && window.THREE) {
+              window.active3DMesh.material.color = new window.THREE.Color(hexColor);
+            }
+          });
+        }
       });
     })();
   </script>

@@ -5,6 +5,10 @@ const mongoose = require('mongoose');
 const producthomeSchema = new mongoose.Schema({
   title: String,
   price: Number,
+  buyPrice: {
+    type: Number,
+    default: 0
+  },
   oldPrice: {          
     type: Number,
     default: null
