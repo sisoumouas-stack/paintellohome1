@@ -1141,6 +1141,31 @@ router.post("/order/deliver/:orderId", async (req, res) => {
       "admin"
     );
 
+    // AUTO STOCK DEDUCTION UPON DELIVERY
+    if (order.cart && order.cart.items) {
+      const itemsMap = order.cart.items;
+      for (const key in itemsMap) {
+        const itemObj = itemsMap[key];
+        const qty = itemObj.qty || 1;
+        const item = itemObj.item || {};
+        const productId = item._id || key;
+
+        if (mongoose.isValidObjectId(String(productId))) {
+          // Attempt stock update on Producthome or Paintello
+          const ph = await Producthome.findById(productId);
+          if (ph) {
+            ph.disponible = false;
+            await ph.save().catch(() => {});
+          }
+          const pt = await Paintello.findById(productId);
+          if (pt) {
+            pt.disponible = false;
+            await pt.save().catch(() => {});
+          }
+        }
+      }
+    }
+
     await sendPurchaseForDeliveredCOD(order);
 
     res.send("<h2>✅ Delivery confirmed.<br>Purchase event sent.</h2>");
