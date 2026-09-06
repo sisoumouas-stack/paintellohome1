@@ -49,7 +49,6 @@
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www",
-    "test": "echo \"No tests defined\" && exit 0",
     "lint": "eslint --debug /",
     "build:css": "tailwindcss -i ./public/css/tailwind-input.css -o ./public/css/tailwind-output.css --minify"
   },

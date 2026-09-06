@@ -476,7 +476,7 @@
       letter-spacing: 3px;
       text-transform: uppercase;
       text-align: center;
-      padding: 80px 20px 15px;
+      padding: 80px 20px 30px;
       color: var(--zara-black);
       position: relative;
     }
@@ -484,42 +484,12 @@
     .section-title-zara::after {
       content: '';
       position: absolute;
-      bottom: 5px;
+      bottom: 15px;
       left: 50%;
       transform: translateX(-50%);
       width: 80px;
       height: 1px;
       background: var(--zara-black);
-    }
-
-    /* Category Filter Switcher */
-    .filter-switcher-zara {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      margin-top: 25px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-
-    .filter-btn-zara {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      padding: 10px 22px;
-      border: 1px solid var(--zara-black);
-      background: white;
-      color: var(--zara-black);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .filter-btn-zara:hover,
-    .filter-btn-zara.active {
-      background: var(--zara-black);
-      color: white;
     }
 
     /* Footer */
@@ -748,39 +718,10 @@
   <!-- ===================== ZARA-STYLE PRODUCTS GRID ===================== -->
   <section class="bg-white">
     <h2 class="section-title-zara">New Arrivals</h2>
-
-    <!-- CATEGORY FILTER SWITCHER -->
-    <div class="filter-switcher-zara">
-      <button type="button" class="filter-btn-zara <%= (typeof selectedCategory !== 'undefined' && selectedCategory === 'all') || typeof selectedCategory === 'undefined' ? 'active' : '' %>" data-filter="all">
-        All
-      </button>
-      <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'vases' ? 'active' : '' %>" data-filter="vases">
-        Vases
-      </button>
-      <button type="button" class="filter-btn-zara <%= typeof selectedCategory !== 'undefined' && selectedCategory === 'lampshades' ? 'active' : '' %>" data-filter="lampshades">
-        Lampshades
-      </button>
-    </div>
     
     <div class="products-grid-zara">
-      <% paintellos.forEach((product, index) => {
-        // Determine category: from field or infer from title/type
-        let pCategory = (product.category || product.type || '').toLowerCase();
-        if (!pCategory) {
-          const titleLower = (product.title || '').toLowerCase();
-          if (titleLower.includes('lampshade') || titleLower.includes('lamp') || titleLower.includes('abat-jour') || titleLower.includes('abat jour') || titleLower.includes('eclairage')) {
-            pCategory = 'lampshades';
-          } else {
-            pCategory = 'vases';
-          }
-        }
-        if (pCategory.includes('lamp') || pCategory.includes('shade') || pCategory.includes('abat')) {
-          pCategory = 'lampshades';
-        } else if (pCategory.includes('vase')) {
-          pCategory = 'vases';
-        }
-      %>
-        <article class="product-card-zara fade-in" data-category="<%= pCategory %>" style="animation-delay: <%= (index % 6) * 0.1 %>s">
+      <% paintellos.forEach((product, index) => { %>
+        <article class="product-card-zara fade-in" style="animation-delay: <%= (index % 6) * 0.1 %>s">
           <div class="product-image-container-zara">
             <!-- STATUS BADGES - ON IMAGE (Based on product.status) -->
             <div class="product-badges-zara">
@@ -889,12 +830,14 @@
     </div>
     
     <!-- Empty State -->
-    <div id="noProductsMsg" class="<%= (!paintellos || paintellos.length === 0) ? '' : 'hidden' %> text-center py-20">
-      <p class="text-gray-500 mb-4">No products available in this category at the moment.</p>
-      <a href="/" class="inline-block px-6 py-3 bg-black text-white text-sm uppercase tracking-wider hover:opacity-80 transition">
-        Continue Shopping
-      </a>
-    </div>
+    <% if (!paintellos || paintellos.length === 0) { %>
+      <div class="text-center py-20">
+        <p class="text-gray-500 mb-4">No products available at the moment.</p>
+        <a href="/" class="inline-block px-6 py-3 bg-black text-white text-sm uppercase tracking-wider hover:opacity-80 transition">
+          Continue Shopping
+        </a>
+      </div>
+    <% } %>
   </section>
 
   <!-- ===================== FOOTER ===================== -->
@@ -1041,52 +984,6 @@
           this.style.zIndex = '1';
         });
       });
-
-      // Category Filter Switcher Logic
-      const filterBtns = document.querySelectorAll('.filter-btn-zara');
-      const productCards = document.querySelectorAll('.product-card-zara');
-      const emptyStateMsg = document.getElementById('noProductsMsg');
-
-      function filterProducts(filter) {
-        let visibleCount = 0;
-        productCards.forEach(card => {
-          const cardCat = card.getAttribute('data-category');
-          if (filter === 'all' || cardCat === filter) {
-            card.style.display = 'block';
-            visibleCount++;
-          } else {
-            card.style.display = 'none';
-          }
-        });
-
-        if (emptyStateMsg) {
-          if (visibleCount === 0) {
-            emptyStateMsg.classList.remove('hidden');
-          } else {
-            emptyStateMsg.classList.add('hidden');
-          }
-        }
-      }
-
-      filterBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-          const filter = this.getAttribute('data-filter');
-
-          filterBtns.forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
-
-          filterProducts(filter);
-        });
-      });
-
-      // Initial filter check if selectedCategory query parameter was provided
-      const activeBtn = document.querySelector('.filter-btn-zara.active');
-      if (activeBtn) {
-        const initialFilter = activeBtn.getAttribute('data-filter');
-        if (initialFilter && initialFilter !== 'all') {
-          filterProducts(initialFilter);
-        }
-      }
     });
 
    
