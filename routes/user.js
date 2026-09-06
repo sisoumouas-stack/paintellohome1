@@ -298,16 +298,17 @@ router.post('/admin/products/new', middleware.isLoggedIn, requireAdmin, async (r
   }
 });
 
-// ===================== FINANCE DASHBOARD =====================
+// ===================== FINANCE DASHBOARD (COD ALGERIA SPECIFIC) =====================
 router.get('/admin/finance', middleware.isLoggedIn, requireAdmin, async (req, res) => {
   try {
-    const [orders, paintelloProds, homeProds] = await Promise.all([
-      Order.find({ status: { $ne: 'cancelled' } }).lean(),
+    const [allOrders, paintelloProds, homeProds] = await Promise.all([
+      Order.find({}).sort({ createdAt: -1 }).lean(),
       Paintello.find({}).lean(),
       Producthome.find({}).lean()
     ]);
 
     const productSalesMap = {};
+    const productDeliveredSalesMap = {};
     const productNameMap = {};
     const productBuyPriceMap = {};
     const productSellPriceMap = {};
@@ -326,36 +327,99 @@ router.get('/admin/finance', middleware.isLoggedIn, requireAdmin, async (req, re
       productSellPriceMap[id] = Number(p.price) || 0;
     });
 
-    let totalRevenue = 0;
-    let totalCost = 0;
+    let deliveredRevenue = 0;
+    let deliveredShipping = 0;
+    let deliveredCost = 0;
 
-    orders.forEach(order => {
+    let pipelineRevenue = 0;
+    let cancelledRevenue = 0;
+
+    let totalOrdersCount = allOrders.length;
+    let deliveredCount = 0;
+    let pipelineCount = 0;
+    let cancelledCount = 0;
+
+    const wilayaMap = {};
+
+    const pipelineStatuses = ['pending', 'confirmed', 'processing', 'ready_for_pickup', 'shipped', 'out_for_delivery', 'on_hold'];
+    const cancelledStatuses = ['cancelled', 'refunded'];
+
+    allOrders.forEach(order => {
+      const status = order.status || 'pending';
       const cart = order.cart || {};
-      const items = cart.items || {};
+      const rawItems = cart.items || {};
+      const itemsList = Array.isArray(rawItems) ? rawItems : Object.keys(rawItems).map(k => rawItems[k]);
 
-      Object.keys(items).forEach(key => {
-        const itemObj = items[key];
+      const shippingFee = Number(order.shippingFee) || 0;
+      let orderProductRevenue = 0;
+      let orderProductCost = 0;
+
+      itemsList.forEach(itemObj => {
+        if (!itemObj) return;
         const qty = itemObj.qty || 1;
         const item = itemObj.item || {};
-        const itemId = (item._id || key).toString();
+        const itemId = (item._id || itemObj.id || '').toString();
 
-        productSalesMap[itemId] = (productSalesMap[itemId] || 0) + qty;
-        if (item.title) productNameMap[itemId] = item.title;
+        if (itemId) {
+          productSalesMap[itemId] = (productSalesMap[itemId] || 0) + qty;
+          if (item.title) productNameMap[itemId] = item.title;
+        }
 
         const sellP = itemObj.unitPrice || item.price || productSellPriceMap[itemId] || 0;
-        const buyP = productBuyPriceMap[itemId] || 0;
+        const buyP = productBuyPriceMap[itemId] || item.buyPrice || 0;
 
-        totalRevenue += sellP * qty;
-        totalCost += buyP * qty;
+        orderProductRevenue += sellP * qty;
+        orderProductCost += buyP * qty;
+
+        if (status === 'delivered' && itemId) {
+          productDeliveredSalesMap[itemId] = (productDeliveredSalesMap[itemId] || 0) + qty;
+        }
       });
+
+      const orderTotalWithShipping = Number(order.totalWithShipping) || (orderProductRevenue + shippingFee);
+
+      if (status === 'delivered') {
+        deliveredCount++;
+        deliveredRevenue += orderTotalWithShipping;
+        deliveredShipping += shippingFee;
+        deliveredCost += orderProductCost;
+
+        const wilaya = (order.city || order.commune || 'Inconnu').trim();
+        if (!wilayaMap[wilaya]) {
+          wilayaMap[wilaya] = { name: wilaya, deliveredOrders: 0, revenue: 0 };
+        }
+        wilayaMap[wilaya].deliveredOrders++;
+        wilayaMap[wilaya].revenue += orderTotalWithShipping;
+
+      } else if (pipelineStatuses.includes(status)) {
+        pipelineCount++;
+        pipelineRevenue += orderTotalWithShipping;
+      } else if (cancelledStatuses.includes(status)) {
+        cancelledCount++;
+        cancelledRevenue += orderTotalWithShipping;
+      }
     });
 
-    const netProfit = totalRevenue - totalCost;
-    const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+    const netRealizedProfit = deliveredRevenue - deliveredCost;
+    const profitMargin = deliveredRevenue > 0 ? (netRealizedProfit / deliveredRevenue) * 100 : 0;
+
+    const deliverySuccessRate = totalOrdersCount > 0 ? (deliveredCount / totalOrdersCount) * 100 : 0;
+    const completedOrdersCount = deliveredCount + cancelledCount;
+    const fulfillmentSuccessRate = completedOrdersCount > 0 ? (deliveredCount / completedOrdersCount) * 100 : 0;
+
+    const wilayaPerformance = Object.values(wilayaMap)
+      .sort((a, b) => b.revenue - a.revenue);
 
     const topProducts = Object.keys(productSalesMap)
-      .map(id => ({ id, name: productNameMap[id] || 'Product', qty: productSalesMap[id] }))
-      .sort((a, b) => b.qty - a.qty)
+      .map(id => ({
+        id,
+        name: productNameMap[id] || 'Produit',
+        totalQty: productSalesMap[id],
+        deliveredQty: productDeliveredSalesMap[id] || 0,
+        sellPrice: productSellPriceMap[id] || 0,
+        buyPrice: productBuyPriceMap[id] || 0
+      }))
+      .sort((a, b) => b.deliveredQty - a.deliveredQty)
       .slice(0, 10);
 
     const allProducts = [
@@ -365,15 +429,25 @@ router.get('/admin/finance', middleware.isLoggedIn, requireAdmin, async (req, re
 
     res.render('admin/finance', {
       metrics: {
-        totalRevenue,
-        totalCost,
-        netProfit,
+        deliveredRevenue,
+        deliveredShipping,
+        deliveredCost,
+        netRealizedProfit,
         profitMargin,
-        totalOrdersCount: orders.length
+        pipelineRevenue,
+        cancelledRevenue,
+        totalOrdersCount,
+        deliveredCount,
+        pipelineCount,
+        cancelledCount,
+        deliverySuccessRate,
+        fulfillmentSuccessRate
       },
+      wilayaPerformance,
       topProducts,
       products: allProducts,
       productSalesMap,
+      productDeliveredSalesMap,
       csrfToken: req.csrfToken(),
       flashErrors: req.flash('error'),
       user: req.user

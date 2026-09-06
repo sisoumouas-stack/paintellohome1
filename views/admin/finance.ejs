@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Finance Dashboard - Admin Panel</title>
+  <title>Finance & COD Dashboard - Administration Paintello</title>
 
   <!-- Tailwind CSS & FontAwesome -->
-  <link rel="stylesheet" href="/css/tailwind.css">
+  <link rel="stylesheet" href="/css/tailwind-output.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
   <!-- Chart.js -->
@@ -16,109 +16,167 @@
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
       background-color: #f8fafc;
-      color: #1e293b;
+      color: #0f172a;
     }
   </style>
 </head>
-<body class="p-6">
+<body class="p-4 sm:p-6 lg:p-8">
   <div class="max-w-7xl mx-auto space-y-8">
 
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+    <!-- Top Bar Navigation & Header -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3xl font-light tracking-wide text-gray-900 uppercase">Financial Analytics</h1>
-        <p class="text-sm text-gray-500 mt-1">Overview of revenue, product cost margin, sales performance & net profit.</p>
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider text-emerald-800 bg-emerald-100 rounded-full">
+            <i class="fa-solid fa-truck-ramp-box mr-1"></i> COD E-Commerce Algérie
+          </span>
+          <span class="text-xs text-slate-400">• Mis à jour en temps réel</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-light tracking-tight text-slate-900 uppercase mt-1">Tableau de Bord Financier</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Chiffre d'affaires encaissé uniquement sur les commandes <strong class="text-slate-800 font-semibold">LIVRÉES</strong> (Paiement à la livraison - Cash On Delivery).
+        </p>
       </div>
-      <div class="flex items-center gap-3">
-        <a href="/user/profile" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition">
-          <i class="fa-solid fa-arrow-left mr-2"></i> Profile
+
+      <div class="flex flex-wrap items-center gap-2">
+        <a href="/user/admin/products/new" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition shadow-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-plus text-emerald-400"></i> Nouveau Produit
         </a>
-        <a href="/user/admin/reviews" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition">
-          Reviews
+        <a href="/user/profile" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+          <i class="fa-solid fa-arrow-left mr-1.5"></i> Mon Profil
         </a>
       </div>
     </div>
 
     <!-- Flash Messages -->
     <% if (flashErrors && flashErrors.length > 0) { %>
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
-        <%= flashErrors[0] %>
+      <div class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-rose-500"></i>
+        <span><%= flashErrors[0] %></span>
       </div>
     <% } %>
 
-    <!-- KPI Metric Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Modern Stat Cards (6 Key Metrics) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
-      <!-- Total Revenue -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+      <!-- Realized Gross Revenue -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Total Revenue</span>
-          <span class="p-2 bg-emerald-50 text-emerald-600 rounded-full"><i class="fa-solid fa-coins"></i></span>
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Chiffre d'Affaires Encaissé (Livrées)</span>
+          <span class="p-2.5 bg-emerald-50 text-emerald-600 rounded-lg"><i class="fa-solid fa-cash-register text-lg"></i></span>
         </div>
         <div class="mt-4">
-          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.totalRevenue.toLocaleString() %> DA</h2>
-          <p class="text-xs text-emerald-600 mt-1"><i class="fa-solid fa-arrow-up text-[10px]"></i> From <%= metrics.totalOrdersCount %> confirmed orders</p>
+          <h2 class="text-3xl font-bold text-slate-900"><%= metrics.deliveredRevenue.toLocaleString() %> DA</h2>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Frais de livraison inclus:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.deliveredShipping.toLocaleString() %> DA</span>
+          </div>
         </div>
       </div>
 
-      <!-- Total Cost -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+      <!-- Realized Net Profit -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Total Product Cost</span>
-          <span class="p-2 bg-rose-50 text-rose-600 rounded-full"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Bénéfice Net Réalisé</span>
+          <span class="p-2.5 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-chart-line text-lg"></i></span>
         </div>
         <div class="mt-4">
-          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.totalCost.toLocaleString() %> DA</h2>
-          <p class="text-xs text-gray-500 mt-1">Sum of buy prices for sold items</p>
-        </div>
-      </div>
-
-      <!-- Net Profit -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Net Profit</span>
-          <span class="p-2 bg-indigo-50 text-indigo-600 rounded-full"><i class="fa-solid fa-chart-line"></i></span>
-        </div>
-        <div class="mt-4">
-          <h2 class="text-2xl font-bold <%= metrics.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
-            <%= metrics.netProfit.toLocaleString() %> DA
+          <h2 class="text-3xl font-bold <%= metrics.netRealizedProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+            <%= metrics.netRealizedProfit.toLocaleString() %> DA
           </h2>
-          <p class="text-xs text-gray-500 mt-1">Revenue minus product costs</p>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Coût d'achat produits livrés:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.deliveredCost.toLocaleString() %> DA</span>
+          </div>
         </div>
       </div>
 
-      <!-- Profit Margin -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+      <!-- Profit Margin % -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Average Margin</span>
-          <span class="p-2 bg-amber-50 text-amber-600 rounded-full"><i class="fa-solid fa-percent"></i></span>
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Marge Nette %</span>
+          <span class="p-2.5 bg-amber-50 text-amber-600 rounded-lg"><i class="fa-solid fa-percent text-lg"></i></span>
         </div>
         <div class="mt-4">
-          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.profitMargin.toFixed(1) %>%</h2>
-          <p class="text-xs text-gray-500 mt-1">Net profit margin ratio</p>
+          <h2 class="text-3xl font-bold text-slate-900"><%= metrics.profitMargin.toFixed(1) %>%</h2>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Ratios bénéfice / CA encaissé:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.deliveredRevenue > 0 ? (metrics.netRealizedProfit / metrics.deliveredRevenue * 100).toFixed(1) : 0 %>%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- COD Delivery Success Rate -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Taux de Livraison Réussie (COD)</span>
+          <span class="p-2.5 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-truck-fast text-lg"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-3xl font-bold text-slate-900"><%= metrics.deliverySuccessRate.toFixed(1) %>%</h2>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Commandes livrées:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.deliveredCount %> / <%= metrics.totalOrdersCount %></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- In-Transit Pipeline Revenue -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Encours Pipeline (En cours / Expédiées)</span>
+          <span class="p-2.5 bg-sky-50 text-sky-600 rounded-lg"><i class="fa-solid fa-hourglass-half text-lg"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-3xl font-bold text-sky-700"><%= metrics.pipelineRevenue.toLocaleString() %> DA</h2>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Commandes en attente/expédition:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.pipelineCount %> commandes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cancelled Revenue Loss -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Pertes (Annulées / Refusées)</span>
+          <span class="p-2.5 bg-rose-50 text-rose-600 rounded-lg"><i class="fa-solid fa-ban text-lg"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-3xl font-bold text-rose-600"><%= metrics.cancelledRevenue.toLocaleString() %> DA</h2>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-slate-100 text-xs text-slate-500">
+            <span>Commandes non livrées:</span>
+            <span class="font-semibold text-slate-700"><%= metrics.cancelledCount %> commandes</span>
+          </div>
         </div>
       </div>
 
     </div>
 
-    <!-- Charts Section -->
+    <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-      <!-- Top Selling Products Chart -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm">
-        <h3 class="text-sm font-bold tracking-wider uppercase text-gray-700 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-trophy text-amber-500"></i> Top Selling Products (Units Sold)
-        </h3>
+      <!-- Top Selling & Delivered Products Chart -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold tracking-wider uppercase text-slate-700 flex items-center gap-2">
+            <i class="fa-solid fa-trophy text-amber-500"></i> Top Produit (Commandés vs Livrés)
+          </h3>
+          <span class="text-xs text-slate-400">Par volume d'unités</span>
+        </div>
         <div class="h-64">
           <canvas id="topProductsChart"></canvas>
         </div>
       </div>
 
-      <!-- Revenue & Profit Breakdown -->
-      <div class="bg-white p-6 border border-gray-200 shadow-sm">
-        <h3 class="text-sm font-bold tracking-wider uppercase text-gray-700 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-pie-chart text-indigo-500"></i> Revenue vs. Cost vs. Profit
-        </h3>
+      <!-- Order Status Breakdown Pie Chart -->
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold tracking-wider uppercase text-slate-700 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie text-indigo-500"></i> Répartition Financière du Flux COD
+          </h3>
+          <span class="text-xs text-slate-400">En valeur (DA)</span>
+        </div>
         <div class="h-64 flex items-center justify-center">
           <canvas id="financialPieChart"></canvas>
         </div>
@@ -126,12 +184,68 @@
 
     </div>
 
-    <!-- Editable Product Pricing & Profit Margin Table -->
-    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden">
-      <div class="p-6 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <!-- Wilaya Performance Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h3 class="text-lg font-medium text-gray-900 uppercase tracking-wide">Product Pricing & Profitability</h3>
-          <p class="text-xs text-gray-500 mt-1">Update buy price (cost) and sell price for products to track precise margins.</p>
+          <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+            <i class="fa-solid fa-map-location-dot text-emerald-600"></i> Performance par Wilaya / Ville (Livrées)
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Distribution géographique du chiffre d'affaires effectivement encaissé.</p>
+        </div>
+        <span class="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 font-semibold rounded-md">
+          <%= wilayaPerformance.length %> Wilayas / Villes actives
+        </span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+              <th class="py-3 px-6 font-semibold">Wilaya / Ville</th>
+              <th class="py-3 px-6 font-semibold text-center">Commandes Livrées</th>
+              <th class="py-3 px-6 font-semibold text-right">Chiffre d'Affaires Encaissé</th>
+              <th class="py-3 px-6 font-semibold text-right">Part du CA</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <% if (wilayaPerformance.length === 0) { %>
+              <tr>
+                <td colspan="4" class="py-6 text-center text-xs text-slate-400 italic">Aucune commande livrée pour le moment.</td>
+              </tr>
+            <% } else { %>
+              <% wilayaPerformance.forEach(w => {
+                const share = metrics.deliveredRevenue > 0 ? (w.revenue / metrics.deliveredRevenue * 100).toFixed(1) : 0;
+              %>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="py-3 px-6 font-medium text-slate-900">
+                    <i class="fa-solid fa-location-dot text-slate-400 mr-2 text-xs"></i> <%= w.name %>
+                  </td>
+                  <td class="py-3 px-6 text-center font-semibold text-slate-700">
+                    <%= w.deliveredOrders %>
+                  </td>
+                  <td class="py-3 px-6 text-right font-semibold text-emerald-600">
+                    <%= w.revenue.toLocaleString() %> DA
+                  </td>
+                  <td class="py-3 px-6 text-right text-xs text-slate-500 font-medium">
+                    <%= share %>%
+                  </td>
+                </tr>
+              <% }) %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Batch Product Cost & Selling Price Editor Table -->
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-bold text-slate-900 uppercase tracking-wide flex items-center gap-2">
+            <i class="fa-solid fa-tags text-indigo-600"></i> Gestion des Prix d'Achat & Marges Produits
+          </h3>
+          <p class="text-xs text-slate-500 mt-0.5">Saisissez le prix d'achat (coût de revient) de chaque produit pour mesurer avec exactitude votre bénéfice net.</p>
         </div>
       </div>
 
@@ -141,49 +255,59 @@
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-sm">
             <thead>
-              <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold">Product Name</th>
-                <th class="py-3 px-4 font-semibold">Source Model</th>
-                <th class="py-3 px-4 font-semibold">Buy Price (DA)</th>
-                <th class="py-3 px-4 font-semibold">Sell Price (DA)</th>
-                <th class="py-3 px-4 font-semibold">Unit Profit (DA)</th>
-                <th class="py-3 px-4 font-semibold">Units Sold</th>
-                <th class="py-3 px-4 font-semibold">Total Profit (DA)</th>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs text-slate-500 uppercase tracking-wider">
+                <th class="py-3 px-6 font-semibold">Produit</th>
+                <th class="py-3 px-6 font-semibold">Modèle Source</th>
+                <th class="py-3 px-6 font-semibold">Prix d'Achat (Coût DA)</th>
+                <th class="py-3 px-6 font-semibold">Prix de Vente (DA)</th>
+                <th class="py-3 px-6 font-semibold">Marge Unitaire</th>
+                <th class="py-3 px-6 font-semibold text-center">Livrés / Total Ventes</th>
+                <th class="py-3 px-6 font-semibold text-right">Bénéfice Réalisé</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
-              <% products.forEach((product, idx) => {
+            <tbody class="divide-y divide-slate-100">
+              <% products.forEach((product) => {
+                const pId = product._id.toString();
                 const buyP = Number(product.buyPrice) || 0;
                 const sellP = Number(product.price) || 0;
                 const unitProfit = sellP - buyP;
-                const sold = productSalesMap[product._id.toString()] || 0;
-                const totalProfit = unitProfit * sold;
+                const totalSold = productSalesMap[pId] || 0;
+                const deliveredSold = productDeliveredSalesMap[pId] || 0;
+                const realizedProfit = unitProfit * deliveredSold;
               %>
-                <tr class="hover:bg-gray-50 transition">
-                  <td class="py-3 px-4 font-medium text-gray-900">
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="py-3 px-6 font-medium text-slate-900">
                     <%= product.title %>
                   </td>
-                  <td class="py-3 px-4 text-xs text-gray-500 uppercase">
-                    <%= product.sourceModel %>
+                  <td class="py-3 px-6 text-xs text-slate-500 uppercase font-semibold">
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700">
+                      <%= product.sourceModel %>
+                    </span>
                   </td>
-                  <td class="py-3 px-4">
+                  <td class="py-3 px-6">
                     <input type="hidden" name="productId" value="<%= product._id %>">
                     <input type="hidden" name="sourceModel" value="<%= product.sourceModel %>">
-                    <input type="number" step="0.01" min="0" name="buyPrice" value="<%= buyP %>"
-                           class="w-28 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black">
+                    <div class="relative w-32">
+                      <input type="number" step="0.01" min="0" name="buyPrice" value="<%= buyP %>"
+                             class="w-full pl-2 pr-7 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-900">
+                      <span class="absolute right-2 top-1 text-[10px] text-slate-400 font-semibold">DA</span>
+                    </div>
                   </td>
-                  <td class="py-3 px-4">
-                    <input type="number" step="0.01" min="0" name="sellPrice" value="<%= sellP %>"
-                           class="w-28 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black">
+                  <td class="py-3 px-6">
+                    <div class="relative w-32">
+                      <input type="number" step="0.01" min="0" name="sellPrice" value="<%= sellP %>"
+                             class="w-full pl-2 pr-7 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-900">
+                      <span class="absolute right-2 top-1 text-[10px] text-slate-400 font-semibold">DA</span>
+                    </div>
                   </td>
-                  <td class="py-3 px-4 font-semibold <%= unitProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+                  <td class="py-3 px-6 font-semibold text-xs <%= unitProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
                     <%= unitProfit.toLocaleString() %> DA
                   </td>
-                  <td class="py-3 px-4 text-gray-700">
-                    <%= sold %>
+                  <td class="py-3 px-6 text-center text-xs font-medium text-slate-700">
+                    <span class="text-emerald-600 font-bold"><%= deliveredSold %></span> / <span class="text-slate-400"><%= totalSold %></span>
                   </td>
-                  <td class="py-3 px-4 font-semibold text-gray-900">
-                    <%= totalProfit.toLocaleString() %> DA
+                  <td class="py-3 px-6 text-right font-semibold text-slate-900">
+                    <%= realizedProfit.toLocaleString() %> DA
                   </td>
                 </tr>
               <% }) %>
@@ -191,9 +315,9 @@
           </table>
         </div>
 
-        <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-          <button type="submit" class="px-6 py-2.5 bg-black text-white text-xs font-semibold uppercase tracking-wider hover:opacity-80 transition shadow">
-            <i class="fa-solid fa-save mr-2"></i> Save Pricing Updates
+        <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end">
+          <button type="submit" class="px-6 py-2.5 bg-slate-900 text-white text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-slate-800 transition shadow">
+            <i class="fa-solid fa-floppy-disk mr-2"></i> Enregistrer les Prix
           </button>
         </div>
       </form>
@@ -206,38 +330,53 @@
     const topProductsData = <%- JSON.stringify(topProducts) %>;
     const metricsData = <%- JSON.stringify(metrics) %>;
 
-    // Bar Chart for Top Selling Products
+    // Bar Chart: Delivered vs Total Units
     const ctxBar = document.getElementById('topProductsChart').getContext('2d');
     new Chart(ctxBar, {
       type: 'bar',
       data: {
-        labels: topProductsData.map(p => p.name.length > 20 ? p.name.slice(0, 18) + '...' : p.name),
-        datasets: [{
-          label: 'Units Sold',
-          data: topProductsData.map(p => p.qty),
-          backgroundColor: '#111827',
-          borderRadius: 2
-        }]
+        labels: topProductsData.map(p => p.name.length > 18 ? p.name.slice(0, 16) + '...' : p.name),
+        datasets: [
+          {
+            label: 'Unités Livrées (Encassées)',
+            data: topProductsData.map(p => p.deliveredQty),
+            backgroundColor: '#10b981',
+            borderRadius: 4
+          },
+          {
+            label: 'Total Commandées',
+            data: topProductsData.map(p => p.totalQty),
+            backgroundColor: '#cbd5e1',
+            borderRadius: 4
+          }
+        ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
+        },
         scales: {
-          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+          y: { beginAtZero: true, ticks: { precision: 0 } }
         }
       }
     });
 
-    // Doughnut Chart for Revenue vs Cost vs Profit
+    // Doughnut Chart: Financial Value Breakdown
     const ctxPie = document.getElementById('financialPieChart').getContext('2d');
     new Chart(ctxPie, {
       type: 'doughnut',
       data: {
-        labels: ['Product Costs', 'Net Profit'],
+        labels: ['Bénéfice Net Encaissé', 'Coût Produits Livrés', 'Pipeline Encours', 'Pertes (Annulations)'],
         datasets: [{
-          data: [metricsData.totalCost, Math.max(0, metricsData.netProfit)],
-          backgroundColor: ['#f43f5e', '#10b981'],
+          data: [
+            Math.max(0, metricsData.netRealizedProfit),
+            metricsData.deliveredCost,
+            metricsData.pipelineRevenue,
+            metricsData.cancelledRevenue
+          ],
+          backgroundColor: ['#10b981', '#6366f1', '#38bdf8', '#f43f5e'],
           borderWidth: 0
         }]
       },
@@ -245,7 +384,7 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom' }
+          legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } }
         }
       }
     });
