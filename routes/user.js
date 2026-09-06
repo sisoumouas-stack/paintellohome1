@@ -240,6 +240,127 @@ router.get('/admin/whatsapp/media/:mediaId', middleware.isLoggedIn, requireAdmin
   }
 });
 
+// ===================== FINANCE DASHBOARD =====================
+router.get('/admin/finance', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const [orders, paintelloProds, homeProds] = await Promise.all([
+      Order.find({ status: { $ne: 'cancelled' } }).lean(),
+      Paintello.find({}).lean(),
+      Producthome.find({}).lean()
+    ]);
+
+    const productSalesMap = {};
+    const productNameMap = {};
+    const productBuyPriceMap = {};
+    const productSellPriceMap = {};
+
+    paintelloProds.forEach(p => {
+      const id = p._id.toString();
+      productNameMap[id] = p.title || 'Paintello Product';
+      productBuyPriceMap[id] = Number(p.buyPrice) || 0;
+      productSellPriceMap[id] = Number(p.price) || 0;
+    });
+
+    homeProds.forEach(p => {
+      const id = p._id.toString();
+      productNameMap[id] = p.title || 'Home Product';
+      productBuyPriceMap[id] = Number(p.buyPrice) || 0;
+      productSellPriceMap[id] = Number(p.price) || 0;
+    });
+
+    let totalRevenue = 0;
+    let totalCost = 0;
+
+    orders.forEach(order => {
+      const cart = order.cart || {};
+      const items = cart.items || {};
+
+      Object.keys(items).forEach(key => {
+        const itemObj = items[key];
+        const qty = itemObj.qty || 1;
+        const item = itemObj.item || {};
+        const itemId = (item._id || key).toString();
+
+        productSalesMap[itemId] = (productSalesMap[itemId] || 0) + qty;
+        if (item.title) productNameMap[itemId] = item.title;
+
+        const sellP = itemObj.unitPrice || item.price || productSellPriceMap[itemId] || 0;
+        const buyP = productBuyPriceMap[itemId] || 0;
+
+        totalRevenue += sellP * qty;
+        totalCost += buyP * qty;
+      });
+    });
+
+    const netProfit = totalRevenue - totalCost;
+    const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+    const topProducts = Object.keys(productSalesMap)
+      .map(id => ({ id, name: productNameMap[id] || 'Product', qty: productSalesMap[id] }))
+      .sort((a, b) => b.qty - a.qty)
+      .slice(0, 10);
+
+    const allProducts = [
+      ...paintelloProds.map(p => ({ ...p, sourceModel: 'Paintello' })),
+      ...homeProds.map(p => ({ ...p, sourceModel: 'Producthome' }))
+    ];
+
+    res.render('admin/finance', {
+      metrics: {
+        totalRevenue,
+        totalCost,
+        netProfit,
+        profitMargin,
+        totalOrdersCount: orders.length
+      },
+      topProducts,
+      products: allProducts,
+      productSalesMap,
+      csrfToken: req.csrfToken(),
+      flashErrors: req.flash('error'),
+      user: req.user
+    });
+
+  } catch (err) {
+    console.error('❌ Finance dashboard error:', err);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.post('/admin/finance/update-prices', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    let { productId, sourceModel, buyPrice, sellPrice } = req.body;
+
+    if (!Array.isArray(productId)) {
+      productId = productId ? [productId] : [];
+      sourceModel = sourceModel ? [sourceModel] : [];
+      buyPrice = buyPrice ? [buyPrice] : [];
+      sellPrice = sellPrice ? [sellPrice] : [];
+    }
+
+    const updates = [];
+    for (let i = 0; i < productId.length; i++) {
+      const id = productId[i];
+      const modelName = sourceModel[i];
+      const bPrice = Math.max(0, parseFloat(buyPrice[i]) || 0);
+      const sPrice = Math.max(0, parseFloat(sellPrice[i]) || 0);
+
+      if (modelName === 'Paintello') {
+        updates.push(Paintello.findByIdAndUpdate(id, { buyPrice: bPrice, price: sPrice }));
+      } else if (modelName === 'Producthome') {
+        updates.push(Producthome.findByIdAndUpdate(id, { buyPrice: bPrice, price: sPrice }));
+      }
+    }
+
+    await Promise.all(updates);
+    res.redirect('/user/admin/finance');
+  } catch (err) {
+    console.error('❌ Update price error:', err);
+    req.flash('error', 'Erreur lors de la mise à jour des prix.');
+    res.redirect('/user/admin/finance');
+  }
+});
+
 // ===================== AVIS CLIENTS =====================
 // Liste + formulaire d'ajout (ajoutés manuellement par l'admin depuis de vrais
 // échanges WhatsApp, donc pas de file de modération séparée - juste publié/masqué)

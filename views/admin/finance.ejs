@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Finance Dashboard - Admin Panel</title>
+
+  <!-- Tailwind CSS & FontAwesome -->
+  <link rel="stylesheet" href="/css/tailwind.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+  </style>
+</head>
+<body class="p-6">
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-200 pb-5">
+      <div>
+        <h1 class="text-3xl font-light tracking-wide text-gray-900 uppercase">Financial Analytics</h1>
+        <p class="text-sm text-gray-500 mt-1">Overview of revenue, product cost margin, sales performance & net profit.</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="/user/profile" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Profile
+        </a>
+        <a href="/user/admin/reviews" class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition">
+          Reviews
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <% if (flashErrors && flashErrors.length > 0) { %>
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 text-sm">
+        <%= flashErrors[0] %>
+      </div>
+    <% } %>
+
+    <!-- KPI Metric Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <!-- Total Revenue -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Total Revenue</span>
+          <span class="p-2 bg-emerald-50 text-emerald-600 rounded-full"><i class="fa-solid fa-coins"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.totalRevenue.toLocaleString() %> DA</h2>
+          <p class="text-xs text-emerald-600 mt-1"><i class="fa-solid fa-arrow-up text-[10px]"></i> From <%= metrics.totalOrdersCount %> confirmed orders</p>
+        </div>
+      </div>
+
+      <!-- Total Cost -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Total Product Cost</span>
+          <span class="p-2 bg-rose-50 text-rose-600 rounded-full"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.totalCost.toLocaleString() %> DA</h2>
+          <p class="text-xs text-gray-500 mt-1">Sum of buy prices for sold items</p>
+        </div>
+      </div>
+
+      <!-- Net Profit -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Net Profit</span>
+          <span class="p-2 bg-indigo-50 text-indigo-600 rounded-full"><i class="fa-solid fa-chart-line"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-2xl font-bold <%= metrics.netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+            <%= metrics.netProfit.toLocaleString() %> DA
+          </h2>
+          <p class="text-xs text-gray-500 mt-1">Revenue minus product costs</p>
+        </div>
+      </div>
+
+      <!-- Profit Margin -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm flex flex-col justify-between">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold tracking-wider text-gray-400 uppercase">Average Margin</span>
+          <span class="p-2 bg-amber-50 text-amber-600 rounded-full"><i class="fa-solid fa-percent"></i></span>
+        </div>
+        <div class="mt-4">
+          <h2 class="text-2xl font-bold text-gray-900"><%= metrics.profitMargin.toFixed(1) %>%</h2>
+          <p class="text-xs text-gray-500 mt-1">Net profit margin ratio</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Top Selling Products Chart -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm">
+        <h3 class="text-sm font-bold tracking-wider uppercase text-gray-700 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-500"></i> Top Selling Products (Units Sold)
+        </h3>
+        <div class="h-64">
+          <canvas id="topProductsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Revenue & Profit Breakdown -->
+      <div class="bg-white p-6 border border-gray-200 shadow-sm">
+        <h3 class="text-sm font-bold tracking-wider uppercase text-gray-700 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-pie-chart text-indigo-500"></i> Revenue vs. Cost vs. Profit
+        </h3>
+        <div class="h-64 flex items-center justify-center">
+          <canvas id="financialPieChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Editable Product Pricing & Profit Margin Table -->
+    <div class="bg-white border border-gray-200 shadow-sm overflow-hidden">
+      <div class="p-6 border-b border-gray-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-medium text-gray-900 uppercase tracking-wide">Product Pricing & Profitability</h3>
+          <p class="text-xs text-gray-500 mt-1">Update buy price (cost) and sell price for products to track precise margins.</p>
+        </div>
+      </div>
+
+      <form action="/user/admin/finance/update-prices" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-sm">
+            <thead>
+              <tr class="bg-gray-50 border-b border-gray-200 text-xs text-gray-500 uppercase tracking-wider">
+                <th class="py-3 px-4 font-semibold">Product Name</th>
+                <th class="py-3 px-4 font-semibold">Source Model</th>
+                <th class="py-3 px-4 font-semibold">Buy Price (DA)</th>
+                <th class="py-3 px-4 font-semibold">Sell Price (DA)</th>
+                <th class="py-3 px-4 font-semibold">Unit Profit (DA)</th>
+                <th class="py-3 px-4 font-semibold">Units Sold</th>
+                <th class="py-3 px-4 font-semibold">Total Profit (DA)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <% products.forEach((product, idx) => {
+                const buyP = Number(product.buyPrice) || 0;
+                const sellP = Number(product.price) || 0;
+                const unitProfit = sellP - buyP;
+                const sold = productSalesMap[product._id.toString()] || 0;
+                const totalProfit = unitProfit * sold;
+              %>
+                <tr class="hover:bg-gray-50 transition">
+                  <td class="py-3 px-4 font-medium text-gray-900">
+                    <%= product.title %>
+                  </td>
+                  <td class="py-3 px-4 text-xs text-gray-500 uppercase">
+                    <%= product.sourceModel %>
+                  </td>
+                  <td class="py-3 px-4">
+                    <input type="hidden" name="productId" value="<%= product._id %>">
+                    <input type="hidden" name="sourceModel" value="<%= product.sourceModel %>">
+                    <input type="number" step="0.01" min="0" name="buyPrice" value="<%= buyP %>"
+                           class="w-28 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black">
+                  </td>
+                  <td class="py-3 px-4">
+                    <input type="number" step="0.01" min="0" name="sellPrice" value="<%= sellP %>"
+                           class="w-28 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black">
+                  </td>
+                  <td class="py-3 px-4 font-semibold <%= unitProfit >= 0 ? 'text-emerald-600' : 'text-rose-600' %>">
+                    <%= unitProfit.toLocaleString() %> DA
+                  </td>
+                  <td class="py-3 px-4 text-gray-700">
+                    <%= sold %>
+                  </td>
+                  <td class="py-3 px-4 font-semibold text-gray-900">
+                    <%= totalProfit.toLocaleString() %> DA
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="p-4 bg-gray-50 border-t border-gray-200 flex justify-end">
+          <button type="submit" class="px-6 py-2.5 bg-black text-white text-xs font-semibold uppercase tracking-wider hover:opacity-80 transition shadow">
+            <i class="fa-solid fa-save mr-2"></i> Save Pricing Updates
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Chart Scripts -->
+  <script>
+    const topProductsData = <%- JSON.stringify(topProducts) %>;
+    const metricsData = <%- JSON.stringify(metrics) %>;
+
+    // Bar Chart for Top Selling Products
+    const ctxBar = document.getElementById('topProductsChart').getContext('2d');
+    new Chart(ctxBar, {
+      type: 'bar',
+      data: {
+        labels: topProductsData.map(p => p.name.length > 20 ? p.name.slice(0, 18) + '...' : p.name),
+        datasets: [{
+          label: 'Units Sold',
+          data: topProductsData.map(p => p.qty),
+          backgroundColor: '#111827',
+          borderRadius: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, ticks: { stepSize: 1 } }
+        }
+      }
+    });
+
+    // Doughnut Chart for Revenue vs Cost vs Profit
+    const ctxPie = document.getElementById('financialPieChart').getContext('2d');
+    new Chart(ctxPie, {
+      type: 'doughnut',
+      data: {
+        labels: ['Product Costs', 'Net Profit'],
+        datasets: [{
+          data: [metricsData.totalCost, Math.max(0, metricsData.netProfit)],
+          backgroundColor: ['#f43f5e', '#10b981'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

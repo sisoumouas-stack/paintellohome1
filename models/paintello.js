@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const paintelloSchema = new mongoose.Schema({
   title: String,
   price: Number,
+  buyPrice: {
+    type: Number,
+    default: 0
+  },
   image: [String],
   href: String,
   status: String,
