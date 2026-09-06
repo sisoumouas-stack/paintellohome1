@@ -12,6 +12,7 @@ var header = require('../models/header');
 const WhatsAppMessage = require('../models/whatsappMessage');
 const Review = require('../models/review');
 const Producthome = require('../models/producthome');
+const Paintello = require('../models/paintello');
 const axios = require('axios');
 
 // protect routes using csrf
@@ -237,6 +238,63 @@ router.get('/admin/whatsapp/media/:mediaId', middleware.isLoggedIn, requireAdmin
   } catch (err) {
     console.error('❌ WhatsApp media proxy error:', err.response?.data || err.message);
     res.status(502).send('Impossible de récupérer le média');
+  }
+});
+
+// ===================== PRODUCT CREATION =====================
+router.get('/admin/products/new', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  res.render('admin/product-new', {
+    csrfToken: req.csrfToken(),
+    flashErrors: req.flash('error'),
+    user: req.user
+  });
+});
+
+router.post('/admin/products/new', middleware.isLoggedIn, requireAdmin, async (req, res) => {
+  try {
+    const { title, subtitle, price, buyPrice, category, type, modelType, image, description } = req.body;
+
+    if (!title || !price) {
+      req.flash('error', 'Product title and price are required.');
+      return res.redirect('/user/admin/products/new');
+    }
+
+    const imageArray = (image || '')
+      .split('\n')
+      .map(url => url.trim())
+      .filter(Boolean);
+
+    const numericPrice = parseFloat(price) || 0;
+    const numericBuyPrice = parseFloat(buyPrice) || 0;
+
+    if (modelType === 'Paintello') {
+      await Paintello.create({
+        title: title.trim(),
+        price: numericPrice,
+        buyPrice: numericBuyPrice,
+        category: (category || 'vases').toLowerCase().trim(),
+        type: (type || '').toLowerCase().trim(),
+        image: imageArray,
+        status: 'New'
+      });
+    } else {
+      await Producthome.create({
+        title: title.trim(),
+        subtitle: subtitle ? subtitle.trim() : '',
+        price: numericPrice,
+        buyPrice: numericBuyPrice,
+        type: (type || category || 'vases').toLowerCase().trim(),
+        disponible: true,
+        image: imageArray,
+        description: description ? description.trim() : ''
+      });
+    }
+
+    res.redirect('/user/admin/finance');
+  } catch (err) {
+    console.error('❌ Product creation error:', err);
+    req.flash('error', 'Failed to create product.');
+    res.redirect('/user/admin/products/new');
   }
 });
 
