@@ -1327,15 +1327,11 @@ router.get("/add-to-cart-producthome/:id", async (req, res) => {
 
 router.get('/paintello', async (req,res) => {
   try{
-    const selectedCategory = (req.query.category || 'all').toLowerCase().trim();
     const paintellos = await Paintello.find({}).lean();
-
-    const categories = ['all', 'vases', 'lampshades'];
-
     const eventIdPageView=generateEventId(); const userData=getCleanUserData(req);
     if(userData){ setFbcCookieIfNeeded(req,res,userData); sendFacebookCAPIEvent({eventName:"PageView",eventId:eventIdPageView,userData,eventSourceUrl:getEventSourceUrl(req),customData:{},testEventCode:getTestCode(req)}).catch(()=>{}); console.log("✅ Paintello PageView queued"); }
     else console.log("🤖 Bot detected – Paintello PageView skipped");
-    res.render('event/paintellohome',{paintellos, categories, selectedCategory, req, metaEventIdPageView:eventIdPageView, user:req.user});
+    res.render('event/paintellohome',{paintellos,req,metaEventIdPageView:eventIdPageView,user:req.user});
   }catch(err){ res.status(500).send('Error'); }
 });
 
