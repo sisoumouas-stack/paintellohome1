@@ -2483,7 +2483,7 @@ input:focus, select:focus, textarea:focus {
 
           <!-- Room Visualizer Simulation Button -->
           <div class="mt-4">
-            <button type="button" id="openRoomVisualizerBtn" class="w-full py-2.5 border border-slate-900 text-slate-900 text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-slate-900 hover:text-white transition flex items-center justify-center gap-2">
+            <button type="button" id="openRoomVisualizerBtn" aria-haspopup="dialog" aria-controls="roomVisualizerModal" class="w-full py-2.5 border border-slate-900 text-slate-900 text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-slate-900 hover:text-white transition flex items-center justify-center gap-2">
               <i class="fa-solid fa-camera text-sm"></i> Visualiser Dans Votre Pièce
             </button>
           </div>
@@ -3809,7 +3809,7 @@ if (addForm) {
       console.warn('fbq AddToCart failed', err);
     }
 
-    // Push GA4 add_to_cart event to window.dataLayer (matching GTM tag parameters & standard ecommerce items)
+    // Push GA4 add_to_cart event to window.dataLayer (matching GTM tag parameters)
     try {
       window.dataLayer = window.dataLayer || [];
       window.dataLayer.push({
@@ -3822,17 +3822,7 @@ if (addForm) {
         item_id: mainProductId,
         productName: <%- JSON.stringify(producthome.title) %>,
         item_name: <%- JSON.stringify(producthome.title) %>,
-        quantity: mainQty,
-        ecommerce: {
-          currency: 'DZD',
-          value: totalValue,
-          items: [{
-            item_id: mainProductId,
-            item_name: <%- JSON.stringify(producthome.title) %>,
-            price: mainPrice,
-            quantity: mainQty
-          }]
-        }
+        quantity: mainQty
       });
     } catch(e) {
       console.warn('dataLayer add_to_cart push failed', e);
@@ -3847,7 +3837,7 @@ if (addForm) {
 
     setTimeout(() => {
       window.location.href = redirectUrl;
-    }, 500);
+    }, 150);
   });
 }
 
@@ -4570,60 +4560,179 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 </script>
 
+<!-- ===== ROOM VISUALIZER — styles dédiés (indépendants du build Tailwind) ===== -->
+<style>
+  #roomVisualizerModal { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; padding: 16px; }
+  #roomVisualizerModal.rv-open { display: flex; }
+
+  #roomVisualizerBackdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, .8);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .rv-panel { animation: rvPanelIn .28s cubic-bezier(.16,1,.3,1); }
+  @keyframes rvPanelIn {
+    from { opacity: 0; transform: translateY(10px) scale(.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .rv-close-btn {
+    width: 32px; height: 32px; border-radius: 999px;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #94a3b8; background: transparent; border: none; cursor: pointer;
+    font-size: 18px; font-weight: 700; flex: 0 0 auto;
+    transition: background .2s ease, color .2s ease;
+  }
+  .rv-close-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+  .rv-thumb {
+    position: relative; flex: 0 0 auto;
+    width: 68px; height: 68px; border-radius: 12px; overflow: hidden;
+    cursor: pointer; border: none; padding: 0; background: #e2e8f0;
+    box-shadow: 0 0 0 2px transparent;
+    transition: box-shadow .2s ease, transform .2s ease;
+  }
+  .rv-thumb:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px #cbd5e1; }
+  .rv-thumb.is-active { box-shadow: 0 0 0 2px #0f172a; }
+  .rv-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .rv-thumb-caption {
+    position: absolute; inset: auto 0 0 0; padding: 3px 4px 4px;
+    font-size: 8.5px; font-weight: 600; letter-spacing: .02em; color: #fff; text-align: center;
+    background: linear-gradient(to top, rgba(0,0,0,.75), transparent);
+  }
+  .rv-thumb-check {
+    position: absolute; top: 4px; right: 4px; width: 16px; height: 16px; border-radius: 999px;
+    background: #0f172a; color: #fff; display: none; align-items: center; justify-content: center; font-size: 8px;
+  }
+  .rv-thumb.is-active .rv-thumb-check { display: flex; }
+
+  .rv-drag-hint {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(15,23,42,.85); color: #fff; font-size: 10px; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px; display: flex; align-items: center; gap: 6px;
+    opacity: 0; transition: opacity .4s ease; pointer-events: none; white-space: nowrap;
+  }
+  .rv-drag-hint.show { opacity: 1; }
+
+  .rv-loading {
+    position: absolute; inset: 0; background: rgba(255,255,255,.72);
+    align-items: center; justify-content: center; display: none;
+  }
+  .rv-loading.show { display: flex; }
+  .rv-loading i { font-size: 22px; color: #0f172a; }
+
+  .rv-error {
+    position: absolute; left: 16px; right: 16px; bottom: 12px;
+    background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+    font-size: 11px; font-weight: 500; padding: 8px 12px; border-radius: 10px; text-align: center;
+    display: none;
+  }
+  .rv-error.show { display: block; }
+
+  .rv-icon-btn {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: #f1f5f9; color: #1e293b; border: none; cursor: pointer; flex: 0 0 auto;
+    transition: background .2s ease;
+  }
+  .rv-icon-btn:hover { background: #e2e8f0; }
+
+  #roomCanvas:focus-visible { outline: 2px solid #0f172a; outline-offset: 2px; }
+
+  @media (max-width: 480px) {
+    .rv-thumb { width: 56px; height: 56px; }
+  }
+</style>
+
 <!-- Virtual Room Visualizer Staging Modal -->
-<div id="roomVisualizerModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 relative shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+<div id="roomVisualizerModal" role="dialog" aria-modal="true" aria-labelledby="roomVisualizerTitle" aria-hidden="true">
+  <div id="roomVisualizerBackdrop"></div>
+  <div id="roomVisualizerPanel" class="rv-panel bg-white rounded-2xl max-w-3xl w-full p-6 space-y-4 relative shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
     <div class="flex items-center justify-between border-b border-gray-100 pb-3">
       <div>
-        <h3 class="text-base font-bold text-slate-900 uppercase flex items-center gap-2">
+        <h3 id="roomVisualizerTitle" class="text-base font-bold text-slate-900 uppercase flex items-center gap-2">
           <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Simulation Dans Votre Intérieur
         </h3>
-        <p class="text-xs text-slate-500">Prenez en photo votre pièce (salon, chambre, cuisine) ou sélectionnez une pièce exemple ci-dessous.</p>
+        <p class="text-xs text-slate-500 mt-1">Importez une photo de votre pièce ou choisissez un exemple, puis glissez l'objet pour le repositionner.</p>
       </div>
-      <button type="button" id="closeRoomModalBtn" class="text-slate-400 hover:text-slate-900 text-xl font-bold p-1">&times;</button>
+      <button type="button" id="closeRoomModalBtn" class="rv-close-btn" aria-label="Fermer">&times;</button>
     </div>
 
     <!-- Room Presets Bar -->
-    <div class="flex items-center gap-2 text-xs overflow-x-auto pb-1 border-b border-gray-100">
-      <span class="font-semibold text-slate-400 uppercase text-[10px] whitespace-nowrap">Exemples de Pièces:</span>
-      <button type="button" data-room-preset="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80" class="room-preset-btn px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-medium whitespace-nowrap transition">
-        Salon Lumineux
-      </button>
-      <button type="button" data-room-preset="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1000&q=80" class="room-preset-btn px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-medium whitespace-nowrap transition">
-        Cuisine & Table
-      </button>
-      <button type="button" data-room-preset="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=80" class="room-preset-btn px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full font-medium whitespace-nowrap transition">
-        Chambre Cocooning
-      </button>
+    <div>
+      <span class="block font-semibold text-slate-400 uppercase text-[10px] mb-2">Exemples de pièces</span>
+      <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <button type="button" class="room-preset-btn rv-thumb" data-room-preset="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=80" aria-label="Salon Lumineux" aria-pressed="false">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=160&h=160&q=70" alt="" loading="lazy">
+          <span class="rv-thumb-caption">Salon</span>
+          <span class="rv-thumb-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+        <button type="button" class="room-preset-btn rv-thumb" data-room-preset="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1000&q=80" aria-label="Cuisine et table" aria-pressed="false">
+          <img src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=160&h=160&q=70" alt="" loading="lazy">
+          <span class="rv-thumb-caption">Cuisine</span>
+          <span class="rv-thumb-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+        <button type="button" class="room-preset-btn rv-thumb" data-room-preset="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1000&q=80" aria-label="Chambre cocooning" aria-pressed="false">
+          <img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=160&h=160&q=70" alt="" loading="lazy">
+          <span class="rv-thumb-caption">Chambre</span>
+          <span class="rv-thumb-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+        <button type="button" class="room-preset-btn rv-thumb" data-room-preset="https://images.unsplash.com/photo-1755436612913-b1e2cfd66e66?auto=format&fit=crop&w=1000&q=80" aria-label="Bureau épuré" aria-pressed="false">
+          <img src="https://images.unsplash.com/photo-1755436612913-b1e2cfd66e66?auto=format&fit=crop&w=160&h=160&q=70" alt="" loading="lazy">
+          <span class="rv-thumb-caption">Bureau</span>
+          <span class="rv-thumb-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+        <button type="button" class="room-preset-btn rv-thumb" data-room-preset="https://images.unsplash.com/photo-1698239352007-d662cd302715?auto=format&fit=crop&w=1000&q=80" aria-label="Salle à manger" aria-pressed="false">
+          <img src="https://images.unsplash.com/photo-1698239352007-d662cd302715?auto=format&fit=crop&w=160&h=160&q=70" alt="" loading="lazy">
+          <span class="rv-thumb-caption">Salle à manger</span>
+          <span class="rv-thumb-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+      </div>
     </div>
 
     <!-- Canvas Workspace -->
     <div class="relative flex-1 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center min-h-[320px]" id="roomCanvasContainer">
-      <canvas id="roomCanvas" class="max-w-full max-h-[500px] rounded object-contain cursor-move"></canvas>
+      <canvas id="roomCanvas" tabindex="0" aria-label="Zone de prévisualisation. Glissez, ou utilisez les flèches du clavier, pour déplacer l'objet." class="max-w-full max-h-[500px] rounded object-contain cursor-move"></canvas>
       <div id="roomUploadPrompt" class="text-center p-6 space-y-3">
         <i class="fa-solid fa-camera-retro text-4xl text-slate-400"></i>
-        <p class="text-xs text-slate-600 font-medium">Prenez une photo de votre maison ou choisissez un exemple ci-dessus</p>
+        <p class="text-xs text-slate-600 font-medium">Prenez une photo de votre intérieur ou choisissez un exemple ci-dessus</p>
         <label class="inline-block px-5 py-2.5 bg-slate-900 text-white text-xs font-semibold uppercase tracking-wider rounded-lg cursor-pointer hover:bg-slate-800 transition shadow-sm">
           <i class="fa-solid fa-upload mr-1.5"></i> Importer Votre Photo
           <input type="file" id="roomImageInput" accept="image/*" class="hidden">
         </label>
       </div>
+      <div id="roomDragHint" class="rv-drag-hint"><i class="fa-solid fa-arrows-up-down-left-right"></i> Glissez pour repositionner</div>
+      <div id="roomLoadingOverlay" class="rv-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+      <div id="roomErrorMsg" class="rv-error"></div>
     </div>
 
     <!-- Controls Bar -->
     <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-100 text-xs">
-      <div class="flex items-center gap-2">
-        <label class="font-semibold text-slate-700">Taille Vase:</label>
-        <input type="range" id="vaseScaleInput" min="0.2" max="2" step="0.05" value="0.7" class="w-24 accent-slate-900">
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex items-center gap-2">
+          <label for="vaseScaleInput" class="font-semibold text-slate-700">Taille:</label>
+          <input type="range" id="vaseScaleInput" min="0.2" max="2" step="0.05" value="0.7" class="w-24 accent-slate-900">
+          <span id="vaseScaleValue" class="text-slate-400 font-medium">70%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="vaseRotateInput" class="font-semibold text-slate-700">Rotation:</label>
+          <input type="range" id="vaseRotateInput" min="-180" max="180" step="5" value="0" class="w-24 accent-slate-900">
+          <span id="vaseRotateValue" class="text-slate-400 font-medium">0°</span>
+        </div>
       </div>
       <div class="flex items-center gap-2">
-        <label class="font-semibold text-slate-700">Rotation:</label>
-        <input type="range" id="vaseRotateInput" min="-180" max="180" step="5" value="0" class="w-24 accent-slate-900">
+        <button type="button" id="resetVaseBtn" class="rv-icon-btn" title="Réinitialiser la position">
+          <i class="fa-solid fa-arrow-rotate-left"></i>
+        </button>
+        <label class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-lg cursor-pointer transition">
+          <i class="fa-solid fa-image mr-1"></i> Changer Photo
+          <input type="file" id="roomImageInputAlt" accept="image/*" class="hidden">
+        </label>
+        <button type="button" id="downloadRoomBtn" class="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-lg transition flex items-center gap-1.5">
+          <i class="fa-solid fa-download"></i> Télécharger
+        </button>
       </div>
-      <label class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded cursor-pointer transition">
-        <i class="fa-solid fa-image mr-1"></i> Changer Photo
-        <input type="file" id="roomImageInputAlt" accept="image/*" class="hidden">
-      </label>
     </div>
   </div>
 </div>
@@ -4658,6 +4767,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('DOMContentLoaded', function() {
     const openBtn = document.getElementById('openRoomVisualizerBtn');
     const modal = document.getElementById('roomVisualizerModal');
+    const backdrop = document.getElementById('roomVisualizerBackdrop');
+    const panel = document.getElementById('roomVisualizerPanel');
     const closeBtn = document.getElementById('closeRoomModalBtn');
     const imgInput = document.getElementById('roomImageInput');
     const imgInputAlt = document.getElementById('roomImageInputAlt');
@@ -4665,6 +4776,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const prompt = document.getElementById('roomUploadPrompt');
     const scaleInput = document.getElementById('vaseScaleInput');
     const rotateInput = document.getElementById('vaseRotateInput');
+    const scaleValue = document.getElementById('vaseScaleValue');
+    const rotateValue = document.getElementById('vaseRotateValue');
+    const resetBtn = document.getElementById('resetVaseBtn');
+    const downloadBtn = document.getElementById('downloadRoomBtn');
+    const dragHint = document.getElementById('roomDragHint');
+    const loadingOverlay = document.getElementById('roomLoadingOverlay');
+    const errorBox = document.getElementById('roomErrorMsg');
 
     if (!modal || !canvas) return;
 
@@ -4672,87 +4790,169 @@ document.addEventListener('DOMContentLoaded', function() {
     let roomImg = null;
     let vaseImg = new Image();
     let transparentVaseCanvas = null;
+    let vaseReady = false;
+    let hasMoved = false;
+    let previousBodyOverflow = '';
+
+    const DEFAULT_SCALE = 0.7;
+    const DEFAULT_ROTATE = 0;
 
     vaseImg.crossOrigin = 'anonymous';
     vaseImg.onload = function() {
+      vaseReady = true;
       processVaseBackgroundRemoval();
+    };
+    vaseImg.onerror = function() {
+      showError("La photo de l'article n'a pas pu être chargée.");
     };
     vaseImg.src = "<%= producthome && producthome.transparentImage ? producthome.transparentImage : (producthome && producthome.image && producthome.image[0] ? producthome.image[0] : '/img/logo.png') %>";
 
+    // Détourage du fond studio avec dégradé progressif (évite le halo dur
+    // qu'un simple seuil blanc/blanc laissait autour du produit).
     function processVaseBackgroundRemoval() {
       try {
         const offCanvas = document.createElement('canvas');
-        offCanvas.width = vaseImg.width;
-        offCanvas.height = vaseImg.height;
+        offCanvas.width = vaseImg.naturalWidth || vaseImg.width;
+        offCanvas.height = vaseImg.naturalHeight || vaseImg.height;
         const offCtx = offCanvas.getContext('2d');
         offCtx.drawImage(vaseImg, 0, 0);
 
         const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
         const data = imgData.data;
 
-        // Sample white/light studio background pixels and remove white background
+        // Pixels au-dessus de FULL_WHITE : totalement supprimés.
+        // Entre FEATHER_WHITE et FULL_WHITE : transition progressive pour
+        // un contour plus doux. isNeutral évite de ronger les teintes
+        // saturées du produit lui-même.
+        const FULL_WHITE = 232;
+        const FEATHER_WHITE = 196;
+
         for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          // Near white / light grey studio backdrop
-          if (r > 235 && g > 235 && b > 235) {
-            data[i + 3] = 0; // Set transparent alpha
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          const brightness = Math.min(r, g, b);
+          const isNeutral = (Math.max(r, g, b) - brightness) < 18;
+          if (isNeutral && brightness >= FEATHER_WHITE) {
+            if (brightness >= FULL_WHITE) {
+              data[i + 3] = 0;
+            } else {
+              const t = (brightness - FEATHER_WHITE) / (FULL_WHITE - FEATHER_WHITE);
+              data[i + 3] = Math.round(data[i + 3] * (1 - t));
+            }
           }
         }
         offCtx.putImageData(imgData, 0, 0);
         transparentVaseCanvas = offCanvas;
         if (roomImg) draw();
-      } catch(e) {
+      } catch (e) {
         console.warn('Canvas background removal CORS or processing fallback:', e.message);
         transparentVaseCanvas = vaseImg;
+        if (roomImg) draw();
       }
     }
 
     let vaseX = 200;
     let vaseY = 200;
 
-    if (openBtn) {
-      openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    function openModal() {
+      modal.classList.add('rv-open');
+      modal.setAttribute('aria-hidden', 'false');
+      if (panel) {
+        panel.classList.remove('rv-panel');
+        void panel.offsetWidth;
+        panel.classList.add('rv-panel');
+      }
+      previousBodyOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      if (closeBtn) closeBtn.focus();
     }
-    if (closeBtn) {
-      closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
+
+    function closeModal() {
+      modal.classList.remove('rv-open');
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = previousBodyOverflow;
+      if (openBtn) openBtn.focus();
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', closeModal);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && modal.classList.contains('rv-open')) closeModal();
+    });
+
+    function showLoading(show) {
+      if (loadingOverlay) loadingOverlay.classList.toggle('show', !!show);
+    }
+    function showError(message) {
+      if (!errorBox) return;
+      errorBox.textContent = message;
+      errorBox.classList.add('show');
+      showLoading(false);
+      setTimeout(function() { errorBox.classList.remove('show'); }, 4000);
+    }
+    function showDragHintOnce() {
+      if (hasMoved || !dragHint) return;
+      dragHint.classList.add('show');
+      setTimeout(function() { dragHint.classList.remove('show'); }, 3200);
+    }
+
+    function setActiveThumb(btn) {
+      document.querySelectorAll('.rv-thumb').forEach(function(el) {
+        el.classList.remove('is-active');
+        el.setAttribute('aria-pressed', 'false');
+      });
+      if (btn) {
+        btn.classList.add('is-active');
+        btn.setAttribute('aria-pressed', 'true');
+      }
+    }
+
+    function loadRoomImage(src) {
+      showLoading(true);
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        roomImg = img;
+        canvas.width = img.width;
+        canvas.height = img.height;
+        vaseX = canvas.width / 2;
+        vaseY = canvas.height / 1.5;
+        if (prompt) prompt.classList.add('hidden');
+        showLoading(false);
+        draw();
+        showDragHintOnce();
+      };
+      img.onerror = function() {
+        showLoading(false);
+        showError("Cette photo n'a pas pu être chargée. Essayez-en une autre.");
+      };
+      img.src = src;
     }
 
     // Room presets click listeners
-    document.querySelectorAll('.room-preset-btn').forEach(btn => {
+    document.querySelectorAll('.room-preset-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
         const url = this.getAttribute('data-room-preset');
         if (!url) return;
-        roomImg = new Image();
-        roomImg.crossOrigin = 'anonymous';
-        roomImg.onload = function() {
-          canvas.width = roomImg.width;
-          canvas.height = roomImg.height;
-          vaseX = canvas.width / 2;
-          vaseY = canvas.height / 1.5;
-          if (prompt) prompt.classList.add('hidden');
-          draw();
-        };
-        roomImg.src = url;
+        setActiveThumb(this);
+        loadRoomImage(url);
       });
     });
 
     function handleFile(e) {
       const file = e.target.files[0];
       if (!file) return;
+      if (!file.type || file.type.indexOf('image/') !== 0) {
+        showError('Merci de choisir un fichier image (JPG, PNG...).');
+        return;
+      }
+      setActiveThumb(null);
       const reader = new FileReader();
       reader.onload = function(evt) {
-        roomImg = new Image();
-        roomImg.onload = function() {
-          canvas.width = roomImg.width;
-          canvas.height = roomImg.height;
-          vaseX = canvas.width / 2;
-          vaseY = canvas.height / 1.5;
-          if (prompt) prompt.classList.add('hidden');
-          draw();
-        };
-        roomImg.src = evt.target.result;
+        loadRoomImage(evt.target.result);
+      };
+      reader.onerror = function() {
+        showError("La lecture de l'image a échoué. Réessayez.");
       };
       reader.readAsDataURL(file);
     }
@@ -4765,9 +4965,9 @@ document.addEventListener('DOMContentLoaded', function() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(roomImg, 0, 0, canvas.width, canvas.height);
 
-      const renderSource = transparentVaseCanvas || vaseImg;
+      const renderSource = transparentVaseCanvas || (vaseReady ? vaseImg : null);
       if (renderSource && (renderSource.width || renderSource.naturalWidth)) {
-        const scale = parseFloat(scaleInput.value) || 0.7;
+        const scale = parseFloat(scaleInput.value) || DEFAULT_SCALE;
         const rotate = (parseFloat(rotateInput.value) || 0) * Math.PI / 180;
         const sWidth = renderSource.width || renderSource.naturalWidth;
         const sHeight = renderSource.height || renderSource.naturalHeight;
@@ -4788,27 +4988,89 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    if (scaleInput) scaleInput.addEventListener('input', draw);
-    if (rotateInput) rotateInput.addEventListener('input', draw);
+    function updateReadouts() {
+      if (scaleValue) scaleValue.textContent = Math.round((parseFloat(scaleInput.value) || 0) * 100) + '%';
+      if (rotateValue) rotateValue.textContent = Math.round(parseFloat(rotateInput.value) || 0) + '°';
+    }
+    updateReadouts();
+
+    if (scaleInput) scaleInput.addEventListener('input', function() { updateReadouts(); draw(); });
+    if (rotateInput) rotateInput.addEventListener('input', function() { updateReadouts(); draw(); });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        scaleInput.value = DEFAULT_SCALE;
+        rotateInput.value = DEFAULT_ROTATE;
+        updateReadouts();
+        if (roomImg) {
+          vaseX = canvas.width / 2;
+          vaseY = canvas.height / 1.5;
+        }
+        draw();
+      });
+    }
+
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function() {
+        if (!roomImg) {
+          showError("Ajoutez d'abord une photo de votre pièce.");
+          return;
+        }
+        try {
+          const dataUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = 'paintello-visualisation.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (e) {
+          console.warn('Download failed:', e.message);
+          showError('Le téléchargement a échoué pour cette photo.');
+        }
+      });
+    }
 
     let isDragging = false;
-    canvas.addEventListener('mousedown', (e) => {
+    canvas.addEventListener('mousedown', function(e) {
       isDragging = true;
+      hasMoved = true;
+      if (dragHint) dragHint.classList.remove('show');
       updatePos(e);
     });
-    canvas.addEventListener('mousemove', (e) => {
+    canvas.addEventListener('mousemove', function(e) {
       if (isDragging) updatePos(e);
     });
-    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mouseup', function() { isDragging = false; });
 
-    canvas.addEventListener('touchstart', (e) => {
+    canvas.addEventListener('touchstart', function(e) {
       isDragging = true;
+      hasMoved = true;
+      if (dragHint) dragHint.classList.remove('show');
       updatePos(e.touches[0]);
-    });
-    canvas.addEventListener('touchmove', (e) => {
+    }, { passive: true });
+    canvas.addEventListener('touchmove', function(e) {
       if (isDragging) updatePos(e.touches[0]);
+    }, { passive: true });
+    window.addEventListener('touchend', function() { isDragging = false; });
+
+    // Déplacement au clavier (accessibilité) : flèches = 8px, Maj+flèche = 25px
+    canvas.addEventListener('keydown', function(e) {
+      if (!roomImg) return;
+      const step = e.shiftKey ? 25 : 8;
+      let moved = true;
+      if (e.key === 'ArrowLeft') vaseX -= step;
+      else if (e.key === 'ArrowRight') vaseX += step;
+      else if (e.key === 'ArrowUp') vaseY -= step;
+      else if (e.key === 'ArrowDown') vaseY += step;
+      else moved = false;
+      if (moved) {
+        e.preventDefault();
+        hasMoved = true;
+        if (dragHint) dragHint.classList.remove('show');
+        draw();
+      }
     });
-    window.addEventListener('touchend', () => isDragging = false);
 
     function updatePos(evt) {
       const rect = canvas.getBoundingClientRect();
