@@ -2482,9 +2482,10 @@ input:focus, select:focus, textarea:focus {
 
 
           <!-- Room Visualizer Simulation Button -->
-          <div class="mt-4">
-            <button type="button" id="openRoomVisualizerBtn" aria-haspopup="dialog" aria-controls="roomVisualizerModal" class="w-full py-2.5 border border-slate-900 text-slate-900 text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-slate-900 hover:text-white transition flex items-center justify-center gap-2">
-              <i class="fa-solid fa-camera text-sm"></i> Visualiser Dans Votre Pièce
+          <div class="mt-4 rv-trigger-wrap">
+            <span class="rv-trigger-badge">✨ Essayez</span>
+            <button type="button" id="openRoomVisualizerBtn" aria-haspopup="dialog" aria-controls="roomVisualizerModal" class="rv-trigger-btn w-full py-2.5 border border-slate-900 text-slate-900 text-xs font-semibold uppercase tracking-wider rounded-lg hover:bg-slate-900 hover:text-white transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-camera text-sm rv-trigger-icon"></i> Visualiser Dans Votre Pièce
             </button>
           </div>
 <% if (relatedProducts && relatedProducts.length) { %>
@@ -4643,6 +4644,36 @@ document.addEventListener('DOMContentLoaded', function() {
   @media (max-width: 480px) {
     .rv-thumb { width: 56px; height: 56px; }
   }
+
+  /* Attire l'oeil sur le bouton déclencheur, sur la fiche produit */
+  .rv-trigger-wrap { position: relative; }
+  .rv-trigger-badge {
+    position: absolute; top: -9px; right: 10px; z-index: 1;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .03em;
+    padding: 3px 8px; border-radius: 999px;
+    box-shadow: 0 2px 6px rgba(217,119,6,.4);
+    pointer-events: none;
+    animation: rvBadgePulse 2.4s ease-in-out infinite;
+  }
+  .rv-trigger-btn { animation: rvRingPulse 2.4s ease-in-out infinite; }
+  .rv-trigger-icon { display: inline-block; animation: rvIconPulse 2.4s ease-in-out infinite; }
+  @keyframes rvBadgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  @keyframes rvRingPulse {
+    0% { box-shadow: 0 0 0 0 rgba(245,158,11,.45); }
+    70% { box-shadow: 0 0 0 8px rgba(245,158,11,0); }
+    100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+  }
+  @keyframes rvIconPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rv-trigger-badge, .rv-trigger-btn, .rv-trigger-icon { animation: none; }
+  }
 </style>
 
 <!-- Virtual Room Visualizer Staging Modal -->
@@ -4654,7 +4685,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <h3 id="roomVisualizerTitle" class="text-base font-bold text-slate-900 uppercase flex items-center gap-2">
           <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i> Simulation Dans Votre Intérieur
         </h3>
-        <p class="text-xs text-slate-500 mt-1">Importez une photo de votre pièce ou choisissez un exemple, puis glissez l'objet pour le repositionner.</p>
+        <p class="text-xs text-slate-500 mt-1">Importez une photo de votre pièce ou choisissez un exemple, puis déplacez, redimensionnez et faites pivoter l'objet directement à la main.</p>
       </div>
       <button type="button" id="closeRoomModalBtn" class="rv-close-btn" aria-label="Fermer">&times;</button>
     </div>
@@ -4702,7 +4733,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <input type="file" id="roomImageInput" accept="image/*" class="hidden">
         </label>
       </div>
-      <div id="roomDragHint" class="rv-drag-hint"><i class="fa-solid fa-arrows-up-down-left-right"></i> Glissez pour repositionner</div>
+      <div id="roomDragHint" class="rv-drag-hint"><i class="fa-solid fa-arrows-up-down-left-right"></i> Glissez pour déplacer, ou utilisez les poignées</div>
       <div id="roomLoadingOverlay" class="rv-loading"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
       <div id="roomErrorMsg" class="rv-error"></div>
     </div>
@@ -4712,8 +4743,8 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex items-center gap-2">
           <label for="vaseScaleInput" class="font-semibold text-slate-700">Taille:</label>
-          <input type="range" id="vaseScaleInput" min="0.2" max="2" step="0.05" value="0.7" class="w-24 accent-slate-900">
-          <span id="vaseScaleValue" class="text-slate-400 font-medium">70%</span>
+          <input type="range" id="vaseScaleInput" min="0.2" max="2.5" step="0.05" value="1" class="w-24 accent-slate-900">
+          <span id="vaseScaleValue" class="text-slate-400 font-medium">100%</span>
         </div>
         <div class="flex items-center gap-2">
           <label for="vaseRotateInput" class="font-semibold text-slate-700">Rotation:</label>
@@ -4794,8 +4825,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let hasMoved = false;
     let previousBodyOverflow = '';
 
-    const DEFAULT_SCALE = 0.7;
+    const BASE_SIZE_FACTOR = 0.32; // largeur du vase = fraction de la largeur de la photo, à scale = 1
+    const MIN_SCALE = 0.2;
+    const MAX_SCALE = 2.5;
+    const DEFAULT_SCALE = 1;
     const DEFAULT_ROTATE = 0;
+    const HANDLE_RADIUS_CSS = 9;       // rayon visuel des poignées, en pixels écran
+    const HANDLE_HIT_CSS = 20;         // rayon de détection au clic/tap, en pixels écran
+    const ROTATE_HANDLE_GAP_CSS = 26;  // distance de la poignée de rotation au-dessus du cadre
 
     vaseImg.crossOrigin = 'anonymous';
     vaseImg.onload = function() {
@@ -4960,32 +4997,114 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imgInput) imgInput.addEventListener('change', handleFile);
     if (imgInputAlt) imgInputAlt.addEventListener('change', handleFile);
 
+    function getDisplayScale() {
+      const rect = canvas.getBoundingClientRect();
+      return rect.width ? (canvas.width / rect.width) : 1;
+    }
+
+    function getVaseGeometry() {
+      const renderSource = transparentVaseCanvas || (vaseReady ? vaseImg : null);
+      if (!renderSource) return null;
+      const sWidth = renderSource.width || renderSource.naturalWidth;
+      const sHeight = renderSource.height || renderSource.naturalHeight;
+      if (!sWidth || !sHeight) return null;
+      const scale = parseFloat(scaleInput.value) || DEFAULT_SCALE;
+      const rotation = (parseFloat(rotateInput.value) || 0) * Math.PI / 180;
+      const vWidth = canvas.width * BASE_SIZE_FACTOR * scale;
+      const vHeight = vWidth * (sHeight / sWidth);
+      return { renderSource, vWidth, vHeight, rotation };
+    }
+
     function draw() {
       if (!ctx || !roomImg) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(roomImg, 0, 0, canvas.width, canvas.height);
 
-      const renderSource = transparentVaseCanvas || (vaseReady ? vaseImg : null);
-      if (renderSource && (renderSource.width || renderSource.naturalWidth)) {
-        const scale = parseFloat(scaleInput.value) || DEFAULT_SCALE;
-        const rotate = (parseFloat(rotateInput.value) || 0) * Math.PI / 180;
-        const sWidth = renderSource.width || renderSource.naturalWidth;
-        const sHeight = renderSource.height || renderSource.naturalHeight;
-        const vWidth = (canvas.width * 0.25) * scale;
-        const vHeight = (vWidth * (sHeight / sWidth));
-
+      const geo = getVaseGeometry();
+      if (geo) {
         ctx.save();
         ctx.translate(vaseX, vaseY);
-        ctx.rotate(rotate);
+        ctx.rotate(geo.rotation);
 
         // Soft natural drop shadow for realistic room integration
         ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
         ctx.shadowBlur = 15;
         ctx.shadowOffsetY = 10;
 
-        ctx.drawImage(renderSource, -vWidth / 2, -vHeight / 2, vWidth, vHeight);
+        ctx.drawImage(geo.renderSource, -geo.vWidth / 2, -geo.vHeight / 2, geo.vWidth, geo.vHeight);
         ctx.restore();
+
+        drawHandles(geo, getDisplayScale());
       }
+    }
+
+    // Cadre + poignées : rond en haut pour pivoter, carré au coin pour redimensionner
+    function drawHandles(geo, d) {
+      const handleR = HANDLE_RADIUS_CSS * d;
+      const gap = ROTATE_HANDLE_GAP_CSS * d;
+      const hw = geo.vWidth / 2;
+      const hh = geo.vHeight / 2;
+
+      ctx.save();
+      ctx.translate(vaseX, vaseY);
+      ctx.rotate(geo.rotation);
+
+      ctx.lineWidth = 3 * d;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.strokeRect(-hw, -hh, geo.vWidth, geo.vHeight);
+      ctx.lineWidth = 1.25 * d;
+      ctx.strokeStyle = 'rgba(15,23,42,0.9)';
+      ctx.strokeRect(-hw, -hh, geo.vWidth, geo.vHeight);
+
+      ctx.beginPath();
+      ctx.moveTo(0, -hh);
+      ctx.lineTo(0, -hh - gap);
+      ctx.lineWidth = 1.5 * d;
+      ctx.strokeStyle = 'rgba(15,23,42,0.85)';
+      ctx.stroke();
+
+      drawHandleDot(0, -hh - gap, handleR, d, true);
+      drawHandleDot(hw, hh, handleR, d, false);
+
+      ctx.restore();
+    }
+
+    function drawHandleDot(x, y, r, d, round) {
+      ctx.beginPath();
+      if (round) {
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+      } else {
+        ctx.rect(x - r, y - r, r * 2, r * 2);
+      }
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+      ctx.lineWidth = 2 * d;
+      ctx.strokeStyle = '#0f172a';
+      ctx.stroke();
+    }
+
+    // Coordonnées locales (non tournées) d'un point du canvas, relatives au centre du vase
+    function toLocalPoint(px, py, rotation) {
+      const dx = px - vaseX;
+      const dy = py - vaseY;
+      const cos = Math.cos(-rotation);
+      const sin = Math.sin(-rotation);
+      return { x: dx * cos - dy * sin, y: dx * sin + dy * cos };
+    }
+
+    function hitTestHandles(canvasX, canvasY) {
+      const geo = getVaseGeometry();
+      if (!geo) return null;
+      const d = getDisplayScale();
+      const hitR = HANDLE_HIT_CSS * d;
+      const gap = ROTATE_HANDLE_GAP_CSS * d;
+      const hw = geo.vWidth / 2;
+      const hh = geo.vHeight / 2;
+      const local = toLocalPoint(canvasX, canvasY, geo.rotation);
+
+      if (Math.hypot(local.x, local.y - (-hh - gap)) <= hitR) return 'rotate';
+      if (Math.hypot(local.x - hw, local.y - hh) <= hitR) return 'resize';
+      return null;
     }
 
     function updateReadouts() {
@@ -5031,28 +5150,79 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     }
 
-    let isDragging = false;
-    canvas.addEventListener('mousedown', function(e) {
-      isDragging = true;
+    let dragMode = null; // 'move' | 'resize' | 'rotate' | null
+    let resizeStart = null;
+
+    function canvasPointFromEvent(evt) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / (rect.width || 1);
+      const scaleY = canvas.height / (rect.height || 1);
+      return {
+        x: (evt.clientX - rect.left) * scaleX,
+        y: (evt.clientY - rect.top) * scaleY
+      };
+    }
+
+    function startInteraction(evt) {
+      if (!roomImg) return;
       hasMoved = true;
       if (dragHint) dragHint.classList.remove('show');
-      updatePos(e);
-    });
-    canvas.addEventListener('mousemove', function(e) {
-      if (isDragging) updatePos(e);
-    });
-    window.addEventListener('mouseup', function() { isDragging = false; });
+      const pt = canvasPointFromEvent(evt);
+      const hit = hitTestHandles(pt.x, pt.y);
+      if (hit === 'rotate') {
+        dragMode = 'rotate';
+      } else if (hit === 'resize') {
+        dragMode = 'resize';
+        resizeStart = {
+          distance: Math.max(1, Math.hypot(pt.x - vaseX, pt.y - vaseY)),
+          scale: parseFloat(scaleInput.value) || DEFAULT_SCALE
+        };
+      } else {
+        dragMode = 'move';
+        vaseX = pt.x;
+        vaseY = pt.y;
+      }
+      draw();
+    }
+
+    function continueInteraction(evt) {
+      if (!dragMode) return;
+      const pt = canvasPointFromEvent(evt);
+      if (dragMode === 'move') {
+        vaseX = pt.x;
+        vaseY = pt.y;
+      } else if (dragMode === 'resize') {
+        const dist = Math.max(1, Math.hypot(pt.x - vaseX, pt.y - vaseY));
+        let newScale = resizeStart.scale * (dist / resizeStart.distance);
+        newScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+        scaleInput.value = newScale.toFixed(2);
+        updateReadouts();
+      } else if (dragMode === 'rotate') {
+        const dx = pt.x - vaseX;
+        const dy = pt.y - vaseY;
+        const deg = Math.round(Math.atan2(dx, -dy) * 180 / Math.PI);
+        rotateInput.value = deg;
+        updateReadouts();
+      }
+      draw();
+    }
+
+    function endInteraction() {
+      dragMode = null;
+      resizeStart = null;
+    }
+
+    canvas.addEventListener('mousedown', startInteraction);
+    canvas.addEventListener('mousemove', continueInteraction);
+    window.addEventListener('mouseup', endInteraction);
 
     canvas.addEventListener('touchstart', function(e) {
-      isDragging = true;
-      hasMoved = true;
-      if (dragHint) dragHint.classList.remove('show');
-      updatePos(e.touches[0]);
+      startInteraction(e.touches[0]);
     }, { passive: true });
     canvas.addEventListener('touchmove', function(e) {
-      if (isDragging) updatePos(e.touches[0]);
+      continueInteraction(e.touches[0]);
     }, { passive: true });
-    window.addEventListener('touchend', function() { isDragging = false; });
+    window.addEventListener('touchend', endInteraction);
 
     // Déplacement au clavier (accessibilité) : flèches = 8px, Maj+flèche = 25px
     canvas.addEventListener('keydown', function(e) {
@@ -5072,14 +5242,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    function updatePos(evt) {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      vaseX = (evt.clientX - rect.left) * scaleX;
-      vaseY = (evt.clientY - rect.top) * scaleY;
-      draw();
-    }
   });
 </script>
 
