@@ -4828,11 +4828,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const BASE_SIZE_FACTOR = 0.32; // largeur du vase = fraction de la largeur de la photo, à scale = 1
     const MIN_SCALE = 0.2;
     const MAX_SCALE = 2.5;
-    const DEFAULT_SCALE = 1;
+    const DEFAULT_SCALE = 1;          // taille de départ pour les exemples de pièces (déjà bien cadrés)
+    const UPLOAD_DEFAULT_SCALE = 1.6; // taille de départ pour une photo importée (souvent un plan plus large)
     const DEFAULT_ROTATE = 0;
     const HANDLE_RADIUS_CSS = 9;       // rayon visuel des poignées, en pixels écran
     const HANDLE_HIT_CSS = 20;         // rayon de détection au clic/tap, en pixels écran
     const ROTATE_HANDLE_GAP_CSS = 26;  // distance de la poignée de rotation au-dessus du cadre
+    let isCurrentPhotoPreset = true;   // la photo actuelle est-elle un exemple ou une importation du client ?
 
     vaseImg.crossOrigin = 'anonymous';
     vaseImg.onload = function() {
@@ -4944,7 +4946,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
 
-    function loadRoomImage(src) {
+    function loadRoomImage(src, isPreset) {
       showLoading(true);
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -4954,6 +4956,10 @@ document.addEventListener('DOMContentLoaded', function() {
         canvas.height = img.height;
         vaseX = canvas.width / 2;
         vaseY = canvas.height / 1.5;
+        isCurrentPhotoPreset = !!isPreset;
+        scaleInput.value = isCurrentPhotoPreset ? DEFAULT_SCALE : UPLOAD_DEFAULT_SCALE;
+        rotateInput.value = DEFAULT_ROTATE;
+        updateReadouts();
         if (prompt) prompt.classList.add('hidden');
         showLoading(false);
         draw();
@@ -4972,7 +4978,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = this.getAttribute('data-room-preset');
         if (!url) return;
         setActiveThumb(this);
-        loadRoomImage(url);
+        loadRoomImage(url, true);
       });
     });
 
@@ -4986,7 +4992,7 @@ document.addEventListener('DOMContentLoaded', function() {
       setActiveThumb(null);
       const reader = new FileReader();
       reader.onload = function(evt) {
-        loadRoomImage(evt.target.result);
+        loadRoomImage(evt.target.result, false);
       };
       reader.onerror = function() {
         showError("La lecture de l'image a échoué. Réessayez.");
@@ -5118,7 +5124,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (resetBtn) {
       resetBtn.addEventListener('click', function() {
-        scaleInput.value = DEFAULT_SCALE;
+        scaleInput.value = isCurrentPhotoPreset ? DEFAULT_SCALE : UPLOAD_DEFAULT_SCALE;
         rotateInput.value = DEFAULT_ROTATE;
         updateReadouts();
         if (roomImg) {
